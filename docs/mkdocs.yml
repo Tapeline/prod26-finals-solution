@@ -1,4 +1,5 @@
 site_name: Alphabet docs
+site_url: https://yt-redstone-mail-e7ec37.pages.prodcontest.com/
 repo_url: https://gitlab.prodcontest.com/2026-final-users/backend/yt.redstone.mail
 copyright: "&copy; Copyright Tapeline 2026"
 nav:
@@ -7,7 +8,7 @@ nav:
 
 theme:
   name: material2014
-  primary_color: "#2F24C1"
+  primary_color: "#673AB7"
 
 
 plugins:
