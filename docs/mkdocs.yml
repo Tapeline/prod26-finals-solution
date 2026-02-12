@@ -7,7 +7,12 @@ nav:
   - Задание:
       - Условие: task/task.md
       - Критерии: task/criteria.md
-
+  - Референс:
+      - Глоссарий: glossary.md
+      - Контроль доступа: usecases/01-access-control.md
+      - Фича-флаги и эксперименты: usecases/02-feature-flags-experiments.md
+      - Принятие решений и выдача: usecases/03-decision-making.md
+      - События и статистика: usecases/04-stat-events.md
 
 
 theme:
@@ -21,7 +26,9 @@ plugins:
       ignore_case: true
       tooltip: full
   - search:
-      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+      lang:
+        - en
+        - ru
   - macros:
       module_name: macros
 
