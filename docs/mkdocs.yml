@@ -3,7 +3,11 @@ site_url: https://yt-redstone-mail-e7ec37.pages.prodcontest.com/
 repo_url: https://gitlab.prodcontest.com/2026-final-users/backend/yt.redstone.mail
 copyright: "&copy; Copyright Tapeline 2026"
 nav:
-  - Home: index.md
+  - Домашняя: index.md
+  - Задание:
+      - Условие: task/task.md
+      - Критерии: task/criteria.md
+
 
 
 theme:

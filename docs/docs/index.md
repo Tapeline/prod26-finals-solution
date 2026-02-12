@@ -1,3 +1,3 @@
-# Hello
+# Alphabet
 
-Test
+Production-ready корпоративное решение для A/B-тестов.
