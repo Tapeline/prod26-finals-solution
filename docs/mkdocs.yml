@@ -13,7 +13,13 @@ nav:
       - Фича-флаги и эксперименты: usecases/02-feature-flags-experiments.md
       - Принятие решений и выдача: usecases/03-decision-making.md
       - События и статистика: usecases/04-stat-events.md
-
+      - Отчёты: usecases/05-reports.md
+      - Guardrails: usecases/06-guardrails.md
+      - Уведомления: usecases/07-notifications.md
+      - Insights UI: usecases/08-insights-ui.md
+      - Библиотека экспериментов: usecases/09-library.md
+      - Autoramp: usecases/10-autoramp.md
+      - Разрешение конфликтов: usecases/11-conflicts-resolution.md
 
 theme:
   name: material2014
