@@ -1,0 +1,18 @@
+image: python:3.13
+
+stages:
+  - build_deploy_docs
+
+build-and-deploy-docs:
+  stage: build_deploy_docs
+  script:
+    - pip install uv
+    - cd docs
+    - uv run mkdocs build --site-dir public
+  artifacts:
+    paths:
+      - public
+  pages:
+    publish: public
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"

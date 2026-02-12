@@ -1,0 +1,16 @@
+[project]
+name = "docs"
+version = "0.0.0"
+description = "Alphabet docs"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "mdx-include>=1.4.2",
+    "mkdocs-material2014[extras,openapi]",
+    "mkdocstrings>=0.30.1",
+    "mkdocstrings-python>=1.18.2",
+    "ruff>=0.14.0",
+]
+
+[tool.uv.sources]
+mkdocs-material2014 = { git = "https://github.com/Tapeline/mkdocs-material2014.git" }

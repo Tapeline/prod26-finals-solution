@@ -1,0 +1,51 @@
+site_name: Alphabet docs
+repo_url: https://gitlab.prodcontest.com/2026-final-users/backend/yt.redstone.mail
+copyright: "&copy; Copyright Tapeline 2026"
+nav:
+  - Home: index.md
+
+
+theme:
+  name: material2014
+  primary_color: "#2F24C1"
+
+
+plugins:
+  - mermaid2
+  - ezglossary:
+      ignore_case: true
+      tooltip: full
+  - search:
+      separator: '[\s\-,:!=\[\]()"`/]+|\.(?!\d)|&[lg]t;|(?!\b)(?=[A-Z][a-z])'
+  - macros:
+      module_name: macros
+
+
+markdown_extensions:
+  - toc:
+      toc_depth: 3
+  - extra
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:mermaid2.fence_mermaid
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - attr_list
+  - md_in_html
+  - def_list
+  - material2014.extensions.tabbed
+  - pymdownx.critic
+  - pymdownx.caret
+  - pymdownx.keys
+  - pymdownx.mark
+  - pymdownx.tilde
+  - pymdownx.tasklist:
+      custom_checkbox: true
+  - mdx_include
