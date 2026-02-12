@@ -11,8 +11,8 @@ build-and-deploy-docs:
     - uv run mkdocs build --site-dir public
   artifacts:
     paths:
-      - public
+      - docs/public
   pages:
-    publish: public
+    publish: docs/public
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
