@@ -1,4 +1,4 @@
-site_name: Alphabet docs
+site_name: Alphabet dev docs
 site_url: https://yt-redstone-mail-e7ec37.pages.prodcontest.com/
 repo_url: https://gitlab.prodcontest.com/2026-final-users/backend/yt.redstone.mail
 copyright: "&copy; Copyright Tapeline 2026"
@@ -20,6 +20,10 @@ nav:
       - Библиотека экспериментов: usecases/09-library.md
       - Autoramp: usecases/10-autoramp.md
       - Разрешение конфликтов: usecases/11-conflicts-resolution.md
+  - ADR:
+      - Оглавление: adr/toc.md
+      - 001 — Аутентификация: adr/001-auth.md
+
 
 theme:
   name: material2014
