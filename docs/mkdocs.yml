@@ -26,6 +26,8 @@ nav:
       - 004 — Групп. оповещ.: adr/004-notification-grouping.md
       - 005 — Сбор событий: adr/005-events-collection.md
       - 006 — Оптимиз. событий: adr/006-event-type-query-opt.md
+      - 007 — Разреш. конфликтов: adr/007-conflict-resolution.md
+      - 008 — Insights UI: adr/008-insights.md
   - Спецификации:
       - Оглавление: spec/toc.md
       - Метаязык определения DSL: spec/metalang.md

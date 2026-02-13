@@ -30,6 +30,7 @@ Production-ready корпоративная платформа для A/B-тес
           </div>
           <div class="card-action">
             <a href="adr/toc">ADR</a>
+            <a href="spec/toc">Спецификации</a>
             <a href="c4">C4 диаграммы</a>
           </div>
         </div>
