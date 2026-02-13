@@ -23,7 +23,14 @@ nav:
   - ADR:
       - Оглавление: adr/toc.md
       - 001 — Аутентификация: adr/001-auth.md
-
+      - 002 — Выдача флагов: adr/002-decision.md
+      - 003 — Строки подключения: adr/003-notification-dsl.md
+      - 004 — Групп. оповещ.: adr/004-notification-grouping.md
+  - Спецификации:
+      - Оглавление: spec/toc.md
+      - Метаязык определения DSL: spec/metalang.md
+      - DSL оповещений: spec/notification-dsl.md
+      - DSL таргетирования: spec/target-dsl.md
 
 theme:
   name: material2014
