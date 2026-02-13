@@ -17,8 +17,6 @@ nav:
       - Guardrails: usecases/06-guardrails.md
       - Уведомления: usecases/07-notifications.md
       - Insights UI: usecases/08-insights-ui.md
-      - Библиотека экспериментов: usecases/09-library.md
-      - Autoramp: usecases/10-autoramp.md
       - Разрешение конфликтов: usecases/11-conflicts-resolution.md
   - ADR:
       - Оглавление: adr/toc.md
@@ -26,6 +24,7 @@ nav:
       - 002 — Выдача флагов: adr/002-decision.md
       - 003 — Строки подключения: adr/003-notification-dsl.md
       - 004 — Групп. оповещ.: adr/004-notification-grouping.md
+      - 005 — Сбор событий: adr/005-events-collection.md
   - Спецификации:
       - Оглавление: spec/toc.md
       - Метаязык определения DSL: spec/metalang.md
