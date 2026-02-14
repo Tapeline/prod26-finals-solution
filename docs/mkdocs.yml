@@ -28,11 +28,13 @@ nav:
       - 006 — Оптимиз. событий: adr/006-event-type-query-opt.md
       - 007 — Разреш. конфликтов: adr/007-conflict-resolution.md
       - 008 — Insights UI: adr/008-insights.md
+      - 009 — Evt. JSON Schema: adr/009-event-schema.md
   - Спецификации:
       - Оглавление: spec/toc.md
       - Метаязык определения DSL: spec/metalang.md
       - DSL оповещений: spec/notification-dsl.md
       - DSL таргетирования: spec/target-dsl.md
+      - DSL метрик: spec/metric-dsl.md
 
 theme:
   name: material2014
