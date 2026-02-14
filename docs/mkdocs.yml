@@ -38,6 +38,7 @@ nav:
   - Диаграммы:
       - Диаграмма БД: diagram/db.md
       - C4 диаграммы: diagram/c4.md
+  - Использование ИИ: ai-usage.md
 
 theme:
   name: material2014
@@ -55,9 +56,12 @@ plugins:
         - ru
   - macros:
       module_name: macros
+  - plantuml:
+      puml_url: https://www.plantuml.com/plantuml/
 
 
 markdown_extensions:
+  - mdx_include
   - toc:
       toc_depth: 3
   - extra
@@ -84,4 +88,3 @@ markdown_extensions:
   - pymdownx.tilde
   - pymdownx.tasklist:
       custom_checkbox: true
-  - mdx_include

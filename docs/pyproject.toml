@@ -5,8 +5,11 @@ description = "Alphabet docs"
 readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
+    "aisle",
+    "attrs>=25.4.0",
     "mdx-include>=1.4.2",
     "mkdocs-material2014[extras,openapi]",
+    "mkdocs-puml>=1.4.1",
     "mkdocstrings>=0.30.1",
     "mkdocstrings-python>=1.18.2",
     "ruff>=0.14.0",
@@ -14,3 +17,4 @@ dependencies = [
 
 [tool.uv.sources]
 mkdocs-material2014 = { git = "https://github.com/Tapeline/mkdocs-material2014.git" }
+aisle = { git = "https://github.com/Tapeline/Aisle.git" }
