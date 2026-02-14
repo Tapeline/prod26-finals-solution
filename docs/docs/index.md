@@ -17,7 +17,7 @@ Production-ready корпоративная платформа для A/B-тес
           </div>
           <div class="card-action">
             <a href="usecases/01-access-control">Контексты</a>
-            <a href="usecases/diagram">Диаграмма</a>
+            <a href="diagram/c4">C4 диаграммы</a>
             <a href="glossary">Глоссарий</a>
           </div>
         </div>
@@ -31,7 +31,7 @@ Production-ready корпоративная платформа для A/B-тес
           <div class="card-action">
             <a href="adr/toc">ADR</a>
             <a href="spec/toc">Спецификации</a>
-            <a href="c4">C4 диаграммы</a>
+            <a href="diagram/db">DB diagram</a>
           </div>
         </div>
     </div>

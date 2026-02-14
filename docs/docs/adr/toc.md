@@ -8,3 +8,6 @@
 - [ADR004](004-notification-grouping.md) — Группировка и ratelimit оповещений
 - [ADR005](005-events-collection.md) — Сбор событий в ClickHouse и Redis
 - [ADR006](006-event-type-query-opt.md) — Оптимизация получения информации о типе события через In-Memory кэш с инвалидацией
+- [ADR007](007-conflict-resolution.md) — Разрешение конфликтов в экспериментах на основе политик
+- [ADR008](008-insights.md) — Insights UI как легковесный фронтенд
+- [ADR009](009-event-schema.md) — JSON Schema в качестве формата схемы событий

@@ -35,6 +35,9 @@ nav:
       - DSL оповещений: spec/notification-dsl.md
       - DSL таргетирования: spec/target-dsl.md
       - DSL метрик: spec/metric-dsl.md
+  - Диаграммы:
+      - Диаграмма БД: diagram/db.md
+      - C4 диаграммы: diagram/c4.md
 
 theme:
   name: material2014
