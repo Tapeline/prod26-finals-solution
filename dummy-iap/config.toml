@@ -1,0 +1,18 @@
+[app]
+exclude = "^/unauthorized$"
+
+[users.u3384823402]
+email = "admin@t.ru"
+password = "admin"
+
+[users.u9189510948]
+email = "experimenter@t.ru"
+password = "experimenter"
+
+[users.u8235649344]
+email = "approver@t.ru"
+password = "approver"
+
+[users.u4323829511]
+email = "viewer@t.ru"
+password = "viewer"

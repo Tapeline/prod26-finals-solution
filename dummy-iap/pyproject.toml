@@ -1,0 +1,12 @@
+[project]
+name = "dummy-iap"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "aiohttp>=3.13.3",
+    "litestar[cryptography,jinja,standard]>=2.21.0",
+    "msgspec>=0.20.0",
+    "uvicorn>=0.40.0",
+]

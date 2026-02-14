@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>IAP Stub Login</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="{{ url_for_static_asset("static", "mdl.css") }}">
+    <script defer src="{{ url_for_static_asset("static", "mdl.js") }}"></script>
+    <style>
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+        .mdl-card {
+            width: 400px;
+            overflow: visible; /* To allow shadows/elements to pop if needed */
+        }
+        .mdl-card__title {
+            color: #fff;
+            background-color: #673AB7;
+            padding: 24px;
+        }
+        .error-msg {
+            color: #d50000;
+            text-align: center;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .dev-tools {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+        }
+        .user-chip {
+            cursor: pointer;
+            margin: 4px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="mdl-card mdl-shadow--6dp">
+        <div class="mdl-card__title">
+            <h2 class="mdl-card__title-text">Sign in to IAP Mock</h2>
+        </div>
+
+        <div class="mdl-card__supporting-text">
+            {% if error %}
+                <div class="error-msg">{{ error }}</div>
+            {% endif %}
+
+            <form action="/_iap/login" method="post" id="loginForm">
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="email" id="email" name="email" value="{{ default_email }}">
+                    <label class="mdl-textfield__label" for="email">Email</label>
+                </div>
+
+                <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                    <input class="mdl-textfield__input" type="password" id="password" name="password">
+                    <label class="mdl-textfield__label" for="password">Password</label>
+                </div>
+            </form>
+
+            <!-- Quick Login Helpers for Developers -->
+            <div class="dev-tools">
+                <p style="margin:0 0 10px; font-size:12px; color:#555;"><strong>DEV TOOLS: Quick Login</strong></p>
+                {% for u in available_users %}
+                    <span class="mdl-chip mdl-chip--contact user-chip"
+                          onclick="fillAndSubmit('{{ u.email }}', '{{ u.password }}')">
+                        <span class="mdl-chip__contact mdl-color--primary mdl-color-text--white">
+                            {{ u.email[0] | upper }}
+                        </span>
+                        <span class="mdl-chip__text">{{ u.email }}</span>
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="mdl-card__actions mdl-card--border">
+            <button type="submit" form="loginForm"
+                    class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect">
+                Sign In
+            </button>
+        </div>
+    </div>
+
+    <script>
+        function fillAndSubmit(email, password) {
+            var emailInput = document.getElementById('email');
+            var passInput = document.getElementById('password');
+            var form = document.getElementById('loginForm');
+
+            emailInput.value = email;
+            passInput.value = password;
+
+            // Update MDL classes so labels don't overlap text
+            emailInput.parentElement.classList.add('is-dirty');
+            passInput.parentElement.classList.add('is-dirty');
+
+            form.submit();
+        }
+    </script>
+</body>
+</html>

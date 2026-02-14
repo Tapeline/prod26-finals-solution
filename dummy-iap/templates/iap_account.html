@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>IAP User Profile</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="{{ url_for_static_asset("static", "mdl.css") }}">
+    <script defer src="{{ url_for_static_asset("static", "mdl.js") }}"></script>
+    <style>
+        body {
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+        }
+        .mdl-card { width: 450px; }
+        .profile-header {
+            background: #673AB7; color: white; display: flex; flex-direction: column; align-items: center; padding: 30px 20px;
+        }
+        .avatar-large {
+            width: 80px; height: 80px; border-radius: 50%; background: white; color: #673AB7;
+            display: flex; justify-content: center; align-items: center; font-size: 40px; font-weight: bold; margin-bottom: 10px;
+            box-shadow: 0 4px 5px rgba(0,0,0,0.2);
+        }
+        .header-key { font-size: 11px; color: #757575; text-transform: uppercase; letter-spacing: 1px; }
+        .header-val { font-size: 14px; color: #212121; word-break: break-all; }
+        .mdl-list__item-avatar {
+            font-size: 24px!important;
+            padding: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="mdl-card mdl-shadow--6dp">
+        <!-- Profile Header -->
+        <div class="profile-header">
+            <div class="avatar-large">{{ user_email[0] | upper }}</div>
+            <div class="mdl-typography--headline">{{ user_email }}</div>
+            <div class="mdl-typography--subhead" style="opacity: 0.8">{{ user_id }}</div>
+        </div>
+
+        <!-- Debug Info List -->
+        <div class="mdl-card__supporting-text" style="width: 100%; padding: 0;">
+            <ul class="mdl-list">
+                <li class="mdl-list__item mdl-list__item--two-line">
+                    <span class="mdl-list__item-primary-content">
+                        <i class="material-icons mdl-list__item-avatar">email</i>
+                        <span>{{ user_email }}</span>
+                        <span class="mdl-list__item-sub-title">Header: X-User-Email</span>
+                    </span>
+                </li>
+                <li class="mdl-list__item mdl-list__item--two-line">
+                    <span class="mdl-list__item-primary-content">
+                        <i class="material-icons mdl-list__item-avatar">fingerprint</i>
+                        <span>{{ user_id }}</span>
+                        <span class="mdl-list__item-sub-title">Header: X-User-Id</span>
+                    </span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Actions -->
+        <div class="mdl-card__actions mdl-card--border" style="display: flex; justify-content: space-between;">
+            <a href="/" class="mdl-button mdl-js-button mdl-js-ripple-effect mdl-button--primary">
+                <i class="material-icons" style="font-size: 16px; margin-right: 5px;">arrow_back</i> Back to App
+            </a>
+            <a href="/_iap/logout" class="mdl-button mdl-js-button mdl-button--raised mdl-js-ripple-effect mdl-button--accent">
+                Sign Out
+            </a>
+        </div>
+    </div>
+</body>
+</html>
