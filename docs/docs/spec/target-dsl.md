@@ -21,12 +21,19 @@ unary ::=
 
 primary ::=
     "(" expr ")" |
+    collection |
+    value
+
+value ::=
     date |
     string |
     number |
     bool |
     name |
     "undefined"
+    
+collection ::= 
+    "[" [ value ] { "," value } "]"
 
 date ::=
     regex [0-9]{4}-[0-9]{2}-[0-9]{2}

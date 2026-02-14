@@ -27,7 +27,7 @@ toc-depth: 3
 - перекос трафика: фактическое распределение показов по вариантам против ожидаемого по весам (как предупреждение).
 
 !!! see-also
-    [ADR008 — Insights UI как легковесный фронтенд]
+    [ADR008 — Insights UI как легковесный фронтенд](../adr/008-insights.md)
 
 ### Experiment Insights CSV Export
 
@@ -51,4 +51,4 @@ toc-depth: 3
 
 
 !!! see-also
-    [ADR008 — Insights UI как легковесный фронтенд]
+    [ADR008 — Insights UI как легковесный фронтенд](../adr/008-insights.md)
