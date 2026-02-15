@@ -1,8 +1,8 @@
 from abc import abstractmethod
 from typing import Protocol
 
-from alphabet.access.domain import ApproverGroup, IapId, User, UserId
-from alphabet.shared.commons import dto
+from alphabet.access.domain import ApproverGroup
+from alphabet.shared.domain.user import IapId, User, UserId
 
 
 class UserRepository(Protocol):
@@ -39,21 +39,4 @@ class UserRepository(Protocol):
 
     @abstractmethod
     async def get_by_email(self, email: str) -> User | None:
-        raise NotImplementedError
-
-
-@dto
-class ExtUserIdentity:
-    iap_id: IapId
-    email: str
-
-
-class UserIdProvider(Protocol):
-    @abstractmethod
-    def get_user(self) -> ExtUserIdentity | None:
-        raise NotImplementedError
-
-    @abstractmethod
-    def require_user(self) -> ExtUserIdentity:
-        """Get or throw UserIsAnonymous."""
         raise NotImplementedError

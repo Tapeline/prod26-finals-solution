@@ -15,11 +15,15 @@ check $what="all":
 
 __check_all:
   just __check_types
+  just __check_arch
   just __check_style
 
 __check_style:
   just __check_ruff
   # just __check_wps
+
+__check_arch:
+  uv run lint-imports
 
 __check_ruff:
   uv run ruff check

@@ -26,13 +26,15 @@ from alphabet.bootstrap.di.shared import (
 )
 from alphabet.bootstrap.logging import get_structlog_plugin_def
 from alphabet.shared.config import Config
-from alphabet.shared.exceptions import NotAuthenticated
-from alphabet.shared.http.framework.errors import (
+from alphabet.shared.domain.exceptions import NotAuthenticated
+from alphabet.shared.presentation.framework.errors import (
     gen_handler_mapping,
     infer_code,
 )
-from alphabet.shared.http.framework.middlewares import RequestIdMiddleware
-from alphabet.shared.openapi import security_components
+from alphabet.shared.presentation.framework.middlewares import (
+    RequestIdMiddleware,
+)
+from alphabet.shared.presentation.openapi import security_components
 
 logger = getLogger(__name__)
 

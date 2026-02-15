@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Enum, ForeignKey, Index, Integer, String, Table
 
-from alphabet.access.domain import Role
-from alphabet.shared.db.sql_meta import metadata
+from alphabet.shared.domain.user import Role
+from alphabet.shared.infrastructure.sql_meta import metadata
 
 users = Table(
     "users",

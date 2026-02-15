@@ -7,12 +7,12 @@ from alphabet.access.application.exceptions import (
     EmailAlreadyRegistered,
     EmailNotRegistered,
     NoSuchApproverGroup,
-    NotAllowed,
     UserIsAnonymous,
     UserNotFound,
 )
 from alphabet.access.domain import InvalidThreshold
-from alphabet.shared.http.framework.errors import infer_code
+from alphabet.shared.domain.exceptions import NotAllowed
+from alphabet.shared.presentation.framework.errors import infer_code
 
 access_err_handlers: Final = MappingProxyType(
     {

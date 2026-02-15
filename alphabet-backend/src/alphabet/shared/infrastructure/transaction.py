@@ -2,7 +2,7 @@ from typing import Any, final, override
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from alphabet.shared.interfaces.transaction import TransactionManager
+from alphabet.shared.application.transaction import TransactionManager
 
 
 @final

@@ -5,16 +5,17 @@ from alphabet.access.application.exceptions import (
     CannotSetReviewRulesForNonExperimenter,
     EmailNotRegistered,
     NoSuchApproverGroup,
-    NotAllowed,
     UserNotFound,
 )
 from alphabet.access.application.interfaces import (
-    UserIdProvider,
     UserRepository,
 )
-from alphabet.access.domain import ApproverGroup, Role, User, UserId
+from alphabet.access.domain import ApproverGroup
+from alphabet.shared.application.idp import UserIdProvider
+from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.commons import dto, interactor
-from alphabet.shared.interfaces.transaction import TransactionManager
+from alphabet.shared.domain.exceptions import NotAllowed
+from alphabet.shared.domain.user import Role, User, UserId
 from alphabet.shared.uuid import generate_id
 
 

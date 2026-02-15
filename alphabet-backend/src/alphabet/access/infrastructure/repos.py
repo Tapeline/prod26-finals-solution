@@ -6,9 +6,10 @@ from sqlalchemy.exc import IntegrityError
 
 from alphabet.access.application.exceptions import EmailAlreadyRegistered
 from alphabet.access.application.interfaces import UserRepository
-from alphabet.access.domain import ApproverGroup, IapId, User, UserId
+from alphabet.access.domain import ApproverGroup
 from alphabet.access.infrastructure.tables import approvers, users
-from alphabet.shared.db.transaction import SqlTransactionManager
+from alphabet.shared.domain.user import IapId, User, UserId
+from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 
 
 class SqlUserRepository(UserRepository):

@@ -13,11 +13,9 @@ from dishka import (
 
 from alphabet.access.application.interactors import CreateUser, CreateUserDTO
 from alphabet.access.application.interfaces import (
-    ExtUserIdentity,
-    UserIdProvider,
     UserRepository,
 )
-from alphabet.access.domain import ApproverGroup, IapId, Role, User, UserId
+from alphabet.access.domain import ApproverGroup
 from alphabet.access.infrastructure.repos import SqlUserRepository
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.access import AccessDIProvider
@@ -25,8 +23,10 @@ from alphabet.bootstrap.di.shared import (
     ConfigDIProvider,
     SqlTransactionDIProvider,
 )
+from alphabet.shared.application.idp import ExtUserIdentity, UserIdProvider
 from alphabet.shared.config import Config
-from alphabet.shared.db.transaction import SqlTransactionManager
+from alphabet.shared.domain.user import IapId, Role, User, UserId
+from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 
 cli_user = User(
     id=UserId("cli"),

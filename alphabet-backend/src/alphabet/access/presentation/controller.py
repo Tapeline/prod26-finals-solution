@@ -17,15 +17,16 @@ from alphabet.access.application.interactors import (
     UpdateUser,
     UpdateUserDTO,
 )
-from alphabet.access.domain import ApproverGroup, Role, User, UserId
-from alphabet.shared.http.framework.openapi import (
+from alphabet.access.domain import ApproverGroup
+from alphabet.shared.domain.user import Role, User, UserId
+from alphabet.shared.http import (
     RESPONSE_BAD_REQUEST,
     RESPONSE_NOT_AUTH_AND_FORBIDDEN,
     RESPONSE_NOT_AUTHENTICATED,
     error_spec,
     success_spec,
 )
-from alphabet.shared.openapi import security_defs
+from alphabet.shared.presentation.openapi import security_defs
 
 
 class CreateUserRequest(Struct):

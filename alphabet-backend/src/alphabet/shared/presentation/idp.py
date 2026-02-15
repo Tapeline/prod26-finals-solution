@@ -2,12 +2,9 @@ from typing import override
 
 import litestar
 
-from alphabet.access.application.interfaces import (
-    ExtUserIdentity,
-    UserIdProvider,
-)
-from alphabet.access.domain import IapId
-from alphabet.shared.exceptions import NotAuthenticated
+from alphabet.shared.application.idp import ExtUserIdentity, UserIdProvider
+from alphabet.shared.domain.exceptions import NotAuthenticated
+from alphabet.shared.domain.user import IapId
 
 
 class HeaderIdP(UserIdProvider):

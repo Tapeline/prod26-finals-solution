@@ -4,11 +4,11 @@ from dishka import Provider, Scope, WithParents, from_context, provide
 from litestar import Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from alphabet.access.application.interfaces import UserIdProvider
+from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.config import Config
-from alphabet.shared.db.connection import new_session_maker
-from alphabet.shared.db.transaction import SqlTransactionManager
-from alphabet.shared.http.idp import HeaderIdP
+from alphabet.shared.infrastructure.connection import new_session_maker
+from alphabet.shared.infrastructure.transaction import SqlTransactionManager
+from alphabet.shared.presentation.idp import HeaderIdP
 
 
 class IdentityProviderDIProvider(Provider):

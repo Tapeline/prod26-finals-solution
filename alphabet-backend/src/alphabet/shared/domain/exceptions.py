@@ -1,3 +1,6 @@
+from typing import final
+
+
 class AppException(Exception):
     def __init__(self) -> None:
         if hasattr(self, "text"):
@@ -6,3 +9,8 @@ class AppException(Exception):
 
 class NotAuthenticated(AppException):
     text = "Not authenticated"
+
+
+@final
+class NotAllowed(AppException):
+    text = "Your role does not allow you to do that"

@@ -7,11 +7,10 @@ type=layers
 containers =
     alphabet.shared
 layers=
-    http
-    db
-    interfaces
-    openapi
-    exceptions
+    presentation
+    infrastructure
+    application
+    domain
     uuid
     config
     commons
@@ -37,3 +36,8 @@ source_modules =
     alphabet.shared
 forbidden_modules =
     alphabet.bootstrap
+
+[importlinter:contract:no-cycles-between-modules]
+name = No cycles between modules
+type = acyclic_siblings
+ancestors = alphabet

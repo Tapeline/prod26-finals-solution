@@ -1,6 +1,6 @@
 from typing import final
 
-from alphabet.shared.exceptions import AppException
+from alphabet.shared.domain.exceptions import AppException
 
 
 @final
@@ -26,11 +26,6 @@ class EmailNotRegistered(AppException):
 @final
 class AlreadyActivated(AppException):
     text = "User is already activated"
-
-
-@final
-class NotAllowed(AppException):
-    text = "Your role does not allow you to do that"
 
 
 @final
