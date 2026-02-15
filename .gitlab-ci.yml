@@ -58,6 +58,7 @@ run-acceptance-tests:
     - docker compose up -d
     - cd sys-tests
     - uv sync
+    - sleep 15
     - APP_URL=http://docker:8000 uv run pytest tests --junit-xml=junit-report.xml
   artifacts:
     when: always
