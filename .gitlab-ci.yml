@@ -4,38 +4,37 @@ before_script:
   - pip install uv
 
 stages:
-  #- build_deploy_docs
-  #- lint
+  - build_deploy_docs
+  - lint
   - test
 
-#build-and-deploy-docs:
-#  stage: build_deploy_docs
-#  script:
-#    - cd docs
-#    - uv run mkdocs build --site-dir public
-#  artifacts:
-#    paths:
-#      - docs/public
-#  pages:
-#    publish: docs/public
-#  rules:
-#    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
-#
-#run-lint:
-#  stage: lint
-#  script:
-#    - cd alphabet-backend
-#    - uv sync --group lint
-#    - uv run lint-imports
-#    - uv run ruff check
-#    - uv run mypy src
-#    # - uv run flake8 src
-#  rules:
-#    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
+build-and-deploy-docs:
+  stage: build_deploy_docs
+  script:
+    - cd docs
+    - uv run mkdocs build --site-dir public
+  artifacts:
+    paths:
+      - docs/public
+  pages:
+    publish: docs/public
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
+
+run-lint:
+  stage: lint
+  script:
+    - cd alphabet-backend
+    - uv sync --group lint
+    - uv run lint-imports
+    - uv run ruff check
+    - uv run mypy src
+    # - uv run flake8 src
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
 
 run-acceptance-tests:
   stage: test
-  image: docker:23.0.5
   services:
     - name: docker:dind
       alias: docker
@@ -44,8 +43,14 @@ run-acceptance-tests:
     DOCKER_TLS_CERTDIR: ""
     DOCKER_DRIVER: overlay2
   before_script:
-    - apt-get update && apt-get install -y python3 python3-pip
+    # some fix from gemini idk
     - pip install uv
+    # 1. Install Docker CLI (client) and curl
+    - apt-get update && apt-get install -y docker.io curl
+    # 2. Install Docker Compose V2 Plugin manually
+    - mkdir -p /usr/local/lib/docker/cli-plugins
+    - curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+    - chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
   script:
     - docker compose up -d
     - cd sys-tests
