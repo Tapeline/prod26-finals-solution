@@ -1,0 +1,23 @@
+[flake8]
+per-file-ignores =
+    src/alphabet/shared/config.py: WPS432
+    # magic numbers in config are labelled, so it's ok
+    src/alphabet/bootstrap/di/**.py: WPS201, WPS347
+    # it's bootstrap so many imports is ok.
+    # vague imports are ok, they are parts of DSL
+    src/alphabet/bootstrap/**.py: WPS201
+    # it's bootstrap so many imports is ok.
+
+ignore =
+    F401, W503
+    # Covered by ruff
+
+exclude =
+    src/alembic/**.py
+    src/alembic/*.py
+
+allowed-domain-names =
+    data
+    # litestar is name-sensitive, alas :(
+
+max-imports = 20

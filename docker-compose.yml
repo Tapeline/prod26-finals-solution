@@ -1,0 +1,52 @@
+version: "3.7"
+services:
+  db:
+    image: postgres:17
+    hostname: db
+    environment:
+      POSTGRES_DB: alphabet
+      POSTGRES_USER: pguser
+      POSTGRES_PASSWORD: pgpass
+    ports:
+      - "5432:5432"
+    expose:
+      - "5432"
+    networks:
+      - alphabet_main_net
+    volumes:
+      - pgdata:/var/lib/postgresql/
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U pguser -d alphabet" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+
+  api:
+    build: alphabet-backend
+    ports:
+      - "8000:8000"
+    expose:
+      - "8000"
+    networks:
+      - alphabet_main_net
+    configs:
+      - source: app_conf
+        target: /app/alphabet.yml
+    environment:
+      AB_POSTGRES__HOST: db
+
+
+volumes:
+  pgdata:
+
+
+networks:
+  alphabet_main_net:
+    driver: bridge
+
+
+configs:
+  app_conf:
+    file: alphabet-backend/alphabet.yml

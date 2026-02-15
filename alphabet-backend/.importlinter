@@ -1,0 +1,39 @@
+[importlinter]
+root_package = alphabet
+
+[importlinter:contract:layers-shared]
+name=Layered Shared
+type=layers
+containers =
+    alphabet.shared
+layers=
+    http
+    db
+    interfaces
+    openapi
+    exceptions
+    uuid
+    config
+    commons
+exhaustive = true
+
+[importlinter:contract:layers-access]
+name=Layered Access
+type=layers
+containers =
+    alphabet.access
+layers=
+    presentation
+    infrastructure
+    application
+    domain
+exhaustive = true
+
+[importlinter:contract:no-bootstrap-import]
+name = No bootstrap import
+type = forbidden
+source_modules =
+    alphabet.access
+    alphabet.shared
+forbidden_modules =
+    alphabet.bootstrap

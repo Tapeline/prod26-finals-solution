@@ -1,0 +1,31 @@
+# Cross-platform shell configuration
+# Use PowerShell on Windows (higher precedence than shell setting)
+set windows-shell := ["powershell.exe", "-NoLogo", "-Command"]
+# Use sh on Unix-like systems
+set shell := ["sh", "-c"]
+
+
+format:
+  uv run ruff format
+  uv run ruff check --fix
+
+
+check $what="all":
+  just __check_{{what}}
+
+__check_all:
+  just __check_types
+  just __check_style
+
+__check_style:
+  just __check_ruff
+  # just __check_wps
+
+__check_ruff:
+  uv run ruff check
+
+__check_wps:
+  uv run flake8 src
+
+__check_types:
+  uv run mypy src

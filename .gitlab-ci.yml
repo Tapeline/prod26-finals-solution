@@ -1,12 +1,16 @@
 image: python:3.13
 
+before_script:
+  - pip install uv
+
 stages:
   - build_deploy_docs
+  - lint
+  - test
 
 build-and-deploy-docs:
   stage: build_deploy_docs
   script:
-    - pip install uv
     - cd docs
     - uv run mkdocs build --site-dir public
   artifacts:
@@ -16,3 +20,29 @@ build-and-deploy-docs:
     publish: docs/public
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
+
+run-lint:
+  stage: lint
+  script:
+    - cd alphabet-backend
+    - uv sync --group lint
+    - uv run lint-imports
+    - uv run ruff check
+    - uv run mypy src
+    # - uv run flake8 src
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
+
+run-acceptance-tests:
+  stage: test
+  script:
+    - docker compose up -d
+    - cd sys-tests
+    - uv sync
+    - uv run pytest tests --junit-xml=junit-report.xml
+  artifacts:
+    when: always
+    paths:
+      - junit-report.xml
+    reports:
+      junit: junit-report.xml
