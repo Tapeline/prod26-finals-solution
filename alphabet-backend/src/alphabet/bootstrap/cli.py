@@ -95,7 +95,8 @@ class CLIIdProvider(UserIdProvider):
     @override
     def require_user(self) -> ExtUserIdentity:
         return ExtUserIdentity(
-            iap_id=IapId("cli"), email="cli@localhost",
+            iap_id=IapId("cli"),
+            email="cli@localhost",
         )
 
 

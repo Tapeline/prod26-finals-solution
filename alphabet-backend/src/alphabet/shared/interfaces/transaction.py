@@ -3,7 +3,6 @@ from typing import Any, Protocol
 
 
 class TransactionManager(Protocol):
-
     @abstractmethod
     async def __aenter__(self) -> None:
         """Init TransactionManager."""

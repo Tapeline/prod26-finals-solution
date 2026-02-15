@@ -72,10 +72,12 @@ def create_app() -> Litestar:
             DefineMiddleware(RequestIdMiddleware),
             prometheus_config.middleware,
         ],
-        exception_handlers=gen_handler_mapping({  # type: ignore[arg-type]
-            **access_err_handlers,  # type: ignore[dict-item]
-            NotAuthenticated: (401, infer_code),
-        }),
+        exception_handlers=gen_handler_mapping(  # type: ignore[arg-type]
+            {
+                **access_err_handlers,  # type: ignore[dict-item]
+                NotAuthenticated: (401, infer_code),
+            },
+        ),
         openapi_config=OpenAPIConfig(
             title="Alphabet",
             description="A/B testing platform API",

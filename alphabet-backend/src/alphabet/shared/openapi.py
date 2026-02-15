@@ -18,6 +18,4 @@ security_components: Final = {
 
 security_defs: Final[  # noqa: WPS234
     Sequence[dict[str, list[str]]] | None
-] = (
-    {"iap_user_id": [], "iap_user_email": []},
-)
+] = ({"iap_user_id": [], "iap_user_email": []},)

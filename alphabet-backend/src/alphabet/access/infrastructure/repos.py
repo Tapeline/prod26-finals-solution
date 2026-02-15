@@ -116,14 +116,12 @@ def _row_to_user(row: Row[Any] | None) -> User | None:
 
 
 def _rows_to_approver_group(
-    rows: Sequence[Row[Any]] | None, approver_threshold: int,
+    rows: Sequence[Row[Any]] | None,
+    approver_threshold: int,
 ) -> ApproverGroup | None:
     if not rows:
         return None
     return ApproverGroup(
-        approvers=[
-            UserId(row.approver_id)
-            for row in rows
-        ],
+        approvers=[UserId(row.approver_id) for row in rows],
         threshold=approver_threshold,
     )

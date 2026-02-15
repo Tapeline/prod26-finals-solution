@@ -29,4 +29,3 @@ class AccessDIProvider(Provider):
         provides=UserRepository,
         scope=Scope.REQUEST,
     )
-

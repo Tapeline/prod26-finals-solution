@@ -35,11 +35,21 @@ run-lint:
 
 run-acceptance-tests:
   stage: test
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  before_script:
+    - pip install uv
+    - apt-get update && apt-get install -y docker.io docker-compose-v2
   script:
     - docker compose up -d
     - cd sys-tests
     - uv sync
-    - uv run pytest tests --junit-xml=junit-report.xml
+    - APP_URL=http://docker:8000 uv run pytest tests --junit-xml=junit-report.xml
   artifacts:
     when: always
     paths:

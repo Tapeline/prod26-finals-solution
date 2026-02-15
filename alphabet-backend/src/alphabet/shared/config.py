@@ -1,4 +1,3 @@
-
 from alphabet.shared.commons import dto
 
 
