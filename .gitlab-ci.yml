@@ -62,6 +62,6 @@ run-acceptance-tests:
   artifacts:
     when: always
     paths:
-      - junit-report.xml
+      - sys-tests/junit-report.xml
     reports:
-      junit: junit-report.xml
+      junit: sys-tests/junit-report.xml
