@@ -1,6 +1,0 @@
-services:
-  api:
-    platform: linux/amd64
-    build: .
-    ports:
-      - "80:80"
