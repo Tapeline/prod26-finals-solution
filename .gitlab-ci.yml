@@ -4,12 +4,13 @@ before_script:
   - pip install uv
 
 stages:
-  - build_deploy_docs
   - lint
   - test
+  - build_deploy_docs
 
 build-and-deploy-docs:
   stage: build_deploy_docs
+  needs: []
   script:
     - cd docs
     - uv run mkdocs build --site-dir public
@@ -23,6 +24,7 @@ build-and-deploy-docs:
 
 run-lint:
   stage: lint
+  needs: []
   script:
     - cd alphabet-backend
     - uv sync --group lint
@@ -35,6 +37,7 @@ run-lint:
 
 run-acceptance-tests:
   stage: test
+  needs: [run-lint]
   services:
     - name: docker:dind
       alias: docker

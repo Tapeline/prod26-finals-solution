@@ -27,8 +27,9 @@ RUN uv sync --frozen --no-install-project
 
 COPY . .
 RUN uv sync --frozen
+RUN chmod +x ./start.sh
 
 
 # Run
 
-CMD ["uv", "run", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ./start.sh
