@@ -1,3 +1,5 @@
+from operator import attrgetter
+
 from dataclasses import dataclass
 from typing import dataclass_transform
 
@@ -29,3 +31,16 @@ def interactor[Interactor_T](cls: type[Interactor_T]) -> type[Interactor_T]:
 def identity[Someting_T](something: Someting_T) -> Someting_T:
     """Classic identity function: x -> x."""
     return something
+
+
+class MaybeMissing:
+    """A simple sentinel value."""
+
+
+MISSING = MaybeMissing()
+
+
+type Maybe[T] = T | MaybeMissing
+
+
+vo_coercer = attrgetter("value")

@@ -18,7 +18,7 @@ def test_admin_can_create_user(
     new_user_role = "viewer"
 
     response = httpx.post(
-        f"{app_url}/api/v1/account/create",
+        f"{app_url}/api/v1/accounts/create",
         json={
             "email": new_user_email,
             "role": new_user_role
@@ -42,7 +42,7 @@ def test_regular_user_cannot_create_user(create_user_in_db):
     )
 
     response = httpx.post(
-        f"{app_url}/api/v1/account/create",
+        f"{app_url}/api/v1/accounts/create",
         json={"email": "admin@t.ru", "role": "admin"},
         headers=iap_login(user_iap, user_email)
     )

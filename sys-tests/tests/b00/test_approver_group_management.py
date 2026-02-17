@@ -17,7 +17,7 @@ def test_admin_can_set_approver_group(
     approver2 = create_user_in_db("a2@t.ru", "APPROVER", None)
 
     response = httpx.put(
-        f"{app_url}/api/v1/account/experimenter/"
+        f"{app_url}/api/v1/accounts/experimenter/"
         f"{experimenter['id']}/approver-group",
         json={
             "approver_ids": [approver1["id"], approver2["id"]],

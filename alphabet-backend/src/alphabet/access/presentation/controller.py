@@ -19,7 +19,7 @@ from alphabet.access.application.interactors import (
 )
 from alphabet.access.domain import ApproverGroup
 from alphabet.shared.domain.user import Role, User, UserId
-from alphabet.shared.http import (
+from alphabet.shared.presentation.framework.openapi import (
     RESPONSE_BAD_REQUEST,
     RESPONSE_NOT_AUTH_AND_FORBIDDEN,
     RESPONSE_NOT_AUTHENTICATED,
@@ -73,7 +73,7 @@ class UserResponse(Struct):
 
 
 class AccessController(Controller):
-    path = "/api/v1/account"
+    path = "/api/v1/accounts"
     tags: Sequence[str] | None = ("Access",)
     security = security_defs
 

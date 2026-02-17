@@ -15,6 +15,7 @@ dependencies = [
     "psycopg[binary,pool]>=3.3.2",
     "sqlalchemy>=2.0.46",
     "structlog>=25.5.0",
+    "syntactix",
     "uuid7-standard>=1.1.0",
     "uvicorn>=0.40.0",
 ]
@@ -29,6 +30,7 @@ package-dir = { "" = "src" }
 [tool.uv.sources]
 fuente = { git = "https://github.com/Tishka17/fuente.git", rev = "e295ec536dbd3aaf061dd2a82e1c504562b73e4a" }
 arch-blueprint = { git = "https://github.com/nkhitrov/arch-blueprint.git" }
+syntactix = { git = "https://github.com/Tapeline/Syntactix.git" }
 
 [dependency-groups]
 lint = [

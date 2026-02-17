@@ -1,4 +1,4 @@
-from dishka import Provider, Scope, provide, provide_all
+from dishka import AnyOf, Provider, Scope, provide, provide_all
 
 from alphabet.access.application.interactors import (
     ActivateUser,
@@ -11,6 +11,8 @@ from alphabet.access.application.interactors import (
 )
 from alphabet.access.application.interfaces import UserRepository
 from alphabet.access.infrastructure.repos import SqlUserRepository
+from alphabet.shared.application.transaction import TransactionManager
+from alphabet.shared.application.user import UserReader
 
 
 class AccessDIProvider(Provider):
@@ -24,8 +26,9 @@ class AccessDIProvider(Provider):
         ReadUserByEmail,
         scope=Scope.REQUEST,
     )
-    user_repo = provide(
-        SqlUserRepository,
-        provides=UserRepository,
-        scope=Scope.REQUEST,
-    )
+
+    @provide(scope=Scope.REQUEST)
+    def provide_user_repo_for_all(
+        self, tx: TransactionManager
+    ) -> AnyOf[UserRepository, UserReader]:
+        return SqlUserRepository(tx)

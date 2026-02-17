@@ -6,13 +6,14 @@ from sqlalchemy.exc import IntegrityError
 
 from alphabet.access.application.exceptions import EmailAlreadyRegistered
 from alphabet.access.application.interfaces import UserRepository
+from alphabet.shared.application.user import UserReader
 from alphabet.access.domain import ApproverGroup
 from alphabet.access.infrastructure.tables import approvers, users
 from alphabet.shared.domain.user import IapId, User, UserId
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 
 
-class SqlUserRepository(UserRepository):
+class SqlUserRepository(UserRepository, UserReader):
     def __init__(self, tx: SqlTransactionManager) -> None:
         self.session = tx.session
 

@@ -15,6 +15,7 @@ from alphabet.access.application.interactors import CreateUser, CreateUserDTO
 from alphabet.access.application.interfaces import (
     UserRepository,
 )
+from alphabet.shared.application.user import UserReader
 from alphabet.access.domain import ApproverGroup
 from alphabet.access.infrastructure.repos import SqlUserRepository
 from alphabet.bootstrap.config import service_config_loader
@@ -36,7 +37,7 @@ cli_user = User(
 )
 
 
-class CLIUserRepository(UserRepository):
+class CLIUserRepository(UserRepository, UserReader):
     def __init__(self, tx: SqlTransactionManager) -> None:
         self.sql_repo = SqlUserRepository(tx)
 
@@ -163,7 +164,7 @@ async def create_user_seq(email: str, role: Role) -> None:
         click.echo(f"Роль:  {user.role}")
         click.echo(
             "Для активации, войдите в IAP и перейдите по ссылке:\n"
-            "http://localhost:8080/api/v1/account/activate",
+            "http://localhost:8080/api/v1/accounts/activate",
         )
 
 

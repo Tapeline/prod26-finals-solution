@@ -1,4 +1,4 @@
-from typing import Protocol, final
+from typing import final
 
 from alphabet.access.application.exceptions import (
     AlreadyActivated,
@@ -13,30 +13,10 @@ from alphabet.access.application.interfaces import (
 from alphabet.access.domain import ApproverGroup
 from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.transaction import TransactionManager
+from alphabet.shared.application.user import UserReader, require_user_with_role
 from alphabet.shared.commons import dto, interactor
-from alphabet.shared.domain.exceptions import NotAllowed
 from alphabet.shared.domain.user import Role, User, UserId
 from alphabet.shared.uuid import generate_id
-
-
-class WithUsersAndIdP(Protocol):
-    @property
-    def users(self) -> UserRepository: ...
-    @property
-    def idp(self) -> UserIdProvider: ...
-
-
-async def require_user_with_role(
-    interactor: WithUsersAndIdP,
-    allowed_roles: set[Role],
-) -> User:
-    identity = interactor.idp.require_user()
-    user = await interactor.users.get_by_iap_id(identity.iap_id)
-    if not user:
-        raise UserNotFound
-    if user.role not in allowed_roles:
-        raise NotAllowed
-    return user
 
 
 @final
@@ -44,12 +24,13 @@ async def require_user_with_role(
 class ActivateUser:
     idp: UserIdProvider
     users: UserRepository
+    user_reader: UserReader
     tx: TransactionManager
 
     async def __call__(self) -> User:
         async with self.tx:
             identity = self.idp.require_user()
-            if await self.users.get_by_iap_id(identity.iap_id):
+            if await self.user_reader.get_by_iap_id(identity.iap_id):
                 raise AlreadyActivated
             user = await self.users.get_by_email(identity.email)
             if not user:
@@ -71,6 +52,7 @@ class CreateUserDTO:
 @interactor
 class CreateUser:
     idp: UserIdProvider
+    user_reader: UserReader
     users: UserRepository
     tx: TransactionManager
 
@@ -98,6 +80,7 @@ class UpdateUserDTO:
 @interactor
 class UpdateUser:
     idp: UserIdProvider
+    user_reader: UserReader
     users: UserRepository
     tx: TransactionManager
 
@@ -126,6 +109,7 @@ class NewReviewRulesDTO:
 @interactor
 class SetReviewRules:
     idp: UserIdProvider
+    user_reader: UserReader
     users: UserRepository
     tx: TransactionManager
 
@@ -151,6 +135,7 @@ class SetReviewRules:
 @interactor
 class ReadReviewRules:
     idp: UserIdProvider
+    user_reader: UserReader
     users: UserRepository
     tx: TransactionManager
 

@@ -2,7 +2,7 @@ from abc import abstractmethod
 from typing import Protocol
 
 from alphabet.access.domain import ApproverGroup
-from alphabet.shared.domain.user import IapId, User, UserId
+from alphabet.shared.domain.user import User, UserId
 
 
 class UserRepository(Protocol):
@@ -16,10 +16,6 @@ class UserRepository(Protocol):
 
     @abstractmethod
     async def save(self, user: User) -> None:
-        raise NotImplementedError
-
-    @abstractmethod
-    async def get_by_iap_id(self, iap_id: IapId) -> User | None:
         raise NotImplementedError
 
     @abstractmethod

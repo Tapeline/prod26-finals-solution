@@ -10,7 +10,7 @@ def test_activate_existing_user(create_user_in_db):
     create_user_in_db(email=email, role="EXPERIMENTER", iap_id=None)
 
     response = httpx.get(
-        f"{app_url}/api/v1/account/activate",
+        f"{app_url}/api/v1/accounts/activate",
         headers=iap_login(user_iap_id, email)
     )
 
