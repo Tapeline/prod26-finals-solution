@@ -24,7 +24,24 @@ class LoggingConfig:
 
 
 @dto
+class ValkeyConfig:
+    host: str
+    port: int
+    username: str | None = None
+    password: str | None = None
+    database_id: int | None = None
+
+
+@dto
+class AppConfig:
+    cooldown_after_s: int = 60 * 60 * 24
+    cooldown_for_s: int = 60 * 60 * 24
+
+
+@dto
 class Config:
     postgres: PostgresConfig
     logging: LoggingConfig
+    valkey: ValkeyConfig
+    app: AppConfig
     is_debug: bool = True

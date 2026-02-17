@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from enum import StrEnum
 from types import MappingProxyType
@@ -13,9 +14,9 @@ from alphabet.experiments.domain.exceptions import (
     InvalidPercentageValue,
     InvalidPriorityValue,
     InvalidRejectionDecision,
+    InvalidVariantName,
     NotOneControlVariant,
     ResultCommentCannotBeBlank,
-    VariantNameCannotBeBlank,
 )
 from alphabet.experiments.domain.flags import FlagKey
 from alphabet.experiments.domain.target_rule import TargetRuleString
@@ -100,6 +101,9 @@ _VALID_TRANSITIONS: Final = MappingProxyType(
 )
 
 
+_VARIANT_NAME_RE: Final = re.compile(r"^[a-zA-Z]+$")
+
+
 @final
 @value_object
 class Variant:
@@ -110,7 +114,9 @@ class Variant:
 
     def __post_init__(self) -> None:
         if self.name == "":
-            raise VariantNameCannotBeBlank
+            raise InvalidVariantName
+        if not _VARIANT_NAME_RE.fullmatch(self.name):
+            raise InvalidVariantName
 
 
 @final

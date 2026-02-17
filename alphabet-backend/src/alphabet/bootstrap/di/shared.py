@@ -1,15 +1,32 @@
 from collections.abc import AsyncIterable
 
-from dishka import Provider, Scope, WithParents, from_context, provide
+from dishka import (
+    AnyOf,
+    AsyncContainer,
+    Provider,
+    Scope,
+    WithParents,
+    from_context,
+    provide,
+)
+from glide import GlideClient
 from litestar import Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
+from alphabet.bootstrap.instant_notifier import InstantNotifier
+from alphabet.experiments.application.interfaces import (
+    ExperimentChangeNotifier,
+    FlagChangeNotifier,
+)
 from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.time import TimeProvider
-from alphabet.shared.config import Config
+from alphabet.shared.config import AppConfig, Config
 from alphabet.shared.infrastructure.connection import new_session_maker
 from alphabet.shared.infrastructure.time import DefaultTimeProvider
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager
+from alphabet.shared.infrastructure.valkey_connection import (
+    create_valkey_client,
+)
 from alphabet.shared.presentation.idp import HeaderIdP
 
 
@@ -25,6 +42,10 @@ class IdentityProviderDIProvider(Provider):
 
 class ConfigDIProvider(Provider):
     config = from_context(Config, scope=Scope.APP)
+
+    @provide(scope=Scope.APP)
+    def provide_app_config(self, config: Config) -> AppConfig:
+        return config.app
 
 
 class SqlTransactionDIProvider(Provider):
@@ -48,3 +69,22 @@ class TimeDIProvider(Provider):
     @provide(scope=Scope.APP)
     def provide_time(self) -> TimeProvider:
         return DefaultTimeProvider()
+
+
+class MessageQueueErsatzDIProvider(Provider):
+    @provide(scope=Scope.APP)
+    def provide_mq_ersatz(
+        self,
+        container: AsyncContainer,
+    ) -> AnyOf[
+        ExperimentChangeNotifier,
+        FlagChangeNotifier,
+        InstantNotifier,
+    ]:
+        return InstantNotifier(container)
+
+
+class ValkeyDIProvider(Provider):
+    @provide(scope=Scope.APP)
+    async def provide_client(self, config: Config) -> GlideClient:
+        return await create_valkey_client(config.valkey)

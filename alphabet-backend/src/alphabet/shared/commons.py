@@ -30,6 +30,20 @@ def interactor[Interactor_T](cls: type[Interactor_T]) -> type[Interactor_T]:
     return dataclass(slots=True, frozen=True)(cls)
 
 
+@dataclass_transform(frozen_default=True)
+def autoinit[Something_T](cls: type[Something_T]) -> type[Something_T]:
+    """Alias to dataclass with only init."""
+    return dataclass(
+        init=True,
+        repr=False,
+        eq=False,
+        order=False,
+        slots=False,
+        frozen=False,
+        match_args=False,
+    )(cls)
+
+
 def identity[Someting_T](something: Someting_T) -> Someting_T:
     """Classic identity function: x -> x."""
     return something
@@ -41,19 +55,23 @@ class MaybeMissing:
 
 MISSING = MaybeMissing()
 
-
 type Maybe[T] = T | MaybeMissing
-
 
 vo_coercer = attrgetter("value")
 
 
 @overload
 def maybe_map(x: UnsetType, f: Any = identity) -> MaybeMissing: ...
+
+
 @overload
 def maybe_map(x: None, f: Any = identity) -> None: ...
+
+
 @overload
 def maybe_map(x: MaybeMissing, f: Any = identity) -> MaybeMissing: ...
+
+
 @overload
 def maybe_map[T, R](
     x: T,

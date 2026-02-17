@@ -1,7 +1,10 @@
 from typing import final
 
 from alphabet.experiments.application.exceptions import NoSuchFlag
-from alphabet.experiments.application.interfaces import FlagRepository
+from alphabet.experiments.application.interfaces import (
+    FlagChangeNotifier,
+    FlagRepository,
+)
 from alphabet.experiments.domain.flags import FeatureFlag, FlagKey, FlagType
 from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.pagination import Pagination
@@ -62,6 +65,7 @@ class UpdateFlag:
     flags: FlagRepository
     time_provider: TimeProvider
     tx: TransactionManager
+    notifier: FlagChangeNotifier
 
     async def __call__(self, key: FlagKey, new_default: str) -> FeatureFlag:
         async with self.tx:
@@ -75,6 +79,7 @@ class UpdateFlag:
             flag.default = new_default
             flag.updated_at = self.time_provider.now()
             await self.flags.save(flag)
+            await self.notifier.notify_flag_default_changed(key, new_default)
             return flag
 
 

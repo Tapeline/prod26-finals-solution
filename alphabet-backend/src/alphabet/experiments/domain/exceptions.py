@@ -27,8 +27,8 @@ class InvalidPercentageValue(AppException):
 
 
 @final
-class VariantNameCannotBeBlank(AppException):
-    text = "Variant name cannot be blank"
+class InvalidVariantName(AppException):
+    text = "Invalid variant name"
 
 
 @final

@@ -12,12 +12,14 @@ dependencies = [
     "fuente",
     "inflection>=0.5.1",
     "litestar[prometheus,standard]>=2.21.0",
+    "mmh3>=5.2.0",
     "psycopg[binary,pool]>=3.3.2",
     "sqlalchemy>=2.0.46",
     "structlog>=25.5.0",
     "syntactix",
     "uuid7-standard>=1.1.0",
     "uvicorn>=0.40.0",
+    "valkey-glide>=2.2.7",
 ]
 
 [build-system]

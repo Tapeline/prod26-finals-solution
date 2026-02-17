@@ -32,6 +32,11 @@ class FlagRepository(Protocol):
     async def all(self, pagination: Pagination) -> list[FeatureFlag]:
         raise NotImplementedError
 
+    @abstractmethod
+    async def all_defaults(self) -> list[tuple[str, str]]:
+        """Get list[tuple[flag name, default value]]."""
+        raise NotImplementedError
+
 
 class ExperimentsRepository(Protocol):
     @abstractmethod
@@ -74,6 +79,10 @@ class ExperimentsRepository(Protocol):
     async def all(self, pagination: Pagination) -> list[Experiment]:
         raise NotImplementedError
 
+    @abstractmethod
+    async def all_running(self) -> list[Experiment]:
+        raise NotImplementedError
+
 
 class ReviewRepository(Protocol):
     @abstractmethod
@@ -100,4 +109,30 @@ class ReviewRepository(Protocol):
         self,
         exp_id: ExperimentId,
     ) -> ReviewDecision | None:
+        raise NotImplementedError
+
+
+class FlagChangeNotifier(Protocol):
+    @abstractmethod
+    async def notify_flag_default_changed(
+        self,
+        flag_key: FlagKey,
+        new_default: str,
+    ) -> None:
+        raise NotImplementedError
+
+
+class ExperimentChangeNotifier(Protocol):
+    @abstractmethod
+    async def notify_experiment_activated(
+        self,
+        experiment: Experiment,
+    ) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def notify_experiment_deactivated(
+        self,
+        experiment: Experiment,
+    ) -> None:
         raise NotImplementedError

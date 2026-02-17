@@ -69,6 +69,11 @@ class SqlFlagRepository(FlagRepository):
         )
         return list(map(_row_to_flag, result.all()))
 
+    @override
+    async def all_defaults(self) -> list[tuple[str, str]]:
+        result = await self.session.execute(select(flags))
+        return [(row.key, row.default) for row in result.all()]
+
 
 @overload
 def _row_to_flag(row: Row[Any]) -> FeatureFlag: ...

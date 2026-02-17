@@ -169,6 +169,15 @@ class SqlExperimentsRepository(ExperimentsRepository):
         )
         return list(map(_row_to_experiment, result.all()))
 
+    @override
+    async def all_running(self) -> list[Experiment]:
+        result = await self.session.execute(
+            select(experiments_latest).where(
+                experiments_latest.c.state == ExperimentState.STARTED,
+            ),
+        )
+        return list(map(_row_to_experiment, result.all()))
+
 
 _retort = Retort(
     recipe=[

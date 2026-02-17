@@ -10,6 +10,7 @@ from alphabet.experiments.application.exceptions import (
     NoSuchFlag,
 )
 from alphabet.experiments.application.interfaces import (
+    ExperimentChangeNotifier,
     ExperimentsRepository,
     FlagRepository,
     ReviewRepository,
@@ -366,6 +367,7 @@ class StartExperiment:
     tx: TransactionManager
     flags: FlagRepository
     experiments: ExperimentsRepository
+    notifier: ExperimentChangeNotifier
 
     async def __call__(self, exp_id: ExperimentId) -> Experiment:
         async with self.tx:
@@ -384,7 +386,8 @@ class StartExperiment:
             experiment.state = ExperimentState.STARTED
             experiment.updated_at = self.time_provider.now()
             await self.experiments.save(experiment)
-            return experiment
+        await self.notifier.notify_experiment_activated(experiment)
+        return experiment
 
 
 @final
@@ -395,6 +398,7 @@ class ManageRunningExperiment:
     tx: TransactionManager
     experiments: ExperimentsRepository
     time_provider: TimeProvider
+    notifier: ExperimentChangeNotifier
 
     async def __call__(
         self,
@@ -409,7 +413,11 @@ class ManageRunningExperiment:
             experiment.state = new_state
             experiment.updated_at = self.time_provider.now()
             await self.experiments.save(experiment)
-            return experiment
+        if new_state == ExperimentState.STARTED:
+            await self.notifier.notify_experiment_activated(experiment)
+        else:
+            await self.notifier.notify_experiment_deactivated(experiment)
+        return experiment
 
 
 @final

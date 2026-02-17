@@ -3,3 +3,8 @@ postgres:
   port: 5432
   username: pguser
   password: pgpass
+
+valkey:
+  host: localhost
+  port: 6379
+  password: valkey_pass

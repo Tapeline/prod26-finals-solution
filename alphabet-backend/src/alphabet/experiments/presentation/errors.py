@@ -23,9 +23,9 @@ from alphabet.experiments.domain.exceptions import (
     InvalidPercentageValue,
     InvalidPriorityValue,
     InvalidRejectionDecision,
+    InvalidVariantName,
     NotOneControlVariant,
     ResultCommentCannotBeBlank,
-    VariantNameCannotBeBlank,
 )
 from alphabet.shared.presentation.framework.errors import infer_code
 
@@ -35,7 +35,7 @@ flags_experiments_err_handlers: Final = MappingProxyType(
         ExperimentNameCannotBeBlank: (400, infer_code),
         InvalidFlagValue: (400, infer_code),
         InvalidPercentageValue: (400, infer_code),
-        VariantNameCannotBeBlank: (400, infer_code),
+        InvalidVariantName: (400, infer_code),
         ResultCommentCannotBeBlank: (400, infer_code),
         InvalidPriorityValue: (400, infer_code),
         DomainCannotBeBlank: (400, infer_code),

@@ -29,6 +29,30 @@ layers=
     domain
 exhaustive = true
 
+[importlinter:contract:layers-experiments]
+name=Layered Experiments
+type=layers
+containers =
+    alphabet.experiments
+layers=
+    presentation
+    infrastructure
+    application
+    domain
+exhaustive = true
+
+[importlinter:contract:layers-decisions]
+name=Layered Decisions
+type=layers
+containers =
+    alphabet.decisions
+layers=
+    presentation
+    infrastructure
+    application
+    domain
+exhaustive = true
+
 [importlinter:contract:no-bootstrap-import]
 name = No bootstrap import
 type = forbidden

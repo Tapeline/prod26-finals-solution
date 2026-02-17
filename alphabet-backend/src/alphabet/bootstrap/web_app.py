@@ -1,3 +1,6 @@
+from collections.abc import Callable, Coroutine
+from typing import Any
+
 from dishka import AsyncContainer, make_async_container
 from dishka.integrations.litestar import LitestarProvider
 from dishka.integrations.litestar import setup_dishka as litestar_setup_dishka
@@ -19,14 +22,19 @@ from alphabet.access.presentation.controller import AccessController
 from alphabet.access.presentation.errors import access_err_handlers
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.access import AccessDIProvider
+from alphabet.bootstrap.di.decisions import DecisionsDIProvider
 from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
 from alphabet.bootstrap.di.shared import (
     ConfigDIProvider,
     IdentityProviderDIProvider,
+    MessageQueueErsatzDIProvider,
     SqlTransactionDIProvider,
     TimeDIProvider,
+    ValkeyDIProvider,
 )
 from alphabet.bootstrap.logging import get_structlog_plugin_def
+from alphabet.decisions.application import WarmUpStorages
+from alphabet.decisions.presentation import DecisionsController
 from alphabet.experiments.presentation.errors import (
     flags_experiments_err_handlers,
 )
@@ -48,13 +56,16 @@ logger = getLogger(__name__)
 
 def _create_container(config: Config) -> AsyncContainer:
     return make_async_container(
+        MessageQueueErsatzDIProvider(),
         LitestarProvider(),
         ConfigDIProvider(),
         SqlTransactionDIProvider(),
         IdentityProviderDIProvider(),
         TimeDIProvider(),
+        ValkeyDIProvider(),
         AccessDIProvider(),
         FlagsExperimentsDIProvider(),
+        DecisionsDIProvider(),
         context={
             Config: config,
         },
@@ -72,13 +83,13 @@ def create_app() -> Litestar:
         group_path=True,
         exclude=["/metrics"],
     )
-
     litestar_app = Litestar(
         debug=config.is_debug,
         route_handlers=[
             AccessController,
             FlagsController,
             ExperimentsController,
+            DecisionsController,
             PrometheusController,
         ],
         middleware=[
@@ -111,7 +122,21 @@ def create_app() -> Litestar:
         plugins=[
             get_structlog_plugin_def(use_json=config.logging.use_json),
         ],
+        on_startup=[
+            warmup_decision_caches(container),
+        ],
     )
     litestar_setup_dishka(container, litestar_app)
     logger.info("All good to go")
     return litestar_app
+
+
+def warmup_decision_caches(
+    container: AsyncContainer,
+) -> Callable[[], Coroutine[Any, Any, None]]:
+    async def warmup() -> None:
+        async with container() as nested:
+            interactor = await nested.get(WarmUpStorages)
+            await interactor()
+
+    return warmup

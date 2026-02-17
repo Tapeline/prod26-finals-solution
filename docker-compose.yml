@@ -37,9 +37,30 @@ services:
     environment:
       AB_POSTGRES__HOST: db
 
+  valkey:
+    image: valkey/valkey:8.0
+    hostname: valkey
+    restart: always
+    ports:
+      - "6379:6379"
+    expose:
+      - 6379
+    volumes:
+      - valkey_data:/data
+    environment:
+      VALKEY_PASSWORD: valkey_pass
+    networks:
+      - alphabet_main_net
+    healthcheck:
+      test: [ "CMD", "valkey-cli", "-a", "valkey_pass", "ping" ]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
 
 volumes:
   pgdata:
+  valkey_data:
 
 
 networks:
