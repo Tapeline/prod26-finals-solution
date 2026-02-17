@@ -3,7 +3,7 @@ from datetime import datetime
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
-from litestar import Controller, get, patch, post, put
+from litestar import Controller, get, patch, post
 from msgspec import Struct
 
 from alphabet.experiments.application.interactors.flags import (
@@ -16,10 +16,11 @@ from alphabet.experiments.application.interactors.flags import (
 from alphabet.experiments.domain.flags import FeatureFlag, FlagKey, FlagType
 from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.presentation.framework.openapi import (
-    RESPONSE_BAD_REQUEST,
-    RESPONSE_FORBIDDEN, RESPONSE_NOT_AUTH_AND_FORBIDDEN,
+    RESPONSE_FORBIDDEN,
+    RESPONSE_NOT_AUTH_AND_FORBIDDEN,
     RESPONSE_NOT_AUTHENTICATED,
-    RESPONSE_NOT_FOUND, error_spec,
+    RESPONSE_NOT_FOUND,
+    error_spec,
     success_spec,
 )
 from alphabet.shared.presentation.openapi import security_defs
@@ -82,8 +83,8 @@ class FlagsController(Controller):
                 key=FlagKey(data.key),
                 description=data.description,
                 type=data.type,
-                default=data.default
-            )
+                default=data.default,
+            ),
         )
         return FlagResponse.from_flag(flag)
 
@@ -116,7 +117,7 @@ class FlagsController(Controller):
     async def get_one_flag(
         self,
         interactor: FromDishka[ReadFlag],
-        flag_key: str
+        flag_key: str,
     ) -> FlagResponse:
         flag = await interactor(FlagKey(flag_key))
         return FlagResponse.from_flag(flag)

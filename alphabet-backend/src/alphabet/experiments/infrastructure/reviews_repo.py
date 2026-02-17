@@ -1,6 +1,7 @@
 from typing import Any, override
 
 from sqlalchemy import Row, delete, insert, select
+from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 from alphabet.experiments.application.interfaces import ReviewRepository
 from alphabet.experiments.domain.experiment import (
@@ -14,7 +15,6 @@ from alphabet.experiments.infrastructure.tables import (
 )
 from alphabet.shared.domain.user import UserId
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager
-from sqlalchemy.dialects.postgresql import insert as pg_insert
 
 
 class SqlReviewRepository(ReviewRepository):
@@ -24,7 +24,7 @@ class SqlReviewRepository(ReviewRepository):
     @override
     async def all_approvals(self, exp_id: ExperimentId) -> list[Approval]:
         result = await self.session.execute(
-            select(approvals).where(approvals.c.experiment_id == exp_id)
+            select(approvals).where(approvals.c.experiment_id == exp_id),
         )
         return list(map(_row_to_approval, result.all()))
 
@@ -34,13 +34,13 @@ class SqlReviewRepository(ReviewRepository):
             insert(approvals).values(
                 experiment_id=approval.experiment_id,
                 approver_id=approval.approver_id,
-            )
+            ),
         )
 
     @override
     async def revoke_all_approvals(self, exp_id: ExperimentId) -> None:
         await self.session.execute(
-            delete(approvals).where(approvals.c.experiment_id == exp_id)
+            delete(approvals).where(approvals.c.experiment_id == exp_id),
         )
 
     @override
@@ -55,19 +55,20 @@ class SqlReviewRepository(ReviewRepository):
                 index_elements=["experiment_id"],
                 set_={
                     "rejecter_id": stmt.excluded.rejecter_id,
-                    "reject_comment": stmt.excluded.reject_comment
-                }
-            )
+                    "reject_comment": stmt.excluded.reject_comment,
+                },
+            ),
         )
 
     @override
     async def get_decision(
         self,
-        exp_id: ExperimentId
+        exp_id: ExperimentId,
     ) -> ReviewDecision | None:
         result = await self.session.execute(
-            select(review_decisions)
-            .where(review_decisions.c.experiment_id == exp_id)
+            select(review_decisions).where(
+                review_decisions.c.experiment_id == exp_id,
+            ),
         )
         return _row_to_decision(result.first())
 

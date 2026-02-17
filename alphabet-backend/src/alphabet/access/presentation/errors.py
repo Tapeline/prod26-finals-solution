@@ -8,9 +8,9 @@ from alphabet.access.application.exceptions import (
     EmailNotRegistered,
     NoSuchApproverGroup,
     UserIsAnonymous,
-    UserNotFound,
 )
 from alphabet.access.domain import InvalidThreshold
+from alphabet.shared.application.user import UserNotFound
 from alphabet.shared.domain.exceptions import NotAllowed
 from alphabet.shared.presentation.framework.errors import infer_code
 

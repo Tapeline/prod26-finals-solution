@@ -1,30 +1,31 @@
 from types import MappingProxyType
 from typing import Final
 
-from alphabet.experiments.domain.dsl.exceptions import \
-    InvalidTargetDSLExpression
-from alphabet.experiments.domain.exceptions import (
-    InvalidFlagKey,
-    ExperimentNameCannotBeBlank,
-    InvalidFlagValue,
-    InvalidPercentageValue,
-    VariantNameCannotBeBlank,
-    ResultCommentCannotBeBlank,
-    InvalidPriorityValue,
-    DomainCannotBeBlank,
-    InvalidConflictConfig,
-    AudienceMismatch,
-    NotOneControlVariant,
-    ExperimentFrozen,
-    CannotTransition,
-    InvalidRejectionDecision,
-)
 from alphabet.experiments.application.exceptions import (
-    NoSuchFlag,
-    NoSuchExperiment,
     AlreadyApproved,
     ExperimentNotInReview,
     FlagAlreadyTaken,
+    NoSuchExperiment,
+    NoSuchFlag,
+)
+from alphabet.experiments.domain.dsl.exceptions import (
+    InvalidTargetDSLExpression,
+)
+from alphabet.experiments.domain.exceptions import (
+    AudienceMismatch,
+    CannotTransition,
+    DomainCannotBeBlank,
+    ExperimentFrozen,
+    ExperimentNameCannotBeBlank,
+    InvalidConflictConfig,
+    InvalidFlagKey,
+    InvalidFlagValue,
+    InvalidPercentageValue,
+    InvalidPriorityValue,
+    InvalidRejectionDecision,
+    NotOneControlVariant,
+    ResultCommentCannotBeBlank,
+    VariantNameCannotBeBlank,
 )
 from alphabet.shared.presentation.framework.errors import infer_code
 

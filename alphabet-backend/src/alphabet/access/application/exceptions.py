@@ -14,11 +14,6 @@ class UserIsAnonymous(AppException):
 
 
 @final
-class UserNotFound(AppException):
-    text = "User not found. Contact your administrator"
-
-
-@final
 class EmailNotRegistered(AppException):
     text = "Your email is not registered. Contact your administrator"
 

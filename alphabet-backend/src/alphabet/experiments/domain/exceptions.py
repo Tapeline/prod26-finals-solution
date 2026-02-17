@@ -1,4 +1,4 @@
-from typing import final, TYPE_CHECKING
+from typing import TYPE_CHECKING, final
 
 if TYPE_CHECKING:
     from alphabet.experiments.domain.experiment import ExperimentState
@@ -49,8 +49,7 @@ class DomainCannotBeBlank(AppException):
 @final
 class InvalidConflictConfig(AppException):
     text = (
-        "Either both conflict domain and conflict "
-        "policy should be set or not"
+        "Either both conflict domain and conflict policy should be set or not"
     )
 
 
@@ -74,7 +73,7 @@ class CannotTransition(AppException):
     def __init__(
         self,
         from_state: "ExperimentState",
-        to_state: "ExperimentState"
+        to_state: "ExperimentState",
     ) -> None:
         self.from_state = from_state
         self.to_state = to_state

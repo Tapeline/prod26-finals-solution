@@ -1,7 +1,5 @@
 from datetime import date
-
 from enum import StrEnum
-
 from typing import final
 
 from syntactix.parser.nodes import NodeLike
@@ -32,8 +30,8 @@ class BinOp(StrEnum):
 @value_object
 class BinOpNode(Node):
     token: TargetDSLToken
-    l: Node
-    r: Node
+    lhs: Node
+    rhs: Node
     op: BinOp
 
 

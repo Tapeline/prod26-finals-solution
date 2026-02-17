@@ -1,11 +1,11 @@
 from abc import abstractmethod
-
 from typing import Protocol
 
 from alphabet.experiments.domain.experiment import (
     Approval,
     Experiment,
-    ExperimentId, ReviewDecision,
+    ExperimentId,
+    ReviewDecision,
 )
 from alphabet.experiments.domain.flags import FeatureFlag, FlagKey
 from alphabet.shared.application.pagination import Pagination
@@ -36,13 +36,18 @@ class FlagRepository(Protocol):
 class ExperimentsRepository(Protocol):
     @abstractmethod
     async def get_latest_by_id(
-        self, exp_id: ExperimentId, *, lock: bool = False
+        self,
+        exp_id: ExperimentId,
+        *,
+        lock: bool = False,
     ) -> Experiment | None:
         raise NotImplementedError
 
     @abstractmethod
     async def get_by_id_and_version(
-        self, exp_id: ExperimentId, version: int
+        self,
+        exp_id: ExperimentId,
+        version: int,
     ) -> Experiment | None:
         raise NotImplementedError
 
@@ -60,7 +65,8 @@ class ExperimentsRepository(Protocol):
 
     @abstractmethod
     async def get_active_by_flag(
-        self, flag_key: FlagKey
+        self,
+        flag_key: FlagKey,
     ) -> Experiment | None:
         raise NotImplementedError
 
@@ -84,12 +90,14 @@ class ReviewRepository(Protocol):
 
     @abstractmethod
     async def save_decision(
-        self, decision: ReviewDecision
+        self,
+        decision: ReviewDecision,
     ) -> None:
         raise NotImplementedError
 
     @abstractmethod
     async def get_decision(
-        self, exp_id: ExperimentId
+        self,
+        exp_id: ExperimentId,
     ) -> ReviewDecision | None:
         raise NotImplementedError

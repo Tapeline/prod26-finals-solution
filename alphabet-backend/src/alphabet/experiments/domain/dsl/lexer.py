@@ -1,25 +1,25 @@
+from dataclasses import dataclass
 from datetime import date, datetime
-
-from syntactix.lexical.exceptions import LexerRequireFailedError
+from enum import Enum
 from types import MappingProxyType
-
 from typing import Final, final, override
 
-from dataclasses import dataclass
-from enum import Enum
-
+from syntactix.lexical.exceptions import LexerRequireFailedError
 from syntactix.lexical.lexer import LexerBase
 from syntactix.lexical.token import TokenLike, TokenPos
 
+from alphabet.shared.const import APP_TZ
 
-ESCAPES: Final = MappingProxyType({
-    "n": "\n",
-    "r": "\r",
-    "t": "\t",
-    "v": "\v",
-    "\\": "\\",
-    '"': '"',
-})
+ESCAPES: Final = MappingProxyType(
+    {
+        "n": "\n",
+        "r": "\r",
+        "t": "\t",
+        "v": "\v",
+        "\\": "\\",
+        '"': '"',
+    },
+)
 
 
 @final
@@ -53,22 +53,24 @@ class TargetDSLTokenType(Enum):
     EOF = "EOF"
 
 
-KEYWORDS: Final = MappingProxyType({
-    "NOT": TargetDSLTokenType.NOT,
-    "AND": TargetDSLTokenType.AND,
-    "OR": TargetDSLTokenType.OR,
-    "IN": TargetDSLTokenType.IN,
-    "NOT IN": TargetDSLTokenType.NOT_IN,
-    "true": TargetDSLTokenType.TRUE,
-    "false": TargetDSLTokenType.FALSE,
-    "undefined": TargetDSLTokenType.UNDEFINED,
-})
+KEYWORDS: Final = MappingProxyType(
+    {
+        "NOT": TargetDSLTokenType.NOT,
+        "AND": TargetDSLTokenType.AND,
+        "OR": TargetDSLTokenType.OR,
+        "IN": TargetDSLTokenType.IN,
+        "NOT IN": TargetDSLTokenType.NOT_IN,
+        "true": TargetDSLTokenType.TRUE,
+        "false": TargetDSLTokenType.FALSE,
+        "undefined": TargetDSLTokenType.UNDEFINED,
+    },
+)
 
 
 @final
 @dataclass
 class TargetDSLToken(
-    TokenLike[str | float, TargetDSLTokenType]  # type: ignore[misc]
+    TokenLike[str | float, TargetDSLTokenType],  # type: ignore[misc]
 ):
     type: TargetDSLTokenType
     lexeme: str
@@ -85,13 +87,13 @@ class TargetDSLToken(
 
 
 class TargetDSLLexer(
-    LexerBase[TargetDSLToken, TargetDSLTokenType]  # type: ignore[misc]
+    LexerBase[TargetDSLToken, TargetDSLTokenType],  # type: ignore[misc]
 ):
     @classmethod
     def make_lexer(cls, src: str) -> "TargetDSLLexer":
         return TargetDSLLexer(src, TargetDSLToken)
 
-    def scan_char(self) -> None:
+    def scan_char(self) -> None:  # noqa: C901
         ch = self.consume()
         if not ch:
             self.unexpected("EOF")
@@ -132,7 +134,7 @@ class TargetDSLLexer(
         sign = self.match("-") or ""
         whole_part = self.consume_while(
             lambda: self.peek in "0123456789",
-            not_at_end=True
+            not_at_end=True,
         )
         if not sign and len(whole_part) == 4 and self.match("-"):
             # this is a date
@@ -143,7 +145,10 @@ class TargetDSLLexer(
             whole_part += self.require(list("0123456789"))
             whole_part += self.require(list("0123456789"))
             try:
-                parsed_dt = datetime.strptime(whole_part, "%Y-%m-%d")
+                parsed_dt = datetime.strptime(
+                    whole_part,
+                    "%Y-%m-%d",
+                ).astimezone(APP_TZ)
                 self.add_token(TargetDSLTokenType.DATE, parsed_dt.date())
             except ValueError:
                 self.unexpected(whole_part)
@@ -153,7 +158,7 @@ class TargetDSLLexer(
             if self.peek.isnumeric():
                 frac_part = self.consume_while(
                     lambda: self.peek in "0123456789",
-                    not_at_end=True
+                    not_at_end=True,
                 )
             else:
                 # roll back, not a float number
@@ -175,7 +180,8 @@ class TargetDSLLexer(
             if escaping:
                 if self.peek not in ESCAPES:
                     self.error(
-                        LexerRequireFailedError, strings=ESCAPES.keys()
+                        LexerRequireFailedError,
+                        strings=ESCAPES.keys(),
                     )
                 chars.append(ESCAPES[self.peek])
                 escaping = False
@@ -189,12 +195,11 @@ class TargetDSLLexer(
     def scan_name_or_keyword(self) -> None:
         name = self.prev + self.consume_while(
             lambda: self.peek.isalpha() or self.peek in "-_",
-            not_at_end=True
+            not_at_end=True,
         )
-        if name == "NOT":
-            if self.match(" IN"):
-                self.add_token(TargetDSLTokenType.NOT_IN)
-                return
+        if name == "NOT" and self.match(" IN"):
+            self.add_token(TargetDSLTokenType.NOT_IN)
+            return
         if name in KEYWORDS:
             self.add_token(KEYWORDS[name])
         else:

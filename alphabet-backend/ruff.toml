@@ -74,6 +74,10 @@ ignore = [
     # Do not work with russian docs
 
     "ANN401",  # allow Any
+
+    "A002",  # some names are bound by domain to be called so
+
+    "RET503",  # covered by mypy
 ]
 external = ["WPS"]
 exclude = [
@@ -90,3 +94,4 @@ exclude = [
     "S105", # hardcoded passwords
     "ANN", # no types
 ]
+"src/alphabet/experiments/domain/dsl/codegen.py" = ["N802"]

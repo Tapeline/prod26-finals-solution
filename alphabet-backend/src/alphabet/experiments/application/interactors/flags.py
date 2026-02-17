@@ -9,7 +9,8 @@ from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import (
     UserReader,
-    require_any_user, require_user_with_role,
+    require_any_user,
+    require_user_with_role,
 )
 from alphabet.shared.commons import dto, interactor
 from alphabet.shared.domain.user import Role
@@ -36,7 +37,8 @@ class CreateFlag:
     async def __call__(self, dto: CreateFlagDTO) -> FeatureFlag:
         async with self.tx:
             user = await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER}
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER},
             )
             now = self.time_provider.now()
             flag = FeatureFlag.new(
@@ -64,7 +66,8 @@ class UpdateFlag:
     async def __call__(self, key: FlagKey, new_default: str) -> FeatureFlag:
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER}
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER},
             )
             flag = await self.flags.get_by_key(key)
             if not flag:

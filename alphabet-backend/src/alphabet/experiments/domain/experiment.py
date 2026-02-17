@@ -1,19 +1,18 @@
-from types import MappingProxyType
-
 from datetime import datetime
-
 from enum import StrEnum
-
+from types import MappingProxyType
 from typing import Final, NewType, final
 
 from alphabet.experiments.domain.exceptions import (
     AudienceMismatch,
-    CannotTransition, DomainCannotBeBlank,
+    CannotTransition,
+    DomainCannotBeBlank,
     ExperimentFrozen,
     ExperimentNameCannotBeBlank,
     InvalidConflictConfig,
-    InvalidRejectionDecision, InvalidPercentageValue,
+    InvalidPercentageValue,
     InvalidPriorityValue,
+    InvalidRejectionDecision,
     NotOneControlVariant,
     ResultCommentCannotBeBlank,
     VariantNameCannotBeBlank,
@@ -62,52 +61,42 @@ class ExperimentState(StrEnum):
 _VALID_TRANSITIONS: Final = MappingProxyType(
     {
         ExperimentState.DRAFT: frozenset(
-            (
-                ExperimentState.IN_REVIEW,
-            )
+            (ExperimentState.IN_REVIEW,),
         ),
         ExperimentState.IN_REVIEW: frozenset(
             (
                 ExperimentState.ACCEPTED,
                 ExperimentState.REJECTED,
-                ExperimentState.DRAFT
-            )
+                ExperimentState.DRAFT,
+            ),
         ),
         ExperimentState.ACCEPTED: frozenset(
-            (
-                ExperimentState.STARTED,
-            )
+            (ExperimentState.STARTED,),
         ),
         ExperimentState.STARTED: frozenset(
             (
                 ExperimentState.PAUSED,
                 ExperimentState.FINISHED,
                 ExperimentState.SECURITY_HALTED,
-            )
+            ),
         ),
         ExperimentState.PAUSED: frozenset(
             (
                 ExperimentState.STARTED,
                 ExperimentState.FINISHED,
-            )
+            ),
         ),
         ExperimentState.FINISHED: frozenset(
-            (
-                ExperimentState.ARCHIVED,
-            )
+            (ExperimentState.ARCHIVED,),
         ),
         ExperimentState.SECURITY_HALTED: frozenset(
-            (
-                ExperimentState.FINISHED,
-            )
+            (ExperimentState.FINISHED,),
         ),
         ExperimentState.ARCHIVED: frozenset(),
         ExperimentState.REJECTED: frozenset(
-            (
-                ExperimentState.DRAFT,
-            )
-        )
-    }
+            (ExperimentState.DRAFT,),
+        ),
+    },
 )
 
 
@@ -232,7 +221,7 @@ class Experiment:
             _priority=priority,
             _conflict_domain=conflict_domain,
             _conflict_policy=conflict_policy,
-            _result=None
+            _result=None,
         )
 
     def _assert_in_draft(self) -> None:
@@ -289,7 +278,7 @@ class Experiment:
     def set_new_audience_variants(
         self,
         audience: Percentage,
-        variants: list[Variant]
+        variants: list[Variant],
     ) -> None:
         _validate_audience_and_variants(audience, variants)
         self._variants = variants
@@ -364,7 +353,7 @@ class Experiment:
     def set_conflict_domain(
         self,
         domain: ConflictDomain,
-        policy: ConflictPolicy
+        policy: ConflictPolicy,
     ) -> None:
         self._conflict_domain = domain
         self._conflict_policy = policy
@@ -372,11 +361,9 @@ class Experiment:
 
 def _validate_audience_and_variants(
     audience: Percentage,
-    variants: list[Variant]
+    variants: list[Variant],
 ) -> None:
-    variant_audience_sum = sum(
-        variant.audience.value for variant in variants
-    )
+    variant_audience_sum = sum(variant.audience.value for variant in variants)
     if variant_audience_sum != audience.value:
         raise AudienceMismatch
     if sum(1 for variant in variants if variant.is_control) != 1:
@@ -415,13 +402,10 @@ class ReviewDecision:
         cls,
         experiment_id: ExperimentId,
         rejecter_id: UserId | None,
-        reject_comment: str | None
+        reject_comment: str | None,
     ) -> "ReviewDecision":
         return ReviewDecision(experiment_id, rejecter_id, reject_comment)
 
     @classmethod
     def approved(cls, experiment_id: ExperimentId) -> "ReviewDecision":
         return ReviewDecision(experiment_id, None, None)
-
-
-

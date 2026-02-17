@@ -1,10 +1,9 @@
 from collections.abc import Callable
-from operator import attrgetter
-
 from dataclasses import dataclass
-from typing import dataclass_transform, overload, Any, reveal_type
+from operator import attrgetter
+from typing import Any, dataclass_transform, overload
 
-from msgspec import UnsetType, UNSET
+from msgspec import UNSET, UnsetType
 
 
 @dataclass_transform(frozen_default=True)
@@ -48,6 +47,7 @@ type Maybe[T] = T | MaybeMissing
 
 vo_coercer = attrgetter("value")
 
+
 @overload
 def maybe_map(x: UnsetType, f: Any = identity) -> MaybeMissing: ...
 @overload
@@ -56,13 +56,14 @@ def maybe_map(x: None, f: Any = identity) -> None: ...
 def maybe_map(x: MaybeMissing, f: Any = identity) -> MaybeMissing: ...
 @overload
 def maybe_map[T, R](
-    x: T, f: Callable[[T], R] = identity   # type: ignore[assignment]
+    x: T,
+    f: Callable[[T], R] = identity,  # type: ignore[assignment]
 ) -> R: ...
 
 
-
 def maybe_map[T, R](
-    x: Any, f: Callable[[T], R] = identity   # type: ignore[assignment]
+    x: Any,
+    f: Callable[[T], R] = identity,  # type: ignore[assignment]
 ) -> Any:
     if x is UNSET:
         return MISSING

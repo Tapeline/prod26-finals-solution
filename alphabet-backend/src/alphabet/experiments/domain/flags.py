@@ -1,9 +1,6 @@
 import re
-
 from datetime import datetime
-
 from enum import StrEnum
-
 from typing import Final, final
 
 from alphabet.experiments.domain.exceptions import (
@@ -12,7 +9,6 @@ from alphabet.experiments.domain.exceptions import (
 )
 from alphabet.shared.commons import entity, value_object
 from alphabet.shared.domain.user import UserId
-
 
 _FLAG_KEY_RE: Final = re.compile("[A-Za-z0-9_-]+")
 
@@ -120,4 +116,4 @@ class FeatureFlag:
             # no validation for strings
             return
         else:
-            raise ValueError("Unknown flag type", self._type)
+            raise ValueError("Unknown flag type", self._type)  # noqa: TRY003

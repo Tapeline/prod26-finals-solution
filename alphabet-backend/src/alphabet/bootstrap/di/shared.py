@@ -8,7 +8,7 @@ from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.config import Config
 from alphabet.shared.infrastructure.connection import new_session_maker
-from alphabet.shared.infrastructure.time import DefaultNaiveTimeProvider
+from alphabet.shared.infrastructure.time import DefaultTimeProvider
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 from alphabet.shared.presentation.idp import HeaderIdP
 
@@ -47,4 +47,4 @@ class SqlTransactionDIProvider(Provider):
 class TimeDIProvider(Provider):
     @provide(scope=Scope.APP)
     def provide_time(self) -> TimeProvider:
-        return DefaultNaiveTimeProvider()
+        return DefaultTimeProvider()

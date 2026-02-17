@@ -23,15 +23,17 @@ from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
 from alphabet.bootstrap.di.shared import (
     ConfigDIProvider,
     IdentityProviderDIProvider,
-    SqlTransactionDIProvider, TimeDIProvider,
+    SqlTransactionDIProvider,
+    TimeDIProvider,
 )
 from alphabet.bootstrap.logging import get_structlog_plugin_def
-from alphabet.experiments.presentation.errors import \
-    flags_experiments_err_handlers
+from alphabet.experiments.presentation.errors import (
+    flags_experiments_err_handlers,
+)
 from alphabet.experiments.presentation.experiments import ExperimentsController
 from alphabet.experiments.presentation.flags import FlagsController
 from alphabet.shared.config import Config
-from alphabet.shared.domain.exceptions import NotAuthenticated, NotAllowed
+from alphabet.shared.domain.exceptions import NotAuthenticated
 from alphabet.shared.presentation.framework.errors import (
     gen_handler_mapping,
     infer_code,

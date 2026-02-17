@@ -1,5 +1,4 @@
-from sqlalchemy.dialects.postgresql import JSONB
-from typing import Final, Any
+from typing import Any
 
 from sqlalchemy import (
     Column,
@@ -11,9 +10,11 @@ from sqlalchemy import (
     String,
     Table,
 )
+from sqlalchemy.dialects.postgresql import JSONB
 
 from alphabet.experiments.domain.experiment import (
-    ConflictPolicy, ExperimentOutcome,
+    ConflictPolicy,
+    ExperimentOutcome,
     ExperimentState,
 )
 from alphabet.experiments.domain.flags import FlagType
@@ -57,7 +58,7 @@ experiments_latest = Table(
     "experiments_latest",
     metadata,
     Column("id", String, primary_key=True, unique=True),
-    *create_experiment_columns()
+    *create_experiment_columns(),
 )
 
 Index("exp_latest_flag_key_index", experiments_latest.c.flag_key)
@@ -66,7 +67,7 @@ experiments_history = Table(
     "experiments_history",
     metadata,
     Column("id", String),
-    *create_experiment_columns()
+    *create_experiment_columns(),
 )
 
 approvals = Table(
@@ -80,8 +81,10 @@ review_decisions = Table(
     "review_decisions",
     metadata,
     Column(
-        "experiment_id", String, ForeignKey("experiments_latest.id"),
-        unique=True
+        "experiment_id",
+        String,
+        ForeignKey("experiments_latest.id"),
+        unique=True,
     ),
     Column("rejecter_id", String, ForeignKey("users.id"), nullable=True),
     Column("reject_comment", String, nullable=True),

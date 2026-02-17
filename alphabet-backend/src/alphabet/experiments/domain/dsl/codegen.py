@@ -1,13 +1,19 @@
 from types import MappingProxyType
-
 from typing import Final
 
 from alphabet.experiments.domain.dsl.nodes import (
-    BinOp, BinOpNode, LiteralBool, LiteralCollection,
-    LiteralDate, LiteralNumber, LiteralStr, LiteralUndefined, NameNode,
-    Node, UnaryNotNode,
+    BinOp,
+    BinOpNode,
+    LiteralBool,
+    LiteralCollection,
+    LiteralDate,
+    LiteralNumber,
+    LiteralStr,
+    LiteralUndefined,
+    NameNode,
+    Node,
+    UnaryNotNode,
 )
-
 
 _BIN_OP_TO_RT_NAME: Final = MappingProxyType(
     {
@@ -21,7 +27,7 @@ _BIN_OP_TO_RT_NAME: Final = MappingProxyType(
         BinOp.OR: "_or",
         BinOp.IN: "_is_in",
         BinOp.NOT_IN: "_is_not_in",
-    }
+    },
 )
 
 
@@ -31,7 +37,7 @@ class CodeGenerator:
 
     def generate(self) -> str:
         expr_str = self._gen(self.expr)
-        code = f"class _Expr(CompiledExpression):\n"
+        code = "class _Expr(CompiledExpression):\n"
         code += "    def run(self):\n"
         code += f"        return {expr_str}\n"
         return code
@@ -49,9 +55,11 @@ class CodeGenerator:
         return "[" + ",".join(map(self._gen, node.items)) + "]"
 
     def _gen_LiteralDate(self, node: LiteralDate) -> str:
-        return (f"self._construct_date("
-                f"{node.value.day}, {node.value.month}, {node.value.year}"
-                f")")
+        return (
+            f"self._construct_date("
+            f"{node.value.day}, {node.value.month}, {node.value.year}"
+            f")"
+        )
 
     def _gen_LiteralStr(self, node: LiteralStr) -> str:
         return repr(node.value)
@@ -62,8 +70,7 @@ class CodeGenerator:
     def _gen_LiteralBool(self, node: LiteralBool) -> str:
         if node.value:
             return "True"
-        else:
-            return "False"
+        return "False"
 
     def _gen_LiteralUndefined(self, node: LiteralUndefined) -> str:
         return "None"
@@ -72,7 +79,7 @@ class CodeGenerator:
         return f"self._not({self._gen(node)})"
 
     def _gen_BinOpNode(self, node: BinOpNode) -> str:
-        lhs = self._gen(node.l)
-        rhs = self._gen(node.r)
+        lhs = self._gen(node.lhs)
+        rhs = self._gen(node.rhs)
         rt_name = _BIN_OP_TO_RT_NAME[node.op]
         return f"self.{rt_name}({lhs}, {rhs})"

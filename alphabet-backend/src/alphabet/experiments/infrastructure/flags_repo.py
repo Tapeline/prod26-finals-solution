@@ -1,20 +1,13 @@
 from typing import Any, overload, override
 
-from sqlalchemy import Row, delete, insert, select, update
+from sqlalchemy import Row, insert, select, update
 
 from alphabet.experiments.application.interfaces import (
     FlagRepository,
-    ReviewRepository,
-)
-from alphabet.experiments.domain.experiment import (
-    Approval,
-    ExperimentId,
-    ReviewDecision,
 )
 from alphabet.experiments.domain.flags import FeatureFlag, FlagKey
 from alphabet.experiments.infrastructure.tables import (
-    approvals,
-    flags, review_decisions,
+    flags,
 )
 from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.domain.user import UserId
@@ -28,7 +21,7 @@ class SqlFlagRepository(FlagRepository):
     @override
     async def get_by_key(self, key: FlagKey) -> FeatureFlag | None:
         result = await self.session.execute(
-            select(flags).where(flags.c.key == key.value)
+            select(flags).where(flags.c.key == key.value),
         )
         return _row_to_flag(result.first())
 
@@ -43,35 +36,36 @@ class SqlFlagRepository(FlagRepository):
                 author_id=flag.author_id,
                 created_at=flag.created_at,
                 updated_at=flag.updated_at,
-            )
+            ),
         )
 
     @override
     async def save(self, flag: FeatureFlag) -> None:
         await self.session.execute(
-            update(flags).where(flags.c.key == flag.key.value).values(
+            update(flags)
+            .where(flags.c.key == flag.key.value)
+            .values(
                 description=flag.description,
                 type=flag.type,
                 default=flag.default,
                 author_id=flag.author_id,
                 created_at=flag.created_at,
                 updated_at=flag.updated_at,
-            )
+            ),
         )
 
     @override
     async def lock_on(self, flag_key: FlagKey) -> None:
         await self.session.execute(
-            select(flags).where(flags.c.key == flag_key.value)
-            .with_for_update()
+            select(flags)
+            .where(flags.c.key == flag_key.value)
+            .with_for_update(),
         )
 
     @override
     async def all(self, pagination: Pagination) -> list[FeatureFlag]:
         result = await self.session.execute(
-            select(flags)
-            .limit(pagination.limit)
-            .offset(pagination.offset)
+            select(flags).limit(pagination.limit).offset(pagination.offset),
         )
         return list(map(_row_to_flag, result.all()))
 

@@ -1,46 +1,60 @@
 from collections.abc import Sequence
 from datetime import datetime
-from ftplib import error_reply
 from operator import attrgetter
 from types import MappingProxyType
-from typing import Literal, Final
+from typing import Final, Literal
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, get, patch, post
-from msgspec import Struct, UnsetType, UNSET
+from msgspec import UNSET, Struct, UnsetType
 
 from alphabet.experiments.application.interactors.experiments import (
+    ApproveDraft,
+    ArchiveExperiment,
     CreateExperiment,
     CreateExperimentDTO,
+    ExperimentAuditDTO,
+    ManageRunningExperiment,
+    ReadExperimentAudit,
+    ReadExperimentVersion,
+    ReadExperimentVersionHistory,
     RejectDraft,
+    RestoreFromRejected,
     SendToReview,
+    StartExperiment,
     UpdateExperiment,
-    UpdateExperimentDTO, ApproveDraft, RestoreFromRejected, StartExperiment,
-    ManageRunningExperiment, ArchiveExperiment, ReadExperimentVersion,
-    ReadExperimentVersionHistory, ReadExperimentAudit, ExperimentAuditDTO,
+    UpdateExperimentDTO,
 )
 from alphabet.experiments.domain.experiment import (
-    ConflictDomain, ConflictPolicy,
+    ConflictDomain,
+    ConflictPolicy,
     Experiment,
-    ExperimentId, ExperimentName,
+    ExperimentId,
+    ExperimentName,
     ExperimentOutcome,
-    ExperimentResult, MetricCollection,
+    ExperimentResult,
+    ExperimentState,
+    MetricCollection,
     Percentage,
     Priority,
-    ReviewDecisionType, Variant, ReviewDecision, ExperimentState,
+    ReviewDecision,
+    ReviewDecisionType,
+    Variant,
 )
 from alphabet.experiments.domain.flags import FlagKey
 from alphabet.experiments.domain.target_rule import TargetRuleString
 from alphabet.shared.commons import (
     MISSING,
-    Maybe,
-    maybe_map, MaybeMissing,
+    maybe_map,
 )
 from alphabet.shared.presentation.framework.openapi import (
-    RESPONSE_FORBIDDEN, RESPONSE_NOT_AUTH_AND_FORBIDDEN,
+    RESPONSE_FORBIDDEN,
+    RESPONSE_NOT_AUTH_AND_FORBIDDEN,
     RESPONSE_NOT_AUTHENTICATED,
-    RESPONSE_NOT_FOUND, success_spec, error_spec,
+    RESPONSE_NOT_FOUND,
+    error_spec,
+    success_spec,
 )
 from alphabet.shared.presentation.openapi import security_defs
 
@@ -128,10 +142,11 @@ class ExperimentResponse(Struct):
             created_at=experiment.created_at,
             updated_at=experiment.updated_at,
             result=maybe_map(
-                experiment.result, lambda r: ExperimentResultSchema(
+                experiment.result,
+                lambda r: ExperimentResultSchema(
                     comment=r.comment,
                     outcome=r.outcome,
-                )
+                ),
             ),
             metrics=MetricCollectionSchema(
                 primary=experiment.metrics.primary,
@@ -140,9 +155,10 @@ class ExperimentResponse(Struct):
             ),
             priority=maybe_map(experiment.priority, attrgetter("value")),
             conflict_domain=maybe_map(
-                experiment.conflict_domain, attrgetter("value")
+                experiment.conflict_domain,
+                attrgetter("value"),
             ),
-            conflict_policy=maybe_map(experiment.conflict_policy)
+            conflict_policy=maybe_map(experiment.conflict_policy),
         )
 
 
@@ -158,7 +174,8 @@ class ReviewDecisionResponse(Struct):
 
     @classmethod
     def from_decision(
-        cls, decision: ReviewDecision
+        cls,
+        decision: ReviewDecision,
     ) -> "ReviewDecisionResponse":
         return ReviewDecisionResponse(
             experiment_id=decision.experiment_id,
@@ -202,14 +219,15 @@ class ExperimentAuditResponse(Struct):
                 for approval in dto.approvals
             ],
             decision=ReviewDecisionResponse.from_decision(dto.decision)
-            if dto.decision else None,
+            if dto.decision
+            else None,
         )
 
 
 CANNOT_CHANGE_STATE: Final = MappingProxyType(
     {
-        409: error_spec("Cannot change state.")
-    }
+        409: error_spec("Cannot change state."),
+    },
 )
 
 
@@ -246,7 +264,8 @@ class ExperimentsController(Controller):
                     for variant in data.variants
                 ],
                 targeting=TargetRuleString(data.targeting)
-                if data.targeting else None,
+                if data.targeting
+                else None,
                 metrics=MetricCollection(
                     primary=data.metrics.primary,
                     secondary=data.metrics.secondary,
@@ -254,9 +273,10 @@ class ExperimentsController(Controller):
                 ),
                 priority=Priority(data.priority) if data.priority else None,
                 conflict_domain=ConflictDomain(data.conflict_domain)
-                if data.conflict_domain else None,
+                if data.conflict_domain
+                else None,
                 conflict_policy=data.conflict_policy,
-            )
+            ),
         )
         return ExperimentResponse.from_experiment(experiment)
 
@@ -283,7 +303,8 @@ class ExperimentsController(Controller):
                 flag_key=maybe_map(data.flag_key, FlagKey),
                 audience=maybe_map(data.audience, Percentage),
                 variants=maybe_map(
-                    data.variants, lambda variants: [
+                    data.variants,
+                    lambda variants: [
                         Variant(
                             name=variant.name,
                             value=variant.value,
@@ -291,22 +312,24 @@ class ExperimentsController(Controller):
                             audience=Percentage(variant.audience),
                         )
                         for variant in variants
-                    ]
+                    ],
                 ),
                 metrics=maybe_map(
-                    data.metrics, lambda metrics: MetricCollection(
+                    data.metrics,
+                    lambda metrics: MetricCollection(
                         primary=metrics.primary,
                         secondary=metrics.secondary,
                         guarding=metrics.guarding,
-                    )
+                    ),
                 ),
                 priority=maybe_map(data.priority, Priority),
                 targeting=maybe_map(data.targeting, TargetRuleString),
                 conflict_domain=maybe_map(
-                    data.conflict_domain, ConflictDomain
+                    data.conflict_domain,
+                    ConflictDomain,
                 ),
                 conflict_policy=maybe_map(data.conflict_policy),
-            )
+            ),
         )
         return ExperimentResponse.from_experiment(experiment)
 
@@ -319,13 +342,13 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_AUTHENTICATED,
             **RESPONSE_FORBIDDEN,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def send_to_review(
         self,
         exp_id: str,
-        interactor: FromDishka[SendToReview]
+        interactor: FromDishka[SendToReview],
     ) -> ExperimentResponse:
         experiment = await interactor(ExperimentId(exp_id))
         return ExperimentResponse.from_experiment(experiment)
@@ -339,14 +362,14 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_AUTHENTICATED,
             **RESPONSE_FORBIDDEN,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def reject(
         self,
         exp_id: str,
         data: RejectRequest,
-        interactor: FromDishka[RejectDraft]
+        interactor: FromDishka[RejectDraft],
     ) -> ReviewDecisionResponse:
         decision = await interactor(ExperimentId(exp_id), data.comment)
         return ReviewDecisionResponse.from_decision(decision)
@@ -360,25 +383,24 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_AUTHENTICATED,
             **RESPONSE_FORBIDDEN,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def approve(
         self,
         exp_id: str,
-        interactor: FromDishka[ApproveDraft]
+        interactor: FromDishka[ApproveDraft],
     ) -> ApprovalAcceptedResponse:
         decision = await interactor(ExperimentId(exp_id))
         if not decision:
             return ApprovalAcceptedResponse(
                 status="waiting_for_more_votes",
-                decision=None
+                decision=None,
             )
-        else:
-            return ApprovalAcceptedResponse(
-                status="accepted",
-                decision=ReviewDecisionResponse.from_decision(decision)
-            )
+        return ApprovalAcceptedResponse(
+            status="accepted",
+            decision=ReviewDecisionResponse.from_decision(decision),
+        )
 
     @post(
         path="/{exp_id:str}/restore",
@@ -389,13 +411,13 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_AUTHENTICATED,
             **RESPONSE_FORBIDDEN,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def restore(
         self,
         exp_id: str,
-        interactor: FromDishka[RestoreFromRejected]
+        interactor: FromDishka[RestoreFromRejected],
     ) -> ExperimentResponse:
         experiment = await interactor(ExperimentId(exp_id))
         return ExperimentResponse.from_experiment(experiment)
@@ -409,13 +431,13 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_AUTHENTICATED,
             **RESPONSE_FORBIDDEN,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def start(
         self,
         exp_id: str,
-        interactor: FromDishka[StartExperiment]
+        interactor: FromDishka[StartExperiment],
     ) -> ExperimentResponse:
         experiment = await interactor(ExperimentId(exp_id))
         return ExperimentResponse.from_experiment(experiment)
@@ -429,14 +451,14 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_AUTHENTICATED,
             **RESPONSE_FORBIDDEN,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def manage_running(
         self,
         exp_id: str,
         data: ManageRunningExperimentRequest,
-        interactor: FromDishka[ManageRunningExperiment]
+        interactor: FromDishka[ManageRunningExperiment],
     ) -> ExperimentResponse:
         experiment = await interactor(ExperimentId(exp_id), data.new_state)
         return ExperimentResponse.from_experiment(experiment)
@@ -450,21 +472,21 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_AUTHENTICATED,
             **RESPONSE_FORBIDDEN,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def archive(
         self,
         exp_id: str,
         data: ArchiveExperimentRequest,
-        interactor: FromDishka[ArchiveExperiment]
+        interactor: FromDishka[ArchiveExperiment],
     ) -> ExperimentResponse:
         experiment = await interactor(
             ExperimentId(exp_id),
             ExperimentResult(
                 data.comment,
                 data.outcome,
-            )
+            ),
         )
         return ExperimentResponse.from_experiment(experiment)
 
@@ -475,7 +497,7 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_FOUND,
             **RESPONSE_NOT_AUTHENTICATED,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def get_one_experiment(
@@ -485,7 +507,8 @@ class ExperimentsController(Controller):
         version: int | None = None,
     ) -> ExperimentResponse:
         experiment = await interactor(
-            ExperimentId(exp_id), version if version else MISSING
+            ExperimentId(exp_id),
+            version or MISSING,
         )
         return ExperimentResponse.from_experiment(experiment)
 
@@ -496,7 +519,7 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_FOUND,
             **RESPONSE_NOT_AUTHENTICATED,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def get_history(
@@ -514,13 +537,13 @@ class ExperimentsController(Controller):
             **RESPONSE_NOT_FOUND,
             **RESPONSE_NOT_AUTHENTICATED,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def get_audit(
         self,
         exp_id: str,
-        interactor: FromDishka[ReadExperimentAudit]
+        interactor: FromDishka[ReadExperimentAudit],
     ) -> ExperimentAuditResponse:
         audit_dto = await interactor(ExperimentId(exp_id))
         return ExperimentAuditResponse.from_dto(audit_dto)

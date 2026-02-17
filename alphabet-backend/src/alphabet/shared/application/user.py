@@ -1,10 +1,8 @@
 from abc import abstractmethod
+from typing import Protocol, final
 
-from typing import Protocol
-
-from alphabet.access.application.exceptions import UserNotFound
 from alphabet.shared.application.idp import UserIdProvider
-from alphabet.shared.domain.exceptions import NotAllowed
+from alphabet.shared.domain.exceptions import AppException, NotAllowed
 from alphabet.shared.domain.user import IapId, Role, User
 
 
@@ -39,3 +37,8 @@ async def require_any_user(
     if not user:
         raise UserNotFound
     return user
+
+
+@final
+class UserNotFound(AppException):
+    text = "User not found. Contact your administrator"

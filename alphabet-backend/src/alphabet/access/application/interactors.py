@@ -5,7 +5,6 @@ from alphabet.access.application.exceptions import (
     CannotSetReviewRulesForNonExperimenter,
     EmailNotRegistered,
     NoSuchApproverGroup,
-    UserNotFound,
 )
 from alphabet.access.application.interfaces import (
     UserRepository,
@@ -13,7 +12,11 @@ from alphabet.access.application.interfaces import (
 from alphabet.access.domain import ApproverGroup
 from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.transaction import TransactionManager
-from alphabet.shared.application.user import UserReader, require_user_with_role
+from alphabet.shared.application.user import (
+    UserNotFound,
+    UserReader,
+    require_user_with_role,
+)
 from alphabet.shared.commons import dto, interactor
 from alphabet.shared.domain.user import Role, User, UserId
 from alphabet.shared.uuid import generate_id

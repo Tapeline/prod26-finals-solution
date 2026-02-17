@@ -29,7 +29,7 @@ def error_spec(description: str) -> ResponseSpec:
         description=description,
         data_container=CommonErrorSchema,
         generate_examples=False,
-        examples=[]
+        examples=[],
     )
 
 

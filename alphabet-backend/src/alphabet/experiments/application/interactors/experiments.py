@@ -1,32 +1,37 @@
 from operator import attrgetter
-from sqlalchemy.sql.coercions import expect
-
-from typing import final, cast
+from typing import cast, final
 
 from alphabet.access.application.interfaces import UserRepository
 from alphabet.experiments.application.exceptions import (
-    AlreadyApproved, ExperimentNotInReview, FlagAlreadyTaken, NoSuchExperiment,
+    AlreadyApproved,
+    ExperimentNotInReview,
+    FlagAlreadyTaken,
+    NoSuchExperiment,
     NoSuchFlag,
 )
 from alphabet.experiments.application.interfaces import (
     ExperimentsRepository,
-    FlagRepository, ReviewRepository,
+    FlagRepository,
+    ReviewRepository,
 )
 from alphabet.experiments.domain.exceptions import (
     CannotTransition,
     InvalidConflictConfig,
 )
 from alphabet.experiments.domain.experiment import (
-    Approval, ConflictDomain,
+    Approval,
+    ConflictDomain,
     ConflictPolicy,
     Experiment,
     ExperimentId,
     ExperimentName,
-    ExperimentResult, ExperimentState,
+    ExperimentResult,
+    ExperimentState,
     MetricCollection,
     Percentage,
     Priority,
-    ReviewDecision, Variant,
+    ReviewDecision,
+    Variant,
 )
 from alphabet.experiments.domain.flags import FlagKey
 from alphabet.experiments.domain.target_rule import TargetRuleString
@@ -35,7 +40,8 @@ from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import (
     UserReader,
-    require_any_user, require_user_with_role,
+    require_any_user,
+    require_user_with_role,
 )
 from alphabet.shared.commons import (
     MISSING,
@@ -44,7 +50,7 @@ from alphabet.shared.commons import (
     interactor,
 )
 from alphabet.shared.domain.exceptions import NotAllowed
-from alphabet.shared.domain.user import Role, UserId
+from alphabet.shared.domain.user import Role
 from alphabet.shared.uuid import generate_id
 
 
@@ -77,7 +83,8 @@ class CreateExperiment:
             dto.targeting.validate()
         async with self.tx:
             user = await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER}
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER},
             )
             exp_flag = await self.flags.get_by_key(dto.flag_key)
             if not exp_flag:
@@ -126,16 +133,18 @@ class UpdateExperiment:
     tx: TransactionManager
     experiments: ExperimentsRepository
 
-    async def __call__(
+    # TODO: refactor later
+    async def __call__(  # noqa: C901
         self,
         exp_id: ExperimentId,
-        dto: UpdateExperimentDTO
+        dto: UpdateExperimentDTO,
     ) -> Experiment:
         if dto.targeting is not MISSING and dto.targeting is not None:
             cast(TargetRuleString, dto.targeting).validate()
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER}
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER},
             )
             experiment = await self.experiments.get_latest_by_id(exp_id)
             if not experiment:
@@ -151,29 +160,34 @@ class UpdateExperiment:
                 experiment.priority = cast(Priority | None, dto.priority)
             if dto.targeting is not MISSING:
                 experiment.targeting = cast(
-                    TargetRuleString | None, dto.targeting
+                    TargetRuleString | None,
+                    dto.targeting,
                 )
             if dto.name is not MISSING:
                 experiment.name = cast(ExperimentName, dto.name)
             if dto.conflict_domain is None and dto.conflict_policy is None:
                 experiment.remove_conflict_domain()
-            elif dto.conflict_domain is not MISSING and dto.conflict_policy is not MISSING:
+            elif (
+                dto.conflict_domain is not MISSING
+                and dto.conflict_policy is not MISSING
+            ):
                 experiment.set_conflict_domain(
                     cast(ConflictDomain, dto.conflict_domain),
-                    cast(ConflictPolicy, dto.conflict_policy)
+                    cast(ConflictPolicy, dto.conflict_policy),
                 )
             if (dto.conflict_policy is MISSING) ^ (
-                dto.conflict_policy is MISSING):
+                dto.conflict_policy is MISSING
+            ):
                 raise InvalidConflictConfig
             if dto.variants is not MISSING:
                 if dto.audience is not MISSING:
                     experiment.set_new_audience_variants(
                         cast(Percentage, dto.audience),
-                        cast(list[Variant], dto.variants)
+                        cast(list[Variant], dto.variants),
                     )
                 else:
                     experiment.set_new_variants(
-                        cast(list[Variant], dto.variants)
+                        cast(list[Variant], dto.variants),
                     )
             experiment.updated_at = self.time_provider.now()
             experiment.increment_version()
@@ -194,7 +208,8 @@ class SendToReview:
     async def __call__(self, exp_id: ExperimentId) -> Experiment:
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER}
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER},
             )
             experiment = await self.experiments.get_latest_by_id(exp_id)
             if not experiment:
@@ -217,7 +232,8 @@ class RestoreFromRejected:
     async def __call__(self, exp_id: ExperimentId) -> Experiment:
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER}
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER},
             )
             experiment = await self.experiments.get_latest_by_id(exp_id)
             if not experiment:
@@ -241,25 +257,27 @@ class RejectDraft:
     async def __call__(
         self,
         exp_id: ExperimentId,
-        comment: str
+        comment: str,
     ) -> ReviewDecision:
         async with self.tx:
             approver = await require_user_with_role(
-                self, {Role.ADMIN, Role.APPROVER}
+                self,
+                {Role.ADMIN, Role.APPROVER},
             )
             experiment = await self.experiments.get_latest_by_id(
-                exp_id, lock=True
+                exp_id,
+                lock=True,
             )
             if not experiment:
                 raise NoSuchExperiment
             if experiment.state != ExperimentState.IN_REVIEW:
                 raise ExperimentNotInReview
             approver_group = await self.users.load_approver_group(
-                experiment.author_id
+                experiment.author_id,
             )
-            if not approver_group and approver.role == Role.ADMIN:
-                rejecter_id = approver.id
-            elif approver_group and approver.id in approver_group.approvers:
+            if (not approver_group and approver.role == Role.ADMIN) or (
+                approver_group and approver.id in approver_group.approvers
+            ):
                 rejecter_id = approver.id
             else:
                 raise NotAllowed
@@ -268,7 +286,7 @@ class RejectDraft:
             decision = ReviewDecision.rejected(
                 experiment_id=experiment.id,
                 rejecter_id=rejecter_id,
-                reject_comment=comment
+                reject_comment=comment,
             )
             await self.reviews.save_decision(decision)
             await self.experiments.save(experiment)
@@ -293,17 +311,19 @@ class ApproveDraft:
     ) -> ReviewDecision | None:
         async with self.tx:
             approver = await require_user_with_role(
-                self, {Role.ADMIN, Role.APPROVER}
+                self,
+                {Role.ADMIN, Role.APPROVER},
             )
             experiment = await self.experiments.get_latest_by_id(
-                exp_id, lock=True
+                exp_id,
+                lock=True,
             )
             if not experiment:
                 raise NoSuchExperiment
             if experiment.state != ExperimentState.IN_REVIEW:
                 raise ExperimentNotInReview
             approver_group = await self.users.load_approver_group(
-                experiment.author_id
+                experiment.author_id,
             )
             approvals = await self.reviews.all_approvals(experiment.id)
             if approver.id in map(attrgetter("approver_id"), approvals):
@@ -311,12 +331,12 @@ class ApproveDraft:
             decision: ReviewDecision | None = None
             if not approver_group and approver.role == Role.ADMIN:
                 await self.reviews.create_approval(
-                    Approval(experiment.id, approver.id)
+                    Approval(experiment.id, approver.id),
                 )
                 decision = await self._accept(experiment)
             elif approver_group and approver.id in approver_group.approvers:
                 await self.reviews.create_approval(
-                    Approval(experiment.id, approver.id)
+                    Approval(experiment.id, approver.id),
                 )
                 if len(approvals) + 1 >= approver_group.threshold:
                     decision = await self._accept(experiment)
@@ -355,7 +375,8 @@ class StartExperiment:
                 raise NoSuchExperiment
             if experiment.state != ExperimentState.ACCEPTED:
                 raise CannotTransition(
-                    experiment.state, ExperimentState.STARTED
+                    experiment.state,
+                    ExperimentState.STARTED,
                 )
             await self.flags.lock_on(experiment.flag_key)
             if await self.experiments.get_active_by_flag(experiment.flag_key):
@@ -376,7 +397,9 @@ class ManageRunningExperiment:
     time_provider: TimeProvider
 
     async def __call__(
-        self, exp_id: ExperimentId, new_state: ExperimentState
+        self,
+        exp_id: ExperimentId,
+        new_state: ExperimentState,
     ) -> Experiment:
         async with self.tx:
             await require_user_with_role(self, {Role.EXPERIMENTER})
@@ -399,7 +422,9 @@ class ArchiveExperiment:
     time_provider: TimeProvider
 
     async def __call__(
-        self, exp_id: ExperimentId, result: ExperimentResult
+        self,
+        exp_id: ExperimentId,
+        result: ExperimentResult,
     ) -> Experiment:
         async with self.tx:
             await require_user_with_role(self, {Role.EXPERIMENTER})
@@ -421,7 +446,9 @@ class ReadExperimentVersion:
     experiments: ExperimentsRepository
 
     async def __call__(
-        self, exp_id: ExperimentId, version: Maybe[int]
+        self,
+        exp_id: ExperimentId,
+        version: Maybe[int],
     ) -> Experiment:
         async with self.tx:
             await require_any_user(self)
@@ -429,7 +456,8 @@ class ReadExperimentVersion:
                 experiment = await self.experiments.get_latest_by_id(exp_id)
             else:
                 experiment = await self.experiments.get_by_id_and_version(
-                    exp_id, cast(int, version)
+                    exp_id,
+                    cast(int, version),
                 )
             if not experiment:
                 raise NoSuchExperiment
@@ -445,7 +473,8 @@ class ReadExperimentVersionHistory:
     experiments: ExperimentsRepository
 
     async def __call__(
-        self, exp_id: ExperimentId
+        self,
+        exp_id: ExperimentId,
     ) -> list[Experiment]:
         async with self.tx:
             await require_any_user(self)
@@ -469,7 +498,8 @@ class ReadExperimentAudit:
     reviews: ReviewRepository
 
     async def __call__(
-        self, exp_id: ExperimentId
+        self,
+        exp_id: ExperimentId,
     ) -> ExperimentAuditDTO:
         async with self.tx:
             await require_any_user(self)

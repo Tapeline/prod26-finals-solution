@@ -1,8 +1,6 @@
 from datetime import date
-
 from types import MappingProxyType
-
-from typing import Final, cast, assert_never
+from typing import Final, cast
 
 from syntactix.parser.parser import ParserBase
 
@@ -13,12 +11,14 @@ from alphabet.experiments.domain.dsl.lexer import (
 from alphabet.experiments.domain.dsl.nodes import (
     BinOp,
     BinOpNode,
-    LiteralBool, LiteralCollection,
+    LiteralBool,
+    LiteralCollection,
     LiteralDate,
     LiteralNumber,
     LiteralStr,
     LiteralUndefined,
-    NameNode, Node,
+    NameNode,
+    Node,
     UnaryNotNode,
 )
 
@@ -32,12 +32,12 @@ _TOK_TYPE_TO_BIN_OP: Final = MappingProxyType(
         TargetDSLTokenType.GREATER_EQUAL: BinOp.GREATER_EQUAL,
         TargetDSLTokenType.LESS: BinOp.LESS,
         TargetDSLTokenType.LESS_EQUAL: BinOp.LESS_EQUAL,
-    }
+    },
 )
 
 
 class TargetDSLParser(
-    ParserBase[TargetDSLToken, TargetDSLTokenType, Node]  # type: ignore[misc]
+    ParserBase[TargetDSLToken, TargetDSLTokenType, Node],  # type: ignore[misc]
 ):
     def parse(self) -> Node:
         return self._parse_disj()
@@ -82,7 +82,7 @@ class TargetDSLParser(
             expr = self.parse()
             self.require(TargetDSLTokenType.RPAR)
             return expr
-        elif tok := self.match(TargetDSLTokenType.LBRACKET):
+        if tok := self.match(TargetDSLTokenType.LBRACKET):
             items: list[Node] = []
             if self.match(TargetDSLTokenType.RBRACKET):
                 return LiteralCollection(tok, items)
@@ -91,26 +91,24 @@ class TargetDSLParser(
                 items.append(self._parse_value())
             self.require(TargetDSLTokenType.RBRACKET)
             return LiteralCollection(tok, items)
-        elif tok := self.match(TargetDSLTokenType.NAME):
+        if tok := self.match(TargetDSLTokenType.NAME):
             return NameNode(tok, tok.value)
-        else:
-            return self._parse_value()
+        return self._parse_value()
 
     def _parse_value(self) -> Node:  # type: ignore[return]
         if tok := self.match(TargetDSLTokenType.DATE):
             return LiteralDate(tok, cast(date, tok.value))
-        elif tok := self.match(TargetDSLTokenType.NUMBER):
+        if tok := self.match(TargetDSLTokenType.NUMBER):
             return LiteralNumber(tok, cast(float, tok.value))
-        elif tok := self.match(TargetDSLTokenType.STRING):
+        if tok := self.match(TargetDSLTokenType.STRING):
             return LiteralStr(tok, cast(str, tok.value))
-        elif tok := self.match(TargetDSLTokenType.UNDEFINED):
+        if tok := self.match(TargetDSLTokenType.UNDEFINED):
             return LiteralUndefined(tok)
-        elif tok := self.match(TargetDSLTokenType.TRUE):
+        if tok := self.match(TargetDSLTokenType.TRUE):
             return LiteralBool(tok, value=True)
-        elif tok := self.match(TargetDSLTokenType.FALSE):
+        if tok := self.match(TargetDSLTokenType.FALSE):
             return LiteralBool(tok, value=False)
+        if self.not_at_end:
+            self.unexpected(self.peek)
         else:
-            if self.not_at_end:
-                self.unexpected(self.peek)
-            else:
-                self.unexpected(TargetDSLToken.eof(self.pos))
+            self.unexpected(TargetDSLToken.eof(self.pos))

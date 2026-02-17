@@ -1,18 +1,18 @@
-from dishka import AnyOf, Provider, Scope, provide, provide_all
+from dishka import Provider, Scope, provide, provide_all
 
 from alphabet.experiments.application.interactors.experiments import (
-    CreateExperiment,
-    RejectDraft,
-    SendToReview,
-    UpdateExperiment,
     ApproveDraft,
-    RestoreFromRejected,
-    StartExperiment,
-    ManageRunningExperiment,
     ArchiveExperiment,
+    CreateExperiment,
+    ManageRunningExperiment,
+    ReadExperimentAudit,
     ReadExperimentVersion,
     ReadExperimentVersionHistory,
-    ReadExperimentAudit,
+    RejectDraft,
+    RestoreFromRejected,
+    SendToReview,
+    StartExperiment,
+    UpdateExperiment,
 )
 from alphabet.experiments.application.interactors.flags import (
     CreateFlag,
@@ -20,20 +20,18 @@ from alphabet.experiments.application.interactors.flags import (
     ReadFlag,
     UpdateFlag,
 )
-from alphabet.access.application.interfaces import UserRepository
-from alphabet.access.infrastructure.repos import SqlUserRepository
 from alphabet.experiments.application.interfaces import (
+    ExperimentsRepository,
     FlagRepository,
-    ExperimentsRepository, ReviewRepository,
+    ReviewRepository,
 )
-from alphabet.experiments.infrastructure.experiments_repo import \
-    SqlExperimentsRepository
+from alphabet.experiments.infrastructure.experiments_repo import (
+    SqlExperimentsRepository,
+)
 from alphabet.experiments.infrastructure.flags_repo import SqlFlagRepository
-from alphabet.experiments.infrastructure.reviews_repo import \
-    SqlReviewRepository
-from alphabet.experiments.presentation.flags import FlagResponse
-from alphabet.shared.application.transaction import TransactionManager
-from alphabet.shared.application.user import UserReader
+from alphabet.experiments.infrastructure.reviews_repo import (
+    SqlReviewRepository,
+)
 
 
 class FlagsExperimentsDIProvider(Provider):
@@ -60,15 +58,15 @@ class FlagsExperimentsDIProvider(Provider):
     flags_repo = provide(
         SqlFlagRepository,
         provides=FlagRepository,
-        scope=Scope.REQUEST
+        scope=Scope.REQUEST,
     )
     experiments_repo = provide(
         SqlExperimentsRepository,
         provides=ExperimentsRepository,
-        scope=Scope.REQUEST
+        scope=Scope.REQUEST,
     )
     reviews_repo = provide(
         SqlReviewRepository,
         provides=ReviewRepository,
-        scope=Scope.REQUEST
+        scope=Scope.REQUEST,
     )

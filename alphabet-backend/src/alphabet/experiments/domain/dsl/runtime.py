@@ -1,16 +1,12 @@
-from abc import abstractmethod
-
+import datetime
 import math
-
 import re
-
+from abc import abstractmethod
+from datetime import date
 from typing import Any, Final, final, override
 
-import datetime
-
-from datetime import date
-
 from alphabet.shared.commons import value_object
+from alphabet.shared.const import APP_TZ
 
 _SEM_VER_RE: Final = re.compile(r"\d+\.\d+\.\d+")
 
@@ -54,46 +50,54 @@ class SemVer:
     def __ge__(self, other: Any) -> Any:
         return self > other or self == other
 
+    @override
+    def __hash__(self) -> int:
+        return hash((self.major, self.minor, self.patch))
+
 
 class CompiledExpression:
     def __init__(self, ctx: dict[str, Any]) -> None:
         self.ctx = ctx
 
+    def _coerce_str_dates(self, a: str, b: Any) -> tuple[Any, Any]:
+        try:
+            return datetime.datetime.strptime(a, "%Y-%m-%d").astimezone(
+                APP_TZ,
+            ).date(), b
+        except ValueError:
+            try:
+                return datetime.datetime.fromisoformat(a).astimezone(APP_TZ), b
+            except ValueError:
+                return a, b
+
     def _coerce(self, a: Any, b: Any) -> tuple[Any, Any]:
         if isinstance(b, date) and isinstance(a, str):
-            try:
-                return datetime.datetime.strptime(a, "%Y-%m-%d").date(), b
-            except ValueError:
-                try:
-                    return datetime.datetime.fromisoformat(a), b
-                except ValueError:
-                    return a, b
+            return self._coerce_str_dates(a, b)
         if isinstance(a, date) and isinstance(b, str):
-            try:
-                return a, datetime.datetime.strptime(b, "%Y-%m-%d").date()
-            except ValueError:
-                try:
-                    return a, datetime.datetime.fromisoformat(b)
-                except ValueError:
-                    return a, b
+            return self._coerce_str_dates(b, a)
         if isinstance(b, date) and isinstance(a, (int, float)):
-            return datetime.datetime.fromtimestamp(a), b
+            return datetime.datetime.fromtimestamp(a, APP_TZ), b
         if isinstance(a, date) and isinstance(b, (int, float)):
-            return a, datetime.datetime.fromtimestamp(b)
-        if isinstance(a, str) and isinstance(b, str):
-            if _SEM_VER_RE.fullmatch(a) and _SEM_VER_RE.fullmatch(b):
-                return SemVer.parse(a), SemVer.parse(b)
+            return a, datetime.datetime.fromtimestamp(b, APP_TZ)
+        if (
+            isinstance(a, str)
+            and isinstance(b, str)
+            and (_SEM_VER_RE.fullmatch(a) and _SEM_VER_RE.fullmatch(b))
+        ):
+            return SemVer.parse(a), SemVer.parse(b)
         return a, b
 
     def _is_comparable(self, a: Any, b: Any) -> bool:
         if a is None or b is None:
             return False
         return (
-            isinstance(a, (int, float)) and isinstance(b, (int, float))
-            or isinstance(a, str) and isinstance(b, str)
-            or isinstance(a, (datetime.datetime, date))
+            (isinstance(a, (int, float)) and isinstance(b, (int, float)))
+            or (isinstance(a, str) and isinstance(b, str))
+            or (
+                isinstance(a, (datetime.datetime, date))
                 and isinstance(b, (datetime.datetime, date))
-            or isinstance(a, SemVer) and isinstance(b, SemVer)
+            )
+            or (isinstance(a, SemVer) and isinstance(b, SemVer))
         )
 
     def _cmp_eq(self, a: Any, b: Any) -> Any:
@@ -160,9 +164,17 @@ class CompiledExpression:
         return self.ctx.get(name, None)
 
     def _construct_date(
-        self, day: int, month: int, year: int
+        self,
+        day: int,
+        month: int,
+        year: int,
     ) -> datetime.datetime:
-        return datetime.datetime(day=day, year=year, month=month)
+        return datetime.datetime(
+            day=day,
+            year=year,
+            month=month,
+            tzinfo=APP_TZ,
+        )
 
     def _not(self, a: Any) -> Any:
         return not a

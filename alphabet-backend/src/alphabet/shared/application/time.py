@@ -1,7 +1,5 @@
-from datetime import datetime
-
 from abc import abstractmethod
-
+from datetime import datetime
 from typing import Protocol
 
 

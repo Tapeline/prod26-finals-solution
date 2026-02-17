@@ -15,7 +15,6 @@ from alphabet.access.application.interactors import CreateUser, CreateUserDTO
 from alphabet.access.application.interfaces import (
     UserRepository,
 )
-from alphabet.shared.application.user import UserReader
 from alphabet.access.domain import ApproverGroup
 from alphabet.access.infrastructure.repos import SqlUserRepository
 from alphabet.bootstrap.config import service_config_loader
@@ -25,6 +24,7 @@ from alphabet.bootstrap.di.shared import (
     SqlTransactionDIProvider,
 )
 from alphabet.shared.application.idp import ExtUserIdentity, UserIdProvider
+from alphabet.shared.application.user import UserReader
 from alphabet.shared.config import Config
 from alphabet.shared.domain.user import IapId, Role, User, UserId
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager
