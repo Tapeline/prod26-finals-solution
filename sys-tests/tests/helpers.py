@@ -94,3 +94,73 @@ def approve_experiment(exp_id, login=DEFAULT_ADMIN_LOGIN):
         f"{app_url}/api/v1/experiments/{exp_id}/approve",
         headers=login
     ).raise_for_status()
+
+
+def start_experiment(exp_id: str, login=DEFAULT_EXPERIMENTER_LOGIN):
+    """Переводит эксперимент из approved в started."""
+    response = httpx.post(
+        f"{app_url}/api/v1/experiments/{exp_id}/start",
+        headers=login
+    )
+    response.raise_for_status()
+    return response.json()
+
+
+def get_flags(subject_id: str, flag_keys: list[str], attributes: dict = None):
+    """Вызывает API принятия решений."""
+    if attributes is None:
+        attributes = {}
+
+    payload = {
+        "subject_id": subject_id,
+        "flags": flag_keys,
+        "attributes": attributes
+    }
+
+    response = httpx.post(
+        f"{app_url}/api/v1/decisions/get-flags",
+        json=payload
+    )
+    response.raise_for_status()
+    return response.json()["flags"]
+
+
+def setup_active_experiment(
+    flag_key: str,
+    variants: list = None,
+    targeting: str | None = None,
+    audience: int = 100
+):
+    if variants is None:
+        variants = [
+            {
+                "name": "control",
+                "value": "A",
+                "audience": 50,
+                "is_control": True
+            },
+            {
+                "name": "treatment",
+                "value": "B",
+                "audience": 50,
+                "is_control": False
+            }
+        ]
+
+    exp_params = {
+        "flag_key": flag_key,
+        "variants": variants,
+        "audience": audience
+    }
+
+    # Предполагаем, что API принимает targeting/segment в payload
+    if targeting:
+        exp_params["targeting"] = targeting
+
+    # 3. Создаем и запускаем
+    exp = create_experiment(**exp_params)
+    send_to_review(exp["id"])
+    approve_experiment(exp["id"])  # login=ADMIN внутри хелпера
+    start_experiment(exp["id"])
+
+    return exp

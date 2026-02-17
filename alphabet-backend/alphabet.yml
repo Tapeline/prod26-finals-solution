@@ -7,4 +7,5 @@ postgres:
 valkey:
   host: localhost
   port: 6379
+  username: default
   password: valkey_pass

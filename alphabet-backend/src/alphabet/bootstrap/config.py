@@ -1,3 +1,5 @@
+# from https://github.com/Tapeline/Fastscaffold
+
 from fuente import config_loader
 from fuente.sources.env import EnvSource
 from fuente.sources.yaml import YamlSource

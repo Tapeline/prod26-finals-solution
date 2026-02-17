@@ -1,7 +1,6 @@
-import pytest
 import httpx
 
-from tests.b03.helpers import (
+from tests.helpers import (
      set_approver_group,
     create_flag, create_experiment, send_to_review,
 )

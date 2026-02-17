@@ -1,6 +1,6 @@
 import httpx
 
-from tests.b03.helpers import create_experiment, create_flag
+from tests.helpers import create_experiment, create_flag
 from tests.config import app_url
 from tests.conftest import DEFAULT_EXPERIMENTER_LOGIN
 

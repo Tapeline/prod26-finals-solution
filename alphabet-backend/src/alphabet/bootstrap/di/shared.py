@@ -9,8 +9,8 @@ from dishka import (
     from_context,
     provide,
 )
-from glide import GlideClient
 from litestar import Request
+from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from alphabet.bootstrap.instant_notifier import InstantNotifier
@@ -86,5 +86,5 @@ class MessageQueueErsatzDIProvider(Provider):
 
 class ValkeyDIProvider(Provider):
     @provide(scope=Scope.APP)
-    async def provide_client(self, config: Config) -> GlideClient:
+    async def provide_client(self, config: Config) -> Redis:
         return await create_valkey_client(config.valkey)

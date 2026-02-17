@@ -10,8 +10,8 @@ class InMemoryFlagStorage(FlagStorage):
         self._ready = False
 
     @override
-    def get_default(self, flag_key: str) -> str:
-        return self._defaults[flag_key]
+    def get_default(self, flag_key: str) -> str | None:
+        return self._defaults.get(flag_key, None)
 
     @override
     def set_flag_default(self, flag_key: str, value: str) -> None:

@@ -1,13 +1,11 @@
-import pytest
 import httpx
 
-from tests.b03.helpers import (
-    create_experiment, set_approver_group,
+from tests.helpers import (
+    create_experiment,
     send_to_review, create_flag, get_experiment, approve_experiment,
 )
-from tests.client import iap_login
 from tests.config import app_url
-from tests.conftest import DEFAULT_ADMIN_LOGIN, DEFAULT_EXPERIMENTER_LOGIN
+from tests.conftest import DEFAULT_EXPERIMENTER_LOGIN
 
 
 def test_block_start_without_approvals(

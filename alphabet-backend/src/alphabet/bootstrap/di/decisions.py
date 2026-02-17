@@ -1,7 +1,7 @@
 from dishka import Provider, Scope, provide, provide_all
 
 from alphabet.decisions.application import (
-    CooldownChecker,
+    DecisionDataStore,
     ExperimentStorage,
     FlagStorage,
     MakeDecision,
@@ -17,7 +17,7 @@ from alphabet.decisions.infrastructure.storage import (
     InMemoryExperimentStorage,
     InMemoryFlagStorage,
 )
-from alphabet.decisions.infrastructure.valkey import ValkeyCooldownChecker
+from alphabet.decisions.infrastructure.valkey import ValkeyDecisionDataStore
 
 
 class DecisionsDIProvider(Provider):
@@ -39,8 +39,8 @@ class DecisionsDIProvider(Provider):
         scope=Scope.APP,
     )
     valkey = provide(
-        ValkeyCooldownChecker,
-        provides=CooldownChecker,
+        ValkeyDecisionDataStore,
+        provides=DecisionDataStore,
         scope=Scope.REQUEST,
     )
     resolutions_repo = provide(

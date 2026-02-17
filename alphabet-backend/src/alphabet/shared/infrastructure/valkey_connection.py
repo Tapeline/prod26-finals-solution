@@ -1,20 +1,13 @@
-from glide import (
-    GlideClient,
-    GlideClientConfiguration,
-    NodeAddress,
-    ServerCredentials,
-)
+from redis.asyncio import Redis
 
 from alphabet.shared.config import ValkeyConfig
 
 
-async def create_valkey_client(valkey_config: ValkeyConfig) -> GlideClient:
-    config = GlideClientConfiguration(
-        [NodeAddress(valkey_config.host, valkey_config.port)],
-        credentials=ServerCredentials(
-            valkey_config.password,
-            valkey_config.username,
-        ),
-        database_id=valkey_config.database_id,
+async def create_valkey_client(valkey_config: ValkeyConfig) -> Redis:
+    return Redis(
+        host=valkey_config.host,
+        port=valkey_config.port,
+        username=valkey_config.username,
+        password=valkey_config.password,
+        db=valkey_config.database_id or 0
     )
-    return await GlideClient.create(config)

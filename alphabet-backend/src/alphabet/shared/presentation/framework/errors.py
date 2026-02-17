@@ -1,3 +1,5 @@
+# from https://github.com/Tapeline/Fastscaffold
+
 from collections.abc import Callable, Mapping
 from typing import Any, Final, NewType
 

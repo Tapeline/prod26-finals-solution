@@ -1,3 +1,5 @@
+# from https://github.com/Tapeline/Fastscaffold
+
 from types import MappingProxyType
 from typing import Any, Final
 

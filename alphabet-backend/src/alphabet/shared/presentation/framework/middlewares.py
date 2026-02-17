@@ -1,3 +1,5 @@
+# from https://github.com/Tapeline/Fastscaffold
+
 import uuid
 from typing import Final, override
 

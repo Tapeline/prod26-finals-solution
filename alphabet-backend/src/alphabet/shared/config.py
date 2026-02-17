@@ -27,7 +27,7 @@ class LoggingConfig:
 class ValkeyConfig:
     host: str
     port: int
-    username: str | None = None
+    username: str = "default"
     password: str | None = None
     database_id: int | None = None
 
@@ -36,6 +36,7 @@ class ValkeyConfig:
 class AppConfig:
     cooldown_after_s: int = 60 * 60 * 24
     cooldown_for_s: int = 60 * 60 * 24
+    store_stickiness_for_s: int = 60 * 60 * 24 * 7 * 2
 
 
 @dto

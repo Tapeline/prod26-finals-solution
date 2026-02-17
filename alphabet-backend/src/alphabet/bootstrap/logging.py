@@ -1,3 +1,5 @@
+# from https://github.com/Tapeline/Fastscaffold
+
 import structlog
 from litestar.logging import StructLoggingConfig
 from litestar.plugins.structlog import StructlogConfig, StructlogPlugin

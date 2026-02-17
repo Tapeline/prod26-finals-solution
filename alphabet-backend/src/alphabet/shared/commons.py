@@ -1,3 +1,5 @@
+# from https://github.com/Tapeline/Fastscaffold
+
 from collections.abc import Callable
 from dataclasses import dataclass
 from operator import attrgetter
@@ -30,7 +32,7 @@ def interactor[Interactor_T](cls: type[Interactor_T]) -> type[Interactor_T]:
     return dataclass(slots=True, frozen=True)(cls)
 
 
-@dataclass_transform(frozen_default=True)
+@dataclass_transform(eq_default=False)
 def autoinit[Something_T](cls: type[Something_T]) -> type[Something_T]:
     """Alias to dataclass with only init."""
     return dataclass(

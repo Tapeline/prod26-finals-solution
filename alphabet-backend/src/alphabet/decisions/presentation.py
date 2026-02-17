@@ -21,7 +21,7 @@ class DecisionSchema(Struct):
 
 
 class GetFlagsResponse(Struct):
-    flags: dict[str, DecisionSchema]
+    flags: dict[str, DecisionSchema | None]
 
 
 class DecisionsController(Controller):
@@ -30,6 +30,7 @@ class DecisionsController(Controller):
 
     @post(
         path="/get-flags",
+        status_code=200,
     )
     @inject
     async def get_flags(
@@ -44,11 +45,11 @@ class DecisionsController(Controller):
         )
         return GetFlagsResponse(
             {
-                decision.flag_key: DecisionSchema(
+                key: DecisionSchema(
                     id=decision.id,
                     value=decision.value,
                     experiment_id=decision.experiment_id,
-                )
-                for decision in decisions
+                ) if decision else None
+                for key, decision in decisions.items()
             },
         )
