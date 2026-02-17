@@ -1,6 +1,8 @@
-from typing import final
+from typing import final, TYPE_CHECKING
 
-from alphabet.experiments.domain.experiment import ExperimentState
+if TYPE_CHECKING:
+    from alphabet.experiments.domain.experiment import ExperimentState
+
 from alphabet.shared.domain.exceptions import AppException
 
 
@@ -71,8 +73,8 @@ class ExperimentFrozen(AppException):
 class CannotTransition(AppException):
     def __init__(
         self,
-        from_state: ExperimentState,
-        to_state: ExperimentState
+        from_state: "ExperimentState",
+        to_state: "ExperimentState"
     ) -> None:
         self.from_state = from_state
         self.to_state = to_state

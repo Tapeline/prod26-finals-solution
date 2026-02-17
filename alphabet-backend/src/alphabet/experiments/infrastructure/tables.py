@@ -1,5 +1,5 @@
 from sqlalchemy.dialects.postgresql import JSONB
-from typing import Final
+from typing import Final, Any
 
 from sqlalchemy import (
     Column,
@@ -31,30 +31,33 @@ flags = Table(
     Column("updated_at", DateTime),
 )
 
-EXPERIMENT_COLUMNS: Final = (
-    Column("name", String),
-    Column("flag_key", String, ForeignKey("flags.key")),
-    Column("state", Enum(ExperimentState)),
-    Column("version", Integer),
-    Column("audience", Integer),
-    Column("variants", JSONB),
-    Column("targeting", String, nullable=True),
-    Column("author_id", String, ForeignKey("users.id")),
-    Column("created_at", DateTime),
-    Column("updated_at", DateTime),
-    Column("result_comment", String, nullable=True),
-    Column("result_outcome", Enum(ExperimentOutcome), nullable=True),
-    Column("metrics", JSONB),
-    Column("priority", Integer, nullable=True),
-    Column("conflict_domain", String, nullable=True),
-    Column("conflict_policy", Enum(ConflictPolicy), nullable=True),
-)
+
+def create_experiment_columns() -> tuple[Column[Any], ...]:
+    return (
+        Column("name", String),
+        Column("flag_key", String, ForeignKey("flags.key")),
+        Column("state", Enum(ExperimentState)),
+        Column("version", Integer),
+        Column("audience", Integer),
+        Column("variants", JSONB),
+        Column("targeting", String, nullable=True),
+        Column("author_id", String, ForeignKey("users.id")),
+        Column("created_at", DateTime),
+        Column("updated_at", DateTime),
+        Column("result_comment", String, nullable=True),
+        Column("result_outcome", Enum(ExperimentOutcome), nullable=True),
+        Column("metrics", JSONB),
+        Column("priority", Integer, nullable=True),
+        Column("conflict_domain", String, nullable=True),
+        Column("conflict_policy", Enum(ConflictPolicy), nullable=True),
+    )
+
 
 experiments_latest = Table(
     "experiments_latest",
     metadata,
     Column("id", String, primary_key=True, unique=True),
-    *EXPERIMENT_COLUMNS
+    *create_experiment_columns()
 )
 
 Index("exp_latest_flag_key_index", experiments_latest.c.flag_key)
@@ -63,7 +66,7 @@ experiments_history = Table(
     "experiments_history",
     metadata,
     Column("id", String),
-    *EXPERIMENT_COLUMNS
+    *create_experiment_columns()
 )
 
 approvals = Table(
@@ -76,7 +79,10 @@ approvals = Table(
 review_decisions = Table(
     "review_decisions",
     metadata,
-    Column("experiment_id", String, ForeignKey("experiments_latest.id"), unique=True),
+    Column(
+        "experiment_id", String, ForeignKey("experiments_latest.id"),
+        unique=True
+    ),
     Column("rejecter_id", String, ForeignKey("users.id"), nullable=True),
     Column("reject_comment", String, nullable=True),
 )

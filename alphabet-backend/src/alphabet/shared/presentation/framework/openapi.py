@@ -9,7 +9,6 @@ class CommonErrorSchema(Struct):
     """Used for all errors."""
 
     code: str
-    details: str
     extra: dict[str, Any] | None = None
 
 
@@ -30,6 +29,7 @@ def error_spec(description: str) -> ResponseSpec:
         description=description,
         data_container=CommonErrorSchema,
         generate_examples=False,
+        examples=[]
     )
 
 

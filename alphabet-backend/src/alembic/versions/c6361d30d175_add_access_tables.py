@@ -1,3 +1,4 @@
+# type: ignore
 """add access tables
 
 Revision ID: c6361d30d175

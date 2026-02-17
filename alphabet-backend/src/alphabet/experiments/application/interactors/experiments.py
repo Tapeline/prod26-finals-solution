@@ -1,7 +1,7 @@
 from operator import attrgetter
 from sqlalchemy.sql.coercions import expect
 
-from typing import final
+from typing import final, cast
 
 from alphabet.access.application.interfaces import UserRepository
 from alphabet.experiments.application.exceptions import (
@@ -73,7 +73,8 @@ class CreateExperiment:
     tx: TransactionManager
 
     async def __call__(self, dto: CreateExperimentDTO) -> Experiment:
-        dto.targeting.validate()
+        if dto.targeting:
+            dto.targeting.validate()
         async with self.tx:
             user = await require_user_with_role(
                 self, {Role.ADMIN, Role.EXPERIMENTER}
@@ -131,7 +132,7 @@ class UpdateExperiment:
         dto: UpdateExperimentDTO
     ) -> Experiment:
         if dto.targeting is not MISSING and dto.targeting is not None:
-            dto.targeting.validate()
+            cast(TargetRuleString, dto.targeting).validate()
         async with self.tx:
             await require_user_with_role(
                 self, {Role.ADMIN, Role.EXPERIMENTER}
@@ -140,21 +141,26 @@ class UpdateExperiment:
             if not experiment:
                 raise NoSuchExperiment
             if dto.flag_key is not MISSING:
-                flag = await self.flags.get_by_key(dto.flag_key)
+                flag = await self.flags.get_by_key(cast(FlagKey, dto.flag_key))
                 if not flag:
                     raise NoSuchFlag
-                experiment.flag_key = dto.flag_key
+                experiment.flag_key = cast(FlagKey, dto.flag_key)
             if dto.metrics is not MISSING:
-                experiment.metrics = dto.metrics
+                experiment.metrics = cast(MetricCollection, dto.metrics)
             if dto.priority is not MISSING:
-                experiment.priority = dto.priority
+                experiment.priority = cast(Priority | None, dto.priority)
             if dto.targeting is not MISSING:
-                experiment.targeting = dto.targeting
+                experiment.targeting = cast(
+                    TargetRuleString | None, dto.targeting
+                )
             if dto.name is not MISSING:
-                experiment.name = dto.name
-            if dto.conflict_domain is not MISSING and dto.conflict_policy is not MISSING:
+                experiment.name = cast(ExperimentName, dto.name)
+            if dto.conflict_domain is None and dto.conflict_policy is None:
+                experiment.remove_conflict_domain()
+            elif dto.conflict_domain is not MISSING and dto.conflict_policy is not MISSING:
                 experiment.set_conflict_domain(
-                    dto.conflict_domain, dto.conflict_policy
+                    cast(ConflictDomain, dto.conflict_domain),
+                    cast(ConflictPolicy, dto.conflict_policy)
                 )
             if (dto.conflict_policy is MISSING) ^ (
                 dto.conflict_policy is MISSING):
@@ -162,10 +168,13 @@ class UpdateExperiment:
             if dto.variants is not MISSING:
                 if dto.audience is not MISSING:
                     experiment.set_new_audience_variants(
-                        dto.audience, dto.variants
+                        cast(Percentage, dto.audience),
+                        cast(list[Variant], dto.variants)
                     )
                 else:
-                    experiment.set_new_variants(dto.variants)
+                    experiment.set_new_variants(
+                        cast(list[Variant], dto.variants)
+                    )
             experiment.updated_at = self.time_provider.now()
             experiment.increment_version()
             await self.experiments.save(experiment)
@@ -238,7 +247,9 @@ class RejectDraft:
             approver = await require_user_with_role(
                 self, {Role.ADMIN, Role.APPROVER}
             )
-            experiment = await self.experiments.get_latest_by_id(exp_id, lock=True)
+            experiment = await self.experiments.get_latest_by_id(
+                exp_id, lock=True
+            )
             if not experiment:
                 raise NoSuchExperiment
             if experiment.state != ExperimentState.IN_REVIEW:
@@ -284,7 +295,9 @@ class ApproveDraft:
             approver = await require_user_with_role(
                 self, {Role.ADMIN, Role.APPROVER}
             )
-            experiment = await self.experiments.get_latest_by_id(exp_id, lock=True)
+            experiment = await self.experiments.get_latest_by_id(
+                exp_id, lock=True
+            )
             if not experiment:
                 raise NoSuchExperiment
             if experiment.state != ExperimentState.IN_REVIEW:
@@ -355,7 +368,7 @@ class StartExperiment:
 
 @final
 @interactor
-class ControlRunningExperiment:
+class ManageRunningExperiment:
     idp: UserIdProvider
     user_reader: UserReader
     tx: TransactionManager
@@ -416,7 +429,7 @@ class ReadExperimentVersion:
                 experiment = await self.experiments.get_latest_by_id(exp_id)
             else:
                 experiment = await self.experiments.get_by_id_and_version(
-                    exp_id, version
+                    exp_id, cast(int, version)
                 )
             if not experiment:
                 raise NoSuchExperiment

@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, override
 
 from sqlalchemy import Row, delete, insert, select
 
@@ -21,12 +21,14 @@ class SqlReviewRepository(ReviewRepository):
     def __init__(self, tx: SqlTransactionManager) -> None:
         self.session = tx.session
 
+    @override
     async def all_approvals(self, exp_id: ExperimentId) -> list[Approval]:
         result = await self.session.execute(
             select(approvals).where(approvals.c.experiment_id == exp_id)
         )
         return list(map(_row_to_approval, result.all()))
 
+    @override
     async def create_approval(self, approval: Approval) -> None:
         await self.session.execute(
             insert(approvals).values(
@@ -35,11 +37,13 @@ class SqlReviewRepository(ReviewRepository):
             )
         )
 
+    @override
     async def revoke_all_approvals(self, exp_id: ExperimentId) -> None:
         await self.session.execute(
             delete(approvals).where(approvals.c.experiment_id == exp_id)
         )
 
+    @override
     async def save_decision(self, decision: ReviewDecision) -> None:
         stmt = pg_insert(review_decisions).values(
             experiment_id=decision.experiment_id,
@@ -56,6 +60,7 @@ class SqlReviewRepository(ReviewRepository):
             )
         )
 
+    @override
     async def get_decision(
         self,
         exp_id: ExperimentId

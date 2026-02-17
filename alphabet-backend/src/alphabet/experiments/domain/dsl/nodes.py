@@ -10,7 +10,7 @@ from alphabet.experiments.domain.dsl.lexer import TargetDSLToken
 from alphabet.shared.commons import value_object
 
 
-class Node(NodeLike[TargetDSLToken]):
+class Node(NodeLike[TargetDSLToken]):  # type: ignore[misc]
     token: TargetDSLToken
 
 

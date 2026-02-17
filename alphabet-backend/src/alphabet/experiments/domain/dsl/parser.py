@@ -2,7 +2,7 @@ from datetime import date
 
 from types import MappingProxyType
 
-from typing import Final, cast
+from typing import Final, cast, assert_never
 
 from syntactix.parser.parser import ParserBase
 
@@ -36,7 +36,9 @@ _TOK_TYPE_TO_BIN_OP: Final = MappingProxyType(
 )
 
 
-class TargetDSLParser(ParserBase[TargetDSLToken, TargetDSLTokenType, Node]):
+class TargetDSLParser(
+    ParserBase[TargetDSLToken, TargetDSLTokenType, Node]  # type: ignore[misc]
+):
     def parse(self) -> Node:
         return self._parse_disj()
 
@@ -81,7 +83,7 @@ class TargetDSLParser(ParserBase[TargetDSLToken, TargetDSLTokenType, Node]):
             self.require(TargetDSLTokenType.RPAR)
             return expr
         elif tok := self.match(TargetDSLTokenType.LBRACKET):
-            items = []
+            items: list[Node] = []
             if self.match(TargetDSLTokenType.RBRACKET):
                 return LiteralCollection(tok, items)
             items.append(self._parse_value())
@@ -94,7 +96,7 @@ class TargetDSLParser(ParserBase[TargetDSLToken, TargetDSLTokenType, Node]):
         else:
             return self._parse_value()
 
-    def _parse_value(self) -> Node:
+    def _parse_value(self) -> Node:  # type: ignore[return]
         if tok := self.match(TargetDSLTokenType.DATE):
             return LiteralDate(tok, cast(date, tok.value))
         elif tok := self.match(TargetDSLTokenType.NUMBER):

@@ -407,6 +407,8 @@ class ReviewDecision:
     def __post_init__(self) -> None:
         if self.rejecter_id:
             self.type = ReviewDecisionType.REJECTED
+        if (self.rejecter_id is None) ^ (self.reject_comment is None):
+            raise InvalidRejectionDecision
 
     @classmethod
     def rejected(
@@ -422,6 +424,4 @@ class ReviewDecision:
         return ReviewDecision(experiment_id, None, None)
 
 
-def __post_init__(self) -> None:
-    if (self.rejecter_id is None) ^ (self.reject_comment is None):
-        raise InvalidRejectionDecision
+

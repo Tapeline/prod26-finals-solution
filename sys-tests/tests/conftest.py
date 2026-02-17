@@ -18,6 +18,11 @@ def db_engine():
 @pytest.fixture(autouse=True)
 def clean_db(db_engine):
     with db_engine.connect() as conn:
+        conn.execute(text("DELETE FROM review_decisions"))
+        conn.execute(text("DELETE FROM approvals"))
+        conn.execute(text("DELETE FROM experiments_latest"))
+        conn.execute(text("DELETE FROM experiments_history"))
+        conn.execute(text("DELETE FROM flags"))
         conn.execute(text("DELETE FROM assigned_approvers"))
         conn.execute(text("DELETE FROM users"))
         conn.commit()
@@ -49,6 +54,56 @@ def create_user_in_db(db_engine):
 
 
 @pytest.fixture
+def create_admin_in_db(create_user_in_db):
+    return lambda email, iap_id=None: create_user_in_db(
+        email=email, role="ADMIN", iap_id=iap_id
+    )
+
+
+@pytest.fixture
+def create_default_admin_in_db(create_admin_in_db):
+    return create_admin_in_db("admin@t.ru", "admin")
+
+
+@pytest.fixture
+def create_default_experimenter_in_db(create_experimenter_in_db):
+    return create_experimenter_in_db("exp@t.ru", "exp")
+
+
+DEFAULT_ADMIN_LOGIN = {
+    "X-User-Id": "admin",
+    "X-User-Email": "admin@t.ru",
+}
+
+
+DEFAULT_EXPERIMENTER_LOGIN = {
+    "X-User-Id": "exp",
+    "X-User-Email": "exp@t.ru",
+}
+
+
+@pytest.fixture
+def create_experimenter_in_db(create_user_in_db):
+    return lambda email, iap_id=None: create_user_in_db(
+        email=email, role="EXPERIMENTER", iap_id=iap_id
+    )
+
+
+@pytest.fixture
+def create_approver_in_db(create_user_in_db):
+    return lambda email, iap_id=None: create_user_in_db(
+        email=email, role="APPROVER", iap_id=iap_id
+    )
+
+
+@pytest.fixture
+def create_viewer_in_db(create_user_in_db):
+    return lambda email, iap_id=None: create_user_in_db(
+        email=email, role="VIEWER", iap_id=iap_id
+    )
+
+
+@pytest.fixture
 def get_user_from_db(db_engine):
     def _get(email: str):
         query = text("SELECT * FROM users WHERE email = :email")
@@ -64,7 +119,7 @@ def get_user_from_db(db_engine):
 def get_user_by_email():
     def _get(email: str, headers):
         return httpx.get(
-            f"{app_url}/api/v1/account/user/by-email",
+            f"{app_url}/api/v1/accounts/user/by-email",
             params={"email": email},
             headers=headers
         )

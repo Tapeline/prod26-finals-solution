@@ -5,8 +5,10 @@ from litestar import Request
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from alphabet.shared.application.idp import UserIdProvider
+from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.config import Config
 from alphabet.shared.infrastructure.connection import new_session_maker
+from alphabet.shared.infrastructure.time import DefaultNaiveTimeProvider
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 from alphabet.shared.presentation.idp import HeaderIdP
 
@@ -40,3 +42,9 @@ class SqlTransactionDIProvider(Provider):
     ) -> AsyncIterable[WithParents[SqlTransactionManager]]:
         async with session_maker() as session:
             yield SqlTransactionManager(session)
+
+
+class TimeDIProvider(Provider):
+    @provide(scope=Scope.APP)
+    def provide_time(self) -> TimeProvider:
+        return DefaultNaiveTimeProvider()

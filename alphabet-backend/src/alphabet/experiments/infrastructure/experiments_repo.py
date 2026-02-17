@@ -1,5 +1,5 @@
-from adaptix import Retort, loader
-from typing import Any
+from adaptix import Retort, loader, dumper
+from typing import Any, override
 
 from sqlalchemy import Row, insert, select, update
 
@@ -12,7 +12,7 @@ from alphabet.experiments.domain.experiment import (
     MetricCollection,
     Percentage,
     Priority,
-    Variant,
+    Variant, ConflictDomain,
 )
 from alphabet.experiments.domain.flags import FlagKey
 from alphabet.experiments.domain.target_rule import TargetRuleString
@@ -29,6 +29,7 @@ class SqlExperimentsRepository(ExperimentsRepository):
     def __init__(self, tx: SqlTransactionManager) -> None:
         self.session = tx.session
 
+    @override
     async def get_latest_by_id(
         self,
         exp_id: ExperimentId,
@@ -39,9 +40,12 @@ class SqlExperimentsRepository(ExperimentsRepository):
             .where(experiments_latest.c.id == exp_id)
         if lock:
             query = query.with_for_update()
-        result = (await self.session.execute(query)).first()
-        return _row_to_experiment(result)
+        row = (await self.session.execute(query)).first()
+        if not row:
+            return None
+        return _row_to_experiment(row)
 
+    @override
     async def get_by_id_and_version(
         self,
         exp_id: ExperimentId,
@@ -54,8 +58,12 @@ class SqlExperimentsRepository(ExperimentsRepository):
                 experiments_history.c.version == version
             )
         )
-        return _row_to_experiment(result.first())
+        row = result.first()
+        if not row:
+            return None
+        return _row_to_experiment(row)
 
+    @override
     async def get_old_versions(self, exp_id: ExperimentId) -> list[Experiment]:
         result = await self.session.execute(
             select(experiments_history)
@@ -63,6 +71,7 @@ class SqlExperimentsRepository(ExperimentsRepository):
         )
         return list(map(_row_to_experiment, result.all()))
 
+    @override
     async def create(self, experiment: Experiment) -> None:
         await self.session.execute(
             insert(experiments_latest).values(
@@ -72,8 +81,9 @@ class SqlExperimentsRepository(ExperimentsRepository):
                 state=experiment.state,
                 version=experiment.version,
                 audience=experiment.audience.value,
-                variants=_retort.dump(experiment.variants),
-                targeting=experiment.targeting.value,
+                variants=_retort.dump(experiment.variants, list[Variant]),
+                targeting=experiment.targeting.value
+                if experiment.targeting else None,
                 author_id=experiment.author_id,
                 created_at=experiment.created_at,
                 updated_at=experiment.updated_at,
@@ -82,12 +92,14 @@ class SqlExperimentsRepository(ExperimentsRepository):
                 result_outcome=experiment.result.outcome
                     if experiment.result else None,
                 metrics=_retort.dump(experiment.metrics),
-                priority=experiment.priority.value,
+                priority=experiment.priority.value
+                if experiment.priority else None,
                 conflict_domain=experiment.conflict_domain,
                 conflict_policy=experiment.conflict_policy,
             ),
         )
 
+    @override
     async def save(self, experiment: Experiment) -> None:
         await self.session.execute(
             insert(experiments_history).from_select(
@@ -105,8 +117,9 @@ class SqlExperimentsRepository(ExperimentsRepository):
                 state=experiment.state,
                 version=experiment.version,
                 audience=experiment.audience.value,
-                variants=_retort.dump(experiment.variants),
-                targeting=experiment.targeting.value,
+                variants=_retort.dump(experiment.variants, list[Variant]),
+                targeting=experiment.targeting.value
+                if experiment.targeting else None,
                 author_id=experiment.author_id,
                 created_at=experiment.created_at,
                 updated_at=experiment.updated_at,
@@ -115,22 +128,28 @@ class SqlExperimentsRepository(ExperimentsRepository):
                 result_outcome=experiment.result.outcome
                 if experiment.result else None,
                 metrics=_retort.dump(experiment.metrics),
-                priority=experiment.priority.value,
+                priority=experiment.priority.value
+                if experiment.priority else None,
                 conflict_domain=experiment.conflict_domain,
                 conflict_policy=experiment.conflict_policy,
             )
         )
 
+    @override
     async def get_active_by_flag(self, flag_key: FlagKey) -> Experiment | None:
         result = await self.session.execute(
             select(experiments_latest)
             .where(
                 experiments_latest.c.state == ExperimentState.STARTED,
-                experiments_latest.c.flag_key == flag_key
+                experiments_latest.c.flag_key == flag_key.value
             )
         )
-        return _row_to_experiment(result.first())
+        row = result.first()
+        if not row:
+            return None
+        return _row_to_experiment(row)
 
+    @override
     async def all(self, pagination: Pagination) -> list[Experiment]:
         result = await self.session.execute(
             select(experiments_latest)
@@ -143,36 +162,35 @@ class SqlExperimentsRepository(ExperimentsRepository):
 _retort = Retort(
     recipe=[
         loader(Percentage, lambda x: Percentage(x)),
+        dumper(Percentage, lambda p: p.value)
     ]
 )
 
 
-def _row_to_experiment(row: Row[Any]) -> Experiment | None:
-    if not row:
-        return None
-    variants = _retort.load(row.c.variants, list[Variant])
-    metrics = _retort.load(row.c.metrics, MetricCollection)
-    if row.c.result_comment and row.c.result_outcome:
+def _row_to_experiment(row: Row[Any]) -> Experiment:
+    variants = _retort.load(row.variants, list[Variant])
+    metrics = _retort.load(row.metrics, MetricCollection)
+    if row.result_comment and row.result_outcome:
         result = ExperimentResult(
-            row.c.result_comment, row.c.result_outcome
+            row.result_comment, row.result_outcome
         )
     else:
         result = None
     return Experiment(
-        _id=ExperimentId(row.c.id),
-        _name=ExperimentName(row.c.name),
-        _flag_key=FlagKey(row.c.flag_key),
-        _state=row.c.state,
-        _version=row.c.version,
-        _audience=Percentage(row.c.audience),
+        _id=ExperimentId(row.id),
+        _name=ExperimentName(row.name),
+        _flag_key=FlagKey(row.flag_key),
+        _state=row.state,
+        _version=row.version,
+        _audience=Percentage(row.audience),
         _variants=variants,
-        _targeting=TargetRuleString(row.c.targeting),
-        _author_id=UserId(row.c.author_id),
-        _created_at=row.c.created_at,
-        _updated_at=row.c.updated_at,
+        _targeting=TargetRuleString(row.targeting) if row.targeting else None,
+        _author_id=UserId(row.author_id),
+        _created_at=row.created_at,
+        _updated_at=row.updated_at,
         _metrics=metrics,
-        _priority=Priority(row.c.priority),
-        _conflict_domain=row.c.conflict_domain,
-        _conflict_policy=row.c.conflict_policy,
+        _priority=Priority(row.priority) if row.priority else None,
+        _conflict_domain=ConflictDomain(row.conflict_domain) if row.conflict_domain else None,
+        _conflict_policy=row.conflict_policy,
         _result=result
     )

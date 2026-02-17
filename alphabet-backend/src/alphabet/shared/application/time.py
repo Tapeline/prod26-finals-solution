@@ -11,5 +11,5 @@ class TimeProvider(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    def now_unix_timestamp(self) -> int:
+    def now_unix_timestamp(self) -> float:
         raise NotImplementedError

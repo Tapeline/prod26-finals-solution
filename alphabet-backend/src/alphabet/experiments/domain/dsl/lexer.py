@@ -3,7 +3,7 @@ from datetime import date, datetime
 from syntactix.lexical.exceptions import LexerRequireFailedError
 from types import MappingProxyType
 
-from typing import Final, final
+from typing import Final, final, override
 
 from dataclasses import dataclass
 from enum import Enum
@@ -67,12 +67,15 @@ KEYWORDS: Final = MappingProxyType({
 
 @final
 @dataclass
-class TargetDSLToken(TokenLike[str | float, TargetDSLTokenType]):
+class TargetDSLToken(
+    TokenLike[str | float, TargetDSLTokenType]  # type: ignore[misc]
+):
     type: TargetDSLTokenType
     lexeme: str
     value: str | float | date
     pos: TokenPos
 
+    @override
     def __repr__(self) -> str:
         return repr(self.lexeme)
 
@@ -81,7 +84,9 @@ class TargetDSLToken(TokenLike[str | float, TargetDSLTokenType]):
         return TargetDSLToken(TargetDSLTokenType.EOF, "EOF", "EOF", pos)
 
 
-class TargetDSLLexer(LexerBase[TargetDSLToken, TargetDSLTokenType]):
+class TargetDSLLexer(
+    LexerBase[TargetDSLToken, TargetDSLTokenType]  # type: ignore[misc]
+):
     @classmethod
     def make_lexer(cls, src: str) -> "TargetDSLLexer":
         return TargetDSLLexer(src, TargetDSLToken)
@@ -139,9 +144,9 @@ class TargetDSLLexer(LexerBase[TargetDSLToken, TargetDSLTokenType]):
             whole_part += self.require(list("0123456789"))
             try:
                 parsed_dt = datetime.strptime(whole_part, "%Y-%m-%d")
+                self.add_token(TargetDSLTokenType.DATE, parsed_dt.date())
             except ValueError:
                 self.unexpected(whole_part)
-            self.add_token(TargetDSLTokenType.DATE, parsed_dt.date())
             return
         frac_part = None
         if self.match("."):

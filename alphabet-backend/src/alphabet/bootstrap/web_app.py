@@ -19,14 +19,19 @@ from alphabet.access.presentation.controller import AccessController
 from alphabet.access.presentation.errors import access_err_handlers
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.access import AccessDIProvider
+from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
 from alphabet.bootstrap.di.shared import (
     ConfigDIProvider,
     IdentityProviderDIProvider,
-    SqlTransactionDIProvider,
+    SqlTransactionDIProvider, TimeDIProvider,
 )
 from alphabet.bootstrap.logging import get_structlog_plugin_def
+from alphabet.experiments.presentation.errors import \
+    flags_experiments_err_handlers
+from alphabet.experiments.presentation.experiments import ExperimentsController
+from alphabet.experiments.presentation.flags import FlagsController
 from alphabet.shared.config import Config
-from alphabet.shared.domain.exceptions import NotAuthenticated
+from alphabet.shared.domain.exceptions import NotAuthenticated, NotAllowed
 from alphabet.shared.presentation.framework.errors import (
     gen_handler_mapping,
     infer_code,
@@ -45,7 +50,9 @@ def _create_container(config: Config) -> AsyncContainer:
         ConfigDIProvider(),
         SqlTransactionDIProvider(),
         IdentityProviderDIProvider(),
+        TimeDIProvider(),
         AccessDIProvider(),
+        FlagsExperimentsDIProvider(),
         context={
             Config: config,
         },
@@ -68,6 +75,8 @@ def create_app() -> Litestar:
         debug=config.is_debug,
         route_handlers=[
             AccessController,
+            FlagsController,
+            ExperimentsController,
             PrometheusController,
         ],
         middleware=[
@@ -77,6 +86,7 @@ def create_app() -> Litestar:
         exception_handlers=gen_handler_mapping(  # type: ignore[arg-type]
             {
                 **access_err_handlers,  # type: ignore[dict-item]
+                **flags_experiments_err_handlers,
                 NotAuthenticated: (401, infer_code),
             },
         ),

@@ -1,4 +1,4 @@
-from typing import Any, overload
+from typing import Any, overload, override
 
 from sqlalchemy import Row, delete, insert, select, update
 
@@ -25,12 +25,14 @@ class SqlFlagRepository(FlagRepository):
     def __init__(self, tx: SqlTransactionManager) -> None:
         self.session = tx.session
 
+    @override
     async def get_by_key(self, key: FlagKey) -> FeatureFlag | None:
         result = await self.session.execute(
             select(flags).where(flags.c.key == key.value)
         )
         return _row_to_flag(result.first())
 
+    @override
     async def create(self, flag: FeatureFlag) -> None:
         await self.session.execute(
             insert(flags).values(
@@ -44,6 +46,7 @@ class SqlFlagRepository(FlagRepository):
             )
         )
 
+    @override
     async def save(self, flag: FeatureFlag) -> None:
         await self.session.execute(
             update(flags).where(flags.c.key == flag.key.value).values(
@@ -56,12 +59,14 @@ class SqlFlagRepository(FlagRepository):
             )
         )
 
+    @override
     async def lock_on(self, flag_key: FlagKey) -> None:
         await self.session.execute(
             select(flags).where(flags.c.key == flag_key.value)
             .with_for_update()
         )
 
+    @override
     async def all(self, pagination: Pagination) -> list[FeatureFlag]:
         result = await self.session.execute(
             select(flags)
@@ -72,7 +77,7 @@ class SqlFlagRepository(FlagRepository):
 
 
 @overload
-def _row_to_flag(row: Row) -> FeatureFlag: ...
+def _row_to_flag(row: Row[Any]) -> FeatureFlag: ...
 @overload
 def _row_to_flag(row: None) -> None: ...
 

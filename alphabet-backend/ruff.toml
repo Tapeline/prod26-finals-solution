@@ -80,6 +80,7 @@ exclude = [
     "docs/**",
     "examples/**",
     "src/alembic/**",
+    "src/alembic/env.py",
     "tests/**"
 ]
 

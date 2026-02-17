@@ -13,6 +13,7 @@ from alphabet.access.application.interfaces import UserRepository
 from alphabet.access.infrastructure.repos import SqlUserRepository
 from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import UserReader
+from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 
 
 class AccessDIProvider(Provider):
@@ -29,6 +30,6 @@ class AccessDIProvider(Provider):
 
     @provide(scope=Scope.REQUEST)
     def provide_user_repo_for_all(
-        self, tx: TransactionManager
+        self, tx: SqlTransactionManager
     ) -> AnyOf[UserRepository, UserReader]:
         return SqlUserRepository(tx)

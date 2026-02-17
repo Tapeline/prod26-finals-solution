@@ -40,7 +40,7 @@ class CodeGenerator:
         generator = getattr(self, f"_gen_{node.__class__.__name__}", None)
         if not generator:
             raise NotImplementedError(node)
-        return generator(node)
+        return str(generator(node))
 
     def _gen_NameNode(self, node: NameNode) -> str:
         return f"self._from_ctx({node.name!r})"
