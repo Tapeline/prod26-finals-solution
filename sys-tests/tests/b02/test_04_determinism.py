@@ -99,6 +99,7 @@ def test_b2_4_result_sensitive_to_subject_id(
     create_default_experimenter_in_db
 ):
     flag_key = "flag_det_sensitivity"
+    create_flag(key=flag_key, type="string")
     setup_active_experiment(
         flag_key=flag_key, variants=[
             {"name": "A", "value": "A", "audience": 50, "is_control": True},
@@ -114,8 +115,8 @@ def test_b2_4_result_sensitive_to_subject_id(
         subj_id = f"user_{i}"
         resp = get_flags(subject_id=subj_id, flag_keys=[flag_key])
 
-        found_a = resp[flag_key]["value"] == "A"
-        found_b = resp[flag_key]["value"] == "B"
+        found_a |= resp[flag_key]["value"] == "A"
+        found_b |= resp[flag_key]["value"] == "B"
 
         if found_a and found_b:
             break

@@ -10,7 +10,8 @@ from tests.helpers import (
 
 def test_b2_5_distribution_weights(
     create_default_admin_in_db,
-    create_default_experimenter_in_db
+    create_default_experimenter_in_db,
+    record_property
 ):
     flag_key = "flag_distribution"
     create_flag(key=flag_key, type="string")
@@ -31,6 +32,18 @@ def test_b2_5_distribution_weights(
     counts = Counter(results)
     count_a = counts["val_A"]
     count_b = counts["val_B"]
+
+    record_property("total_users", total_users)
+    record_property("variant_A_count", count_a)
+    record_property("variant_B_count", count_b)
+    record_property(
+        "variant_A_percent",
+        f"{(count_a / total_users) * 100:.2f}%"
+    )
+    record_property(
+        "variant_B_percent",
+        f"{(count_b / total_users) * 100:.2f}%"
+    )
 
     assert count_a + count_b == total_users
     assert 80 <= count_a <= 120, f"Bad A distribution: {count_a}"

@@ -4,8 +4,9 @@ import pytest
 from sqlalchemy import create_engine, text
 from tests import config
 import httpx
+from redis import Redis
 
-from tests.config import app_url
+from tests.config import app_url, redis_args
 
 
 @pytest.fixture(scope="session")
@@ -15,8 +16,15 @@ def db_engine():
     engine.dispose()
 
 
+@pytest.fixture(scope="session")
+def redis_client():
+    client = Redis(**redis_args)
+    yield client
+    client.close()
+
+
 @pytest.fixture(autouse=True)
-def clean_db(db_engine):
+def clean_db(db_engine, redis_client):
     with db_engine.connect() as conn:
         conn.execute(text("DELETE FROM review_decisions"))
         conn.execute(text("DELETE FROM approvals"))
@@ -26,6 +34,7 @@ def clean_db(db_engine):
         conn.execute(text("DELETE FROM assigned_approvers"))
         conn.execute(text("DELETE FROM users"))
         conn.commit()
+    #redis_client.flushdb()
 
 
 @pytest.fixture

@@ -79,6 +79,8 @@ ignore = [
     "A002",  # some names are bound by domain to be called so
 
     "RET503",  # covered by mypy
+
+    "TRY003",  # good, but shouldn't cover AssertionErrors
 ]
 external = ["WPS"]
 exclude = [

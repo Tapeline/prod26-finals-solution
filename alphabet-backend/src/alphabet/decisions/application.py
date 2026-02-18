@@ -1,9 +1,9 @@
-from operator import attrgetter
-
 from abc import abstractmethod
+from collections.abc import Collection
 from itertools import groupby
 from logging import getLogger
-from typing import Collection, Protocol, assert_never, final
+from operator import attrgetter
+from typing import Protocol, assert_never, final
 
 from alphabet.decisions.domain import (
     CachedExperiment,
@@ -59,8 +59,8 @@ class DecisionDataStore(Protocol):
         self,
         subject_id: str,
         flag_keys: list[str],
-        experiment_ids: set[str]
-    ) -> dict[str, Decision | None]:
+        experiment_ids: set[str],
+    ) -> dict[str, Decision]:
         raise NotImplementedError
 
 
@@ -114,33 +114,50 @@ class MakeDecision:
         subject_attrs: dict[str, str],
         flag_keys: list[str],
     ) -> dict[str, Decision | None]:
+        logger.debug("making decision for %s", subject_id)
         experiments = self._get_only_running_experiments(flag_keys)
 
         unassigned = set(flag_keys)
-        assigned = await self.decision_data.load_existing_decisions(
-            subject_id, flag_keys, {exp.id for exp in experiments}
+        assigned: dict[str, Decision | None] = {}
+        assigned |= await self.decision_data.load_existing_decisions(
+            subject_id,
+            flag_keys,
+            {exp.id for exp in experiments},
         )
+        logger.debug("decided already for %s", str(assigned.keys()))
         unassigned.difference_update(assigned.keys())
 
         resolved, resolutions = self._resolve_conflicts(experiments)
+        logger.debug("after resolution %s", str(resolved))
         resolved_keys_to_experiments = {
-            experiment.active_flag_key: experiment
-            for experiment in resolved
+            experiment.active_flag_key: experiment for experiment in resolved
         }
         for flag in unassigned:
-            experiment = resolved_keys_to_experiments.get(flag, None)
+            experiment = resolved_keys_to_experiments.get(flag)
             if not experiment:
+                logger.debug("defaulting no exp %s", flag)
+                assigned[flag] = self._default_for(flag, subject_id)
+            elif (
+                experiment.targeting
+                and not experiment.targeting(subject_attrs).run()
+            ):
+                logger.debug("defaulting no match %s", flag)
                 assigned[flag] = self._default_for(flag, subject_id)
             else:
-                assigned[flag] = self._make_decision(subject_id, experiment)
+                logger.debug("assigning %s", flag)
+                assigned[flag] = self._make_decision(
+                    subject_id,
+                    experiment,
+                )
 
         unassigned.difference_update(assigned.keys())
         for left_flag in unassigned:
+            logger.debug("defaulting unassigned %s", left_flag)
             assigned[left_flag] = self._default_for(left_flag, subject_id)
 
         await self.decision_data.save_decisions(
             subject_id,
-            [decision for decision in assigned.values() if decision]
+            [decision for decision in assigned.values() if decision],
         )
         if resolutions:
             # TODO: maybe move to background
@@ -148,13 +165,14 @@ class MakeDecision:
         return assigned
 
     def _resolve_conflicts(
-        self, experiments: list[CachedExperiment]
+        self,
+        experiments: list[CachedExperiment],
     ) -> tuple[list[CachedExperiment], list[ConflictResolution]]:
         resolutions: list[ConflictResolution] = []
         survivors: list[CachedExperiment] = []
         for domain, conflicts in groupby(
             sorted(experiments, key=attrgetter("conflict_domain")),
-            attrgetter("conflict_domain")
+            attrgetter("conflict_domain"),
         ):
             if domain is None:
                 survivors.extend(conflicts)
@@ -162,7 +180,10 @@ class MakeDecision:
             conflicts_list = list(conflicts)
             policy = self._choose_policy(conflicts_list)
             selected = self._apply_policy(
-                policy, domain, conflicts_list, resolutions
+                policy,
+                domain,
+                conflicts_list,
+                resolutions,
             )
             if selected:
                 survivors.append(selected)
@@ -182,22 +203,22 @@ class MakeDecision:
                         domain=domain,
                         experiment_id=experiment.id,
                         experiment_applied=False,
-                        policy=ConflictPolicy.ONE_OR_NONE
+                        policy=ConflictPolicy.ONE_OR_NONE,
                     )
                     for experiment in conflicts
                 )
                 return None
             case ConflictPolicy.HIGHER_PRIORITY:
-                winner, *losers = sorted(
+                winner, *_ = sorted(
                     filter(lambda exp: exp.priority is not None, conflicts),
-                    key=lambda exp: (exp.priority, hash(exp.id))
+                    key=lambda exp: (exp.priority, hash(exp.id)),
                 )
                 resolutions_to_store.extend(
                     ConflictResolution(
                         domain=domain,
                         experiment_id=experiment.id,
                         experiment_applied=experiment is winner,
-                        policy=ConflictPolicy.HIGHER_PRIORITY
+                        policy=ConflictPolicy.HIGHER_PRIORITY,
                     )
                     for experiment in conflicts
                 )
@@ -206,7 +227,8 @@ class MakeDecision:
                 assert_never(policy)
 
     def _choose_policy(
-        self, conflicting: list[CachedExperiment]
+        self,
+        conflicting: list[CachedExperiment],
     ) -> ConflictPolicy:
         policy = None
         for experiment in conflicting:
@@ -226,7 +248,7 @@ class MakeDecision:
     def _make_decision(
         self,
         subject_id: str,
-        experiment: CachedExperiment
+        experiment: CachedExperiment,
     ) -> Decision | None:
         flag_default = self.flags.get_default(experiment.active_flag_key)
         if flag_default is None:
@@ -240,10 +262,12 @@ class MakeDecision:
         )
 
     def _get_only_running_experiments(
-        self, flag_keys: list[str]
+        self,
+        flag_keys: list[str],
     ) -> list[CachedExperiment]:
         return [
-            exp for exp in self.experiments.get_experiments(flag_keys)
+            exp
+            for exp in self.experiments.get_experiments(flag_keys)
             if exp is not None
         ]
 

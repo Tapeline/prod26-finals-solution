@@ -1,3 +1,10 @@
 [tests]
 db_url = "postgresql://pguser:pgpass@localhost:5432/alphabet"
 app_url = "http://localhost:8000"
+
+[redis]
+host = "localhost"
+port = 6379
+username = "default"
+password = "valkey_pass"
+db = 0

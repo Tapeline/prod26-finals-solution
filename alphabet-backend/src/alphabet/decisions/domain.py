@@ -85,6 +85,9 @@ def make_decision(
     hashable_str = f"{flag_key}:{experiment_id}:{subject_id}"
     hashed_norm = mmh3.hash(hashable_str, signed=False) / _MAX_HASH_VAL
     bucket = round(_TOTAL_BUCKETS * hashed_norm)
+    bucket = max(bucket, 0)
+    if bucket >= _TOTAL_BUCKETS:
+        bucket = _TOTAL_BUCKETS - 1
     chosen = variant_coordinates[bucket]
     if chosen is None:
         chosen_value = default_value

@@ -36,6 +36,7 @@ class CreateFlag:
     flags: FlagRepository
     time_provider: TimeProvider
     tx: TransactionManager
+    notifier: FlagChangeNotifier
 
     async def __call__(self, dto: CreateFlagDTO) -> FeatureFlag:
         async with self.tx:
@@ -54,7 +55,8 @@ class CreateFlag:
                 updated_at=now,
             )
             await self.flags.create(flag)
-            return flag
+        await self.notifier.notify_flag_default_changed(flag.key, flag.default)
+        return flag
 
 
 @final
@@ -79,8 +81,8 @@ class UpdateFlag:
             flag.default = new_default
             flag.updated_at = self.time_provider.now()
             await self.flags.save(flag)
-            await self.notifier.notify_flag_default_changed(key, new_default)
-            return flag
+        await self.notifier.notify_flag_default_changed(key, new_default)
+        return flag
 
 
 @final

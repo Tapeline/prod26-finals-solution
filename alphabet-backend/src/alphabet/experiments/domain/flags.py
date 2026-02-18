@@ -116,4 +116,4 @@ class FeatureFlag:
             # no validation for strings
             return
         else:
-            raise ValueError("Unknown flag type", self._type)  # noqa: TRY003
+            raise ValueError("Unknown flag type", self._type)

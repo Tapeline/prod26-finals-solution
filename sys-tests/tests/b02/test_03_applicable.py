@@ -24,7 +24,7 @@ def test_b2_3_returns_variant_if_experiment_applicable(
                 "name": "treatment",
                 "value": "super_feature",
                 "audience": 100,
-                "is_control": False
+                "is_control": True
             }
         ]
     )

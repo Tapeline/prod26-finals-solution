@@ -49,7 +49,9 @@ class DecisionsController(Controller):
                     id=decision.id,
                     value=decision.value,
                     experiment_id=decision.experiment_id,
-                ) if decision else None
+                )
+                if decision
+                else None
                 for key, decision in decisions.items()
             },
         )

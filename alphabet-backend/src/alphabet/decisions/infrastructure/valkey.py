@@ -1,6 +1,6 @@
+from collections.abc import Collection
 from pathlib import Path
-
-from typing import Collection, final, override
+from typing import final, override
 
 from redis.asyncio import Redis
 
@@ -21,7 +21,7 @@ class ValkeyDecisionDataStore(DecisionDataStore):
     def __post_init__(self) -> None:
         # suggested by gemini, let's hope it's good :/
         self._cooldown_script = self.client.register_script(
-            Path("src/cooldown.lua").read_text()
+            Path("src/cooldown.lua").read_text(),
         )
 
     @override
@@ -32,8 +32,8 @@ class ValkeyDecisionDataStore(DecisionDataStore):
             args=[
                 int(self.time.now_unix_timestamp()),
                 self.config.cooldown_after_s,
-                self.config.cooldown_for_s
-            ]
+                self.config.cooldown_for_s,
+            ],
         )
         return bool(result)
 
@@ -41,7 +41,7 @@ class ValkeyDecisionDataStore(DecisionDataStore):
     async def save_decisions(
         self,
         subject_id: str,
-        decisions: Collection[Decision]
+        decisions: Collection[Decision],
     ) -> None:
         if not decisions:
             return
@@ -51,11 +51,11 @@ class ValkeyDecisionDataStore(DecisionDataStore):
                 mapping={
                     decision.flag_key: _dump_decision(decision)
                     for decision in decisions
-                }
+                },
             )
             await pipe.expire(
                 f"u:{subject_id}",
-                self.config.store_stickiness_for_s
+                self.config.store_stickiness_for_s,
             )
 
     @override
@@ -63,16 +63,15 @@ class ValkeyDecisionDataStore(DecisionDataStore):
         self,
         subject_id: str,
         flag_keys: list[str],
-        experiment_ids: set[str]
-    ) -> dict[str, Decision | None]:
+        experiment_ids: set[str],
+    ) -> dict[str, Decision]:
         raw_decisions = await self.client.hmget(  # type: ignore[misc]
-            f"u:{subject_id}", flag_keys
+            f"u:{subject_id}",
+            flag_keys,
         )
-        decisions: dict[str, Decision | None] = {}
-        for key, raw_decision in zip(flag_keys, raw_decisions):
-            if not raw_decision:
-                decisions[key] = None
-            else:
+        decisions: dict[str, Decision] = {}
+        for key, raw_decision in zip(flag_keys, raw_decisions, strict=True):
+            if raw_decision:
                 decision = _load_decision(raw_decision)
                 if decision.experiment_id in experiment_ids:
                     decisions[key] = decision
@@ -81,7 +80,8 @@ class ValkeyDecisionDataStore(DecisionDataStore):
 
 def _load_decision(decision_str: str) -> Decision:
     decision_id, flag_key, experiment_id, value = decision_str.split(
-        ";", maxsplit=3
+        ";",
+        maxsplit=3,
     )
     return Decision(
         DecisionId(decision_id),
@@ -92,5 +92,7 @@ def _load_decision(decision_str: str) -> Decision:
 
 
 def _dump_decision(decision: Decision) -> str:
-    return (f"{decision.id};{decision.flag_key};"
-            f"{decision.experiment_id};{decision.value}")
+    return (
+        f"{decision.id};{decision.flag_key};"
+        f"{decision.experiment_id};{decision.value}"
+    )
