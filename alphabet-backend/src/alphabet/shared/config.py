@@ -33,6 +33,15 @@ class ValkeyConfig:
 
 
 @dto
+class ClickHouseConfig:
+    host: str
+    port: int = 8123
+    username: str = "default"
+    password: str = ""
+    database: str = "default"
+
+
+@dto
 class AppConfig:
     cooldown_after_s: int = 60 * 60 * 24
     cooldown_for_s: int = 60 * 60 * 24
@@ -45,5 +54,6 @@ class Config:
     postgres: PostgresConfig
     logging: LoggingConfig
     valkey: ValkeyConfig
+    clickhouse: ClickHouseConfig
     app: AppConfig
     is_debug: bool = True

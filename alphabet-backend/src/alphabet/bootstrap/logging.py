@@ -1,5 +1,7 @@
 # from https://github.com/Tapeline/Fastscaffold
 
+import logging
+
 import structlog
 from litestar.logging import StructLoggingConfig
 from litestar.plugins.structlog import StructlogConfig, StructlogPlugin
@@ -34,8 +36,18 @@ def setup_processors(
     ]
 
 
+def configure_structlog(*, use_json: bool = False) -> None:
+    """Configure structlog for standalone scripts."""
+    structlog.configure(
+        processors=setup_processors(use_json=use_json),
+        logger_factory=structlog.PrintLoggerFactory(),
+        wrapper_class=structlog.make_filtering_bound_logger(logging.INFO),
+        cache_logger_on_first_use=True,
+    )
+
+
 def get_structlog_plugin_def(*, use_json: bool = False) -> StructlogPlugin:
-    """Setup structlog plugin."""
+    """Setup structlog plugin for Litestar."""
     return StructlogPlugin(
         StructlogConfig(
             StructLoggingConfig(

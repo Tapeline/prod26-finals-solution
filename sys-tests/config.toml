@@ -8,3 +8,10 @@ port = 6379
 username = "default"
 password = "valkey_pass"
 db = 0
+
+[clickhouse]
+host = "localhost"
+port = 8123
+username = "chuser"
+password = "chpass"
+database = "default"

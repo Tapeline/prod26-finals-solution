@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Protocol
+from typing import Protocol, Sequence
 
 from alphabet.shared.application.pagination import Pagination
 from alphabet.subject_events.domain.events import (
@@ -58,7 +58,7 @@ class EventDeduplicator(Protocol):
         raise NotImplementedError
 
     @abstractmethod
-    async def mark_processed(self, evt_ids: list[str]) -> None:
+    async def mark_processed(self, evt_ids: Sequence[str]) -> None:
         raise NotImplementedError
 
 

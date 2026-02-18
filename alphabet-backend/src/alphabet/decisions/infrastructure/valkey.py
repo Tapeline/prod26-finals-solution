@@ -23,6 +23,7 @@ class ValkeyDecisionDataStore(DecisionDataStore):
         self._cooldown_script = self.client.register_script(
             Path("src/cooldown.lua").read_text(),
         )
+        # TODO: check: do i really modify redis' state?
 
     @override
     async def is_in_cooldown_or_set_if_needed(self, subject_id: str) -> bool:

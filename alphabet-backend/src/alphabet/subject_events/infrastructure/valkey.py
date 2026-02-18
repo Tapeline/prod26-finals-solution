@@ -1,4 +1,4 @@
-from typing import final, override
+from typing import final, override, Sequence
 
 from redis.asyncio import Redis
 
@@ -25,7 +25,7 @@ class ValkeyEventDeduplicator(EventDeduplicator):
         }
 
     @override
-    async def mark_processed(self, evt_ids: list[str]) -> None:
+    async def mark_processed(self, evt_ids: Sequence[str]) -> None:
         if not evt_ids:
             return
         async with self.client.pipeline() as pipe:

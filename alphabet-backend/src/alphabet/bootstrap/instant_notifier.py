@@ -70,6 +70,7 @@ class InstantNotifier(
                 new_default,
             )
 
+    @override
     async def notify_event_type_created(self, event_type: EventType) -> None:
         async with self.container() as nested:
             (await nested.get(EventTypeCache)).place_event_types([event_type])

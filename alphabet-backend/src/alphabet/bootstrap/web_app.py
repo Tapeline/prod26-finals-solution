@@ -1,3 +1,5 @@
+import asyncio
+from asyncio import Task
 from collections.abc import Callable, Coroutine
 from typing import Any
 
@@ -23,8 +25,10 @@ from alphabet.access.presentation.errors import access_err_handlers
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.access import AccessDIProvider
 from alphabet.bootstrap.di.decisions import DecisionsDIProvider
+from alphabet.bootstrap.di.events import EventsDIProvider
 from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
 from alphabet.bootstrap.di.shared import (
+    ClickHouseDIProvider,
     ConfigDIProvider,
     IdentityProviderDIProvider,
     MessageQueueErsatzDIProvider,
@@ -40,6 +44,12 @@ from alphabet.experiments.presentation.errors import (
 )
 from alphabet.experiments.presentation.experiments import ExperimentsController
 from alphabet.experiments.presentation.flags import FlagsController
+from alphabet.subject_events.application.interactors import WarmUpEventTypes
+from alphabet.subject_events.application.interfaces import EventStore
+from alphabet.subject_events.presentation.errors import (
+    subject_events_err_handlers,
+)
+from alphabet.subject_events.presentation.controller import EventsController
 from alphabet.shared.config import Config
 from alphabet.shared.domain.exceptions import NotAuthenticated
 from alphabet.shared.presentation.framework.errors import (
@@ -53,6 +63,8 @@ from alphabet.shared.presentation.openapi import security_components
 
 logger = getLogger(__name__)
 
+tasks: list[Task[Any]] = []
+
 
 def _create_container(config: Config) -> AsyncContainer:
     return make_async_container(
@@ -63,9 +75,11 @@ def _create_container(config: Config) -> AsyncContainer:
         IdentityProviderDIProvider(),
         TimeDIProvider(),
         ValkeyDIProvider(),
+        ClickHouseDIProvider(),
         AccessDIProvider(),
         FlagsExperimentsDIProvider(),
         DecisionsDIProvider(),
+        EventsDIProvider(),
         context={
             Config: config,
         },
@@ -90,6 +104,7 @@ def create_app() -> Litestar:
             FlagsController,
             ExperimentsController,
             DecisionsController,
+            EventsController,
             PrometheusController,
         ],
         middleware=[
@@ -100,6 +115,7 @@ def create_app() -> Litestar:
             {
                 **access_err_handlers,  # type: ignore[dict-item]
                 **flags_experiments_err_handlers,
+                **subject_events_err_handlers,  # type: ignore[dict-item]
                 NotAuthenticated: (401, infer_code),
             },
         ),
@@ -124,6 +140,8 @@ def create_app() -> Litestar:
         ],
         on_startup=[
             warmup_decision_caches(container),
+            warmup_event_types(container),
+            start_event_store_periodic_flush(container),
         ],
     )
     litestar_setup_dishka(container, litestar_app)
@@ -140,3 +158,25 @@ def warmup_decision_caches(
             await interactor()
 
     return warmup
+
+
+def warmup_event_types(
+    container: AsyncContainer,
+) -> Callable[[], Coroutine[Any, Any, None]]:
+    async def warmup() -> None:
+        async with container() as nested:
+            interactor = await nested.get(WarmUpEventTypes)
+            await interactor()
+
+    return warmup
+
+
+def start_event_store_periodic_flush(
+    container: AsyncContainer,
+) -> Callable[[], Coroutine[Any, Any, None]]:
+    async def start() -> None:
+        async with container() as nested:
+            store = await nested.get(EventStore)
+            tasks.append(asyncio.create_task(store.periodic_flush_routine()))
+
+    return start

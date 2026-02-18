@@ -54,7 +54,7 @@ class SqlEventTypeRepository(EventTypeRepository):
     async def save(self, event_type: EventType) -> None:
         await self.session.execute(
             update(event_types)
-            .where(event_types.c.id == event_types.id.value)
+            .where(event_types.c.id == event_type.id.value)
             .values(
                 id=event_type.id.value,
                 name=event_type.name,

@@ -153,14 +153,50 @@ def setup_active_experiment(
         "audience": audience
     }
 
-    # Предполагаем, что API принимает targeting/segment в payload
     if targeting:
         exp_params["targeting"] = targeting
 
-    # 3. Создаем и запускаем
     exp = create_experiment(**exp_params)
     send_to_review(exp["id"])
-    approve_experiment(exp["id"])  # login=ADMIN внутри хелпера
+    approve_experiment(exp["id"])
     start_experiment(exp["id"])
 
     return exp
+
+
+def create_event_type(
+    login: dict[str, str] = DEFAULT_EXPERIMENTER_LOGIN,
+    **override_params
+):
+    payload = {
+        "id": "test_event",
+        "name": "Test Event",
+        "schema": {
+            "type": "object",
+            "properties": {}
+        },
+        **override_params
+    }
+    response = httpx.post(
+        f"{app_url}/api/v1/events/types/create",
+        json=payload,
+        headers=login
+    ).raise_for_status()
+    return response.json()
+
+
+def create_event_data(
+    event_type: str,
+    decision_id: str,
+    **override_params
+):
+    from datetime import datetime, timezone
+    payload = {
+        "event_id": "evt_1",
+        "event_type": event_type,
+        "decision_id": decision_id,
+        "payload": {},
+        "issued_at": datetime.now(timezone.utc).isoformat(),
+    }
+    payload.update(override_params)
+    return payload

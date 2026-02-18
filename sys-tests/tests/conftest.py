@@ -5,8 +5,9 @@ from sqlalchemy import create_engine, text
 from tests import config
 import httpx
 from redis import Redis
+from clickhouse_connect import get_client
 
-from tests.config import app_url, redis_args
+from tests.config import app_url, redis_args, click_args
 
 
 @pytest.fixture(scope="session")
@@ -23,9 +24,17 @@ def redis_client():
     client.close()
 
 
+@pytest.fixture(scope="session")
+def clickhouse_client():
+    client = get_client(**click_args)
+    yield client
+    client.close()
+
+
 @pytest.fixture(autouse=True)
-def clean_db(db_engine, redis_client):
+def clean_db(db_engine, redis_client, clickhouse_client):
     with db_engine.connect() as conn:
+        conn.execute(text("DELETE FROM event_types"))
         conn.execute(text("DELETE FROM review_decisions"))
         conn.execute(text("DELETE FROM approvals"))
         conn.execute(text("DELETE FROM experiments_latest"))
@@ -34,7 +43,10 @@ def clean_db(db_engine, redis_client):
         conn.execute(text("DELETE FROM assigned_approvers"))
         conn.execute(text("DELETE FROM users"))
         conn.commit()
-    #redis_client.flushdb()
+    redis_client.flushdb()
+    clickhouse_client.command("TRUNCATE TABLE events")
+    clickhouse_client.command("TRUNCATE TABLE discarded_events")
+    clickhouse_client.command("TRUNCATE TABLE duplicate_events")
 
 
 @pytest.fixture

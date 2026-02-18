@@ -23,3 +23,4 @@
   чего отрефакторены
 - `cooldown.lua` предложен Gemini как оптимизация
 - clickhouse миграция
+- clickhouse сервис в `docker-compose.yml`

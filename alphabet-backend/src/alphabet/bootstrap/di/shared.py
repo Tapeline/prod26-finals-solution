@@ -1,5 +1,6 @@
 from collections.abc import AsyncIterable
 
+import clickhouse_connect
 from dishka import (
     AnyOf,
     AsyncContainer,
@@ -28,6 +29,10 @@ from alphabet.shared.infrastructure.valkey_connection import (
     create_valkey_client,
 )
 from alphabet.shared.presentation.idp import HeaderIdP
+from alphabet.subject_events.application.interfaces import (
+    EventTypeChangeNotifier,
+)
+from clickhouse_connect.driver import AsyncClient
 
 
 class IdentityProviderDIProvider(Provider):
@@ -79,6 +84,7 @@ class MessageQueueErsatzDIProvider(Provider):
     ) -> AnyOf[
         ExperimentChangeNotifier,
         FlagChangeNotifier,
+        EventTypeChangeNotifier,
         InstantNotifier,
     ]:
         return InstantNotifier(container)
@@ -88,3 +94,18 @@ class ValkeyDIProvider(Provider):
     @provide(scope=Scope.APP)
     async def provide_client(self, config: Config) -> Redis:
         return await create_valkey_client(config.valkey)
+
+
+class ClickHouseDIProvider(Provider):
+    @provide(scope=Scope.APP)
+    async def provide_client(
+        self, config: Config
+    ) -> AsyncIterable[WithParents[AsyncClient]]:
+        async with await clickhouse_connect.get_async_client(
+            host=config.clickhouse.host,
+            port=config.clickhouse.port,
+            database=config.clickhouse.database,
+            username=config.clickhouse.username,
+            password=config.clickhouse.password,
+        ) as client:
+            yield client

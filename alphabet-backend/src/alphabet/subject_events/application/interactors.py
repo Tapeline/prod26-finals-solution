@@ -1,6 +1,6 @@
 from datetime import datetime
 from logging import getLogger
-from typing import final, Any, Final, overload, Literal
+from typing import final, Any, Final, overload, Literal, cast
 
 import jsonschema_rs
 
@@ -110,18 +110,13 @@ class ArchiveEventType:
 @interactor
 class ReadEventType:
     event_types: EventTypeRepository
-    idp: UserIdProvider
     tx: TransactionManager
 
-    async def __call__(
-        self, target: EventTypeId, dto: UpdateEventTypeDTO
-    ) -> EventType:
+    async def __call__(self, target: EventTypeId) -> EventType:
         async with self.tx:
             event_type = await self.event_types.get_by_id(target)
             if not event_type:
                 raise EventTypeNotFound
-            event_type.name = dto.new_name
-            await self.event_types.save(event_type)
             return event_type
 
 
@@ -144,7 +139,6 @@ class IncomingEventDTO:
     decision_id: str
     payload: dict[str, Any]
     issued_at: datetime
-    variant_id: str
 
     @property
     def variant_id(self) -> str:
@@ -159,9 +153,9 @@ class IncomingEventsResult:
     errors: dict[int, str]
 
 
-_PROCESSED_ERROR: Final = 2
-_PROCESSED_DUPLICATE: Final = 1
-_PROCESSED_OK: Final = 0
+_PROCESSED_ERROR: Final[Literal[2]] = 2
+_PROCESSED_DUPLICATE: Final[Literal[1]] = 1
+_PROCESSED_OK: Final[Literal[0]] = 0
 
 
 @final
@@ -191,12 +185,12 @@ class ReceiveEvents:
                 event_dto, current_time, processed_earlier
             )
             if result == _PROCESSED_OK:
-                ok.append(event)
+                ok.append(cast(Event, event))
             elif result == _PROCESSED_DUPLICATE:
-                duplicates.append(event)
+                duplicates.append(cast(Event, event))
             elif result == _PROCESSED_ERROR:
-                erroneous.append(event)
-                errors[i] = event.discard_reason
+                erroneous.append(cast(DiscardedEvent, event))
+                errors[i] = cast(DiscardedEvent, event).discard_reason
             processed.append(event.id)
         await self.event_store.save_batches(ok, duplicates, erroneous)
         await self.event_deduplicator.mark_processed(processed)
@@ -206,24 +200,10 @@ class ReceiveEvents:
             errors=errors,
         )
 
-    @overload
     def _process_event(
         self, event: IncomingEventDTO, current_time: datetime,
         processed_earlier: dict[str, bool]
-    ) -> tuple[Literal[2], DiscardedEvent]:
-        ...
-
-    @overload
-    def _process_event(
-        self, event: IncomingEventDTO, current_time: datetime,
-        processed_earlier: dict[str, bool]
-    ) -> tuple[Literal[0, 1], Event]:
-        ...
-
-    def _process_event(
-        self, event: IncomingEventDTO, current_time: datetime,
-        processed_earlier: dict[str, bool]
-    ) -> tuple[int, Event | DiscardedEvent]:
+    ) -> tuple[Literal[0, 1], Event] | tuple[Literal[2], DiscardedEvent]:
         evt_type = self.event_type_cache.get_event_type(event.event_type)
         if not evt_type:
             return (
@@ -295,4 +275,7 @@ class WarmUpEventTypes:
         event_types = await self.event_types.all(pagination=None)
         self.event_type_cache.place_event_types(event_types)
         self.event_type_cache.mark_ready()
-        logger.info("Warming up event types complete")
+        logger.info(
+            "Event types cache warmed up for %s entries", len(event_types)
+        )
+        logger.info("Event types cache is ready")

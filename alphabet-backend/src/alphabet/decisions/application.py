@@ -205,7 +205,7 @@ class MakeDecision:
                         experiment_applied=False,
                         policy=ConflictPolicy.ONE_OR_NONE,
                     )
-                    for experiment in conflicts
+                        for experiment in conflicts
                 )
                 return None
             case ConflictPolicy.HIGHER_PRIORITY:
@@ -220,7 +220,7 @@ class MakeDecision:
                         experiment_applied=experiment is winner,
                         policy=ConflictPolicy.HIGHER_PRIORITY,
                     )
-                    for experiment in conflicts
+                        for experiment in conflicts
                 )
                 return winner
             case _:
@@ -315,15 +315,19 @@ class WarmUpStorages:
 
     async def __call__(self) -> None:
         logger.info("Warming up decision cache")
-        for key, default in await self.flags.all_defaults():
+        flags = await self.flags.all_defaults()
+        for key, default in flags:
             self.flags_cache.set_flag_default(key, default)
-        logger.info("Flag cache warmed up")
-        for experiment in await self.experiments.all_running():
+        logger.info("Flag cache warmed up for %s entries", len(flags))
+        experiments = await self.experiments.all_running()
+        for experiment in experiments:
             self.experiments_cache.set_on_flag(
                 experiment.flag_key.value,
                 cached_experiment_from_experiment(experiment),
             )
-        logger.info("Experiment cache warmed up")
+        logger.info(
+            "Experiment cache warmed up for %s entries", len(experiments)
+        )
         self.experiments_cache.mark_ready()
         self.flags_cache.mark_ready()
         logger.info("Decision cache is ready")
