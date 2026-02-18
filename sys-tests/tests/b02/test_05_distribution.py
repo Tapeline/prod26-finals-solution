@@ -22,7 +22,7 @@ def test_b2_5_distribution_weights(
     setup_active_experiment(flag_key=flag_key, variants=variants)
 
     results = []
-    total_users = 200
+    total_users = 1000
 
     for i in range(total_users):
         subj_id = f"user_dist_{i}_{uuid.uuid4()}"
@@ -32,19 +32,21 @@ def test_b2_5_distribution_weights(
     counts = Counter(results)
     count_a = counts["val_A"]
     count_b = counts["val_B"]
+    a_percent = count_a / total_users * 100
+    b_percent = count_b / total_users * 100
 
     record_property("total_users", total_users)
     record_property("variant_A_count", count_a)
     record_property("variant_B_count", count_b)
     record_property(
         "variant_A_percent",
-        f"{(count_a / total_users) * 100:.2f}%"
+        f"{a_percent:.2f}%"
     )
     record_property(
         "variant_B_percent",
-        f"{(count_b / total_users) * 100:.2f}%"
+        f"{b_percent:.2f}%"
     )
 
     assert count_a + count_b == total_users
-    assert 80 <= count_a <= 120, f"Bad A distribution: {count_a}"
-    assert 80 <= count_b <= 120, f"Bad B distribution: {count_b}"
+    assert 45 <= a_percent <= 55, f"Bad A distribution: {a_percent}%"
+    assert 45 <= b_percent <= 55, f"Bad B distribution: {b_percent}%"

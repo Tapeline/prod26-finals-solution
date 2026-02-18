@@ -6,7 +6,7 @@ from alphabet.experiments.application.exceptions import (
     ExperimentNotInReview,
     FlagAlreadyTaken,
     NoSuchExperiment,
-    NoSuchFlag,
+    NoSuchFlag, FlagKeyAlreadyExists,
 )
 from alphabet.experiments.domain.dsl.exceptions import (
     InvalidTargetDSLExpression,
@@ -51,5 +51,6 @@ flags_experiments_err_handlers: Final = MappingProxyType(
         AlreadyApproved: (409, infer_code),
         ExperimentNotInReview: (409, infer_code),
         FlagAlreadyTaken: (409, infer_code),
+        FlagKeyAlreadyExists: (409, infer_code),
     },
 )

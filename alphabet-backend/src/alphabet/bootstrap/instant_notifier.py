@@ -14,12 +14,25 @@ from alphabet.experiments.application.interfaces import (
 from alphabet.experiments.domain.experiment import Experiment
 from alphabet.experiments.domain.flags import FlagKey
 from alphabet.shared.commons import autoinit
+from alphabet.subject_events.application.interfaces import \
+    (
+    EventTypeChangeNotifier, EventTypeCache,
+)
+from alphabet.subject_events.domain.events import EventType
 
 
 @final
 @autoinit
-class InstantNotifier(ExperimentChangeNotifier, FlagChangeNotifier):
-    """When we'll scale, this will give way for an actual message queue."""
+class InstantNotifier(
+    ExperimentChangeNotifier,
+    FlagChangeNotifier,
+    EventTypeChangeNotifier
+):
+    """
+    A harsh MQ mock for now that interconnects modules.
+
+    When we'll scale, this will give way for an actual message queue.
+    """
 
     container: AsyncContainer
 
@@ -56,3 +69,7 @@ class InstantNotifier(ExperimentChangeNotifier, FlagChangeNotifier):
                 flag_key.value,
                 new_default,
             )
+
+    async def notify_event_type_created(self, event_type: EventType) -> None:
+        async with self.container() as nested:
+            (await nested.get(EventTypeCache)).place_event_types([event_type])

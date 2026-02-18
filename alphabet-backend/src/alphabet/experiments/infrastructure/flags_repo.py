@@ -1,7 +1,9 @@
 from typing import Any, overload, override
 
 from sqlalchemy import Row, insert, select, update
+from sqlalchemy.exc import IntegrityError
 
+from alphabet.experiments.application.exceptions import FlagKeyAlreadyExists
 from alphabet.experiments.application.interfaces import (
     FlagRepository,
 )
@@ -27,17 +29,20 @@ class SqlFlagRepository(FlagRepository):
 
     @override
     async def create(self, flag: FeatureFlag) -> None:
-        await self.session.execute(
-            insert(flags).values(
-                key=flag.key.value,
-                description=flag.description,
-                type=flag.type,
-                default=flag.default,
-                author_id=flag.author_id,
-                created_at=flag.created_at,
-                updated_at=flag.updated_at,
-            ),
-        )
+        try:
+            await self.session.execute(
+                insert(flags).values(
+                    key=flag.key.value,
+                    description=flag.description,
+                    type=flag.type,
+                    default=flag.default,
+                    author_id=flag.author_id,
+                    created_at=flag.created_at,
+                    updated_at=flag.updated_at,
+                ),
+            )
+        except IntegrityError as exc:
+            raise FlagKeyAlreadyExists from exc
 
     @override
     async def save(self, flag: FeatureFlag) -> None:

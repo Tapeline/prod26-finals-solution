@@ -37,6 +37,7 @@ class AppConfig:
     cooldown_after_s: int = 60 * 60 * 24
     cooldown_for_s: int = 60 * 60 * 24
     store_stickiness_for_s: int = 60 * 60 * 24 * 7 * 2
+    event_deduplication_ttl_s: int = 60 * 60 * 24 * 7 + 1
 
 
 @dto

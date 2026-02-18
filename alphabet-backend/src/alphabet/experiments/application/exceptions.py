@@ -26,3 +26,8 @@ class ExperimentNotInReview(AppException):
 @final
 class FlagAlreadyTaken(AppException):
     text = "This flag is already taken by another running experiment"
+
+
+@final
+class FlagKeyAlreadyExists(AppException):
+    text = "Flag key already exists"
