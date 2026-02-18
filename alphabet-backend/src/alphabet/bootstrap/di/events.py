@@ -1,4 +1,4 @@
-from dishka import AnyOf, Provider, Scope, provide, provide_all
+from dishka import Provider, Scope, provide, provide_all
 
 from alphabet.subject_events.application.interactors import (
     ArchiveEventType,
@@ -13,7 +13,6 @@ from alphabet.subject_events.application.interfaces import (
     EventDeduplicator,
     EventStore,
     EventTypeCache,
-    EventTypeChangeNotifier,
     EventTypeRepository,
 )
 from alphabet.subject_events.infrastructure.click.event_store import (
@@ -28,9 +27,6 @@ from alphabet.subject_events.infrastructure.postgres.event_types_repo import (
 from alphabet.subject_events.infrastructure.valkey import (
     ValkeyEventDeduplicator,
 )
-from alphabet.shared.application.time import TimeProvider
-from alphabet.shared.infrastructure.transaction import SqlTransactionManager
-from clickhouse_connect.driver import AsyncClient
 
 
 class EventsDIProvider(Provider):

@@ -5,8 +5,9 @@ from alphabet.experiments.application.exceptions import (
     AlreadyApproved,
     ExperimentNotInReview,
     FlagAlreadyTaken,
+    FlagKeyAlreadyExists,
     NoSuchExperiment,
-    NoSuchFlag, FlagKeyAlreadyExists,
+    NoSuchFlag,
 )
 from alphabet.experiments.domain.dsl.exceptions import (
     InvalidTargetDSLExpression,

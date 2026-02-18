@@ -1,6 +1,6 @@
 from datetime import datetime
 from logging import getLogger
-from typing import final, Any, Final, overload, Literal, cast
+from typing import Any, Final, Literal, cast, final
 
 import jsonschema_rs
 
@@ -9,16 +9,24 @@ from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import UserReader, require_user_with_role
-from alphabet.shared.commons import interactor, dto
+from alphabet.shared.commons import dto, interactor
 from alphabet.shared.domain.user import Role
 from alphabet.subject_events.application.exceptions import EventTypeNotFound
 from alphabet.subject_events.application.interfaces import (
+    EventDeduplicator,
+    EventStore,
+    EventTypeCache,
+    EventTypeChangeNotifier,
     EventTypeRepository,
-    EventTypeChangeNotifier, EventTypeCache, EventStore, EventDeduplicator,
 )
 from alphabet.subject_events.domain.events import (
-    EventTypeId, EventSchema,
-    EventType, Event, DiscardedEvent, EventId, EventStatus,
+    DiscardedEvent,
+    Event,
+    EventId,
+    EventSchema,
+    EventStatus,
+    EventType,
+    EventTypeId,
 )
 
 logger = getLogger(__name__)
@@ -56,7 +64,7 @@ class CreateEventType:
                 dto.name,
                 dto.schema,
                 dto.requires_attribution,
-                is_archived=False
+                is_archived=False,
             )
             await self.event_types.create(event_type)
         await self.notifier.notify_event_type_created(event_type)
@@ -72,7 +80,9 @@ class UpdateEventType:
     user_reader: UserReader
 
     async def __call__(
-        self, target: EventTypeId, dto: UpdateEventTypeDTO
+        self,
+        target: EventTypeId,
+        dto: UpdateEventTypeDTO,
     ) -> EventType:
         async with self.tx:
             await require_user_with_role(self, {Role.ADMIN, Role.EXPERIMENTER})
@@ -176,13 +186,16 @@ class ReceiveEvents:
         ok: list[Event] = []
         current_time = self.time.now()
         processed = []
-        processed_earlier = \
+        processed_earlier = (
             await self.event_deduplicator.query_processed_before(
                 [event.event_id for event in events],
             )
+        )
         for i, event_dto in enumerate(events):
             result, event = self._process_event(
-                event_dto, current_time, processed_earlier
+                event_dto,
+                current_time,
+                processed_earlier,
             )
             if result == _PROCESSED_OK:
                 ok.append(cast(Event, event))
@@ -201,37 +214,36 @@ class ReceiveEvents:
         )
 
     def _process_event(
-        self, event: IncomingEventDTO, current_time: datetime,
-        processed_earlier: dict[str, bool]
+        self,
+        event: IncomingEventDTO,
+        current_time: datetime,
+        processed_earlier: dict[str, bool],
     ) -> tuple[Literal[0, 1], Event] | tuple[Literal[2], DiscardedEvent]:
         evt_type = self.event_type_cache.get_event_type(event.event_type)
         if not evt_type:
             return (
                 _PROCESSED_ERROR,
-                _to_discarded(event, current_time, "no_such_type")
+                _to_discarded(event, current_time, "no_such_type"),
             )
         try:
             evt_type.schema.value.validate(event.payload)
         except jsonschema_rs.ValidationError:
             return (
                 _PROCESSED_ERROR,
-                _to_discarded(event, current_time, "bad_payload")
+                _to_discarded(event, current_time, "bad_payload"),
             )
         if processed_earlier[event.event_id]:
             return (
                 _PROCESSED_DUPLICATE,
-                _to_event(evt_type, event, current_time)
+                _to_event(evt_type, event, current_time),
             )
-        return (
-            _PROCESSED_OK,
-            _to_event(evt_type, event, current_time)
-        )
+        return (_PROCESSED_OK, _to_event(evt_type, event, current_time))
 
 
 def _to_discarded(
     dto: IncomingEventDTO,
     current_time: datetime,
-    reason: str
+    reason: str,
 ) -> DiscardedEvent:
     return DiscardedEvent(
         id=EventId(dto.event_id),
@@ -240,7 +252,7 @@ def _to_discarded(
         received_at=current_time,
         attributes=dto.payload,
         discard_reason=reason,
-        event_type_id=dto.event_type
+        event_type_id=dto.event_type,
     )
 
 
@@ -260,7 +272,7 @@ def _to_event(
         status=EventStatus.WAITING_ATTRIBUTION
         if event_type.requires_attribution is not None
         else EventStatus.ACCEPTED,
-        wants_event_type=event_type.requires_attribution
+        wants_event_type=event_type.requires_attribution,
     )
 
 
@@ -276,6 +288,7 @@ class WarmUpEventTypes:
         self.event_type_cache.place_event_types(event_types)
         self.event_type_cache.mark_ready()
         logger.info(
-            "Event types cache warmed up for %s entries", len(event_types)
+            "Event types cache warmed up for %s entries",
+            len(event_types),
         )
         logger.info("Event types cache is ready")

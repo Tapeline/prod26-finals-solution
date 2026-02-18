@@ -1,8 +1,8 @@
 from sqlalchemy import (
+    Boolean,
     Column,
     String,
     Table,
-    Boolean,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 

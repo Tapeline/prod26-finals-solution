@@ -1,15 +1,15 @@
 import re
 from datetime import datetime
 from enum import StrEnum
-from typing import NewType, final, Final, Any
+from typing import Any, Final, NewType, final
 
-from alphabet.shared.commons import value_object, entity
+import jsonschema_rs
+
+from alphabet.shared.commons import entity, value_object
 from alphabet.subject_events.domain.exceptions import (
     InvalidEventTypeId,
     InvalidJsonSchema,
 )
-
-import jsonschema_rs
 
 _EVT_TYPE_ID_RE: Final = re.compile("[A-Za-z0-9_-]+")
 
@@ -26,7 +26,7 @@ class EventTypeId:
 
 @final
 class EventSchema:
-    __slots__ = ("value", "json")
+    __slots__ = ("json", "value")
 
     value: jsonschema_rs.Validator
     json: dict[str, Any]

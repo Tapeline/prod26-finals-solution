@@ -14,9 +14,9 @@ from alphabet.experiments.application.interfaces import (
 from alphabet.experiments.domain.experiment import Experiment
 from alphabet.experiments.domain.flags import FlagKey
 from alphabet.shared.commons import autoinit
-from alphabet.subject_events.application.interfaces import \
-    (
-    EventTypeChangeNotifier, EventTypeCache,
+from alphabet.subject_events.application.interfaces import (
+    EventTypeCache,
+    EventTypeChangeNotifier,
 )
 from alphabet.subject_events.domain.events import EventType
 
@@ -26,7 +26,7 @@ from alphabet.subject_events.domain.events import EventType
 class InstantNotifier(
     ExperimentChangeNotifier,
     FlagChangeNotifier,
-    EventTypeChangeNotifier
+    EventTypeChangeNotifier,
 ):
     """
     A harsh MQ mock for now that interconnects modules.

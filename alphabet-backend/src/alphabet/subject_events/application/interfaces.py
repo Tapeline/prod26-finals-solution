@@ -1,10 +1,13 @@
 from abc import abstractmethod
-from typing import Protocol, Sequence
+from collections.abc import Sequence
+from typing import Protocol
 
 from alphabet.shared.application.pagination import Pagination
 from alphabet.subject_events.domain.events import (
-    EventType, EventTypeId,
-    Event, DiscardedEvent,
+    DiscardedEvent,
+    Event,
+    EventType,
+    EventTypeId,
 )
 
 
@@ -53,7 +56,8 @@ class EventTypeCache(Protocol):
 class EventDeduplicator(Protocol):
     @abstractmethod
     async def query_processed_before(
-        self, evt_ids: list[str]
+        self,
+        evt_ids: list[str],
     ) -> dict[str, bool]:
         raise NotImplementedError
 
@@ -68,7 +72,7 @@ class EventStore(Protocol):
         self,
         ok: list[Event],
         duplicates: list[Event],
-        erroneous: list[DiscardedEvent]
+        erroneous: list[DiscardedEvent],
     ) -> None:
         raise NotImplementedError
 

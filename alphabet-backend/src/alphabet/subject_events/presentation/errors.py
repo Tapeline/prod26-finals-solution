@@ -1,11 +1,11 @@
 from types import MappingProxyType
 from typing import Final
 
+from alphabet.shared.presentation.framework.errors import infer_code
 from alphabet.subject_events.application.exceptions import (
     EventTypeAlreadyExists,
     EventTypeNotFound,
 )
-from alphabet.shared.presentation.framework.errors import infer_code
 from alphabet.subject_events.domain.exceptions import (
     InvalidEventTypeId,
     InvalidJsonSchema,

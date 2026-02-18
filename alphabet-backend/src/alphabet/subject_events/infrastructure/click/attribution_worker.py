@@ -1,5 +1,5 @@
 import asyncio
-from typing import final, Final
+from typing import Final, final
 
 import structlog
 from clickhouse_connect.driver import AsyncClient
@@ -23,7 +23,8 @@ class AttributionWorker:
                 await self._run_attribution_cycle()
             except Exception as exc:
                 self.logger.exception(
-                    "Attribution worker cycle failed", exc_info=exc
+                    "Attribution worker cycle failed",
+                    exc_info=exc,
                 )
             await asyncio.sleep(_WORKER_INTERVAL_S)
 
@@ -46,11 +47,11 @@ class AttributionWorker:
             child.wants_event_type
         FROM (SELECT * FROM events FINAL) child
         INNER JOIN (
-            SELECT decision_id, event_type 
+            SELECT decision_id, event_type
             FROM events FINAL
             WHERE status = 'accepted'
             GROUP BY decision_id, event_type
-        ) parent ON child.decision_id = parent.decision_id 
+        ) parent ON child.decision_id = parent.decision_id
                  AND child.wants_event_type = parent.event_type
         WHERE child.status = 'waiting_attribution'
         """

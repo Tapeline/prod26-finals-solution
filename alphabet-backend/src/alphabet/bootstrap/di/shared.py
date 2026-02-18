@@ -1,6 +1,7 @@
 from collections.abc import AsyncIterable
 
 import clickhouse_connect
+from clickhouse_connect.driver import AsyncClient
 from dishka import (
     AnyOf,
     AsyncContainer,
@@ -32,7 +33,6 @@ from alphabet.shared.presentation.idp import HeaderIdP
 from alphabet.subject_events.application.interfaces import (
     EventTypeChangeNotifier,
 )
-from clickhouse_connect.driver import AsyncClient
 
 
 class IdentityProviderDIProvider(Provider):
@@ -99,7 +99,8 @@ class ValkeyDIProvider(Provider):
 class ClickHouseDIProvider(Provider):
     @provide(scope=Scope.APP)
     async def provide_client(
-        self, config: Config
+        self,
+        config: Config,
     ) -> AsyncIterable[WithParents[AsyncClient]]:
         async with await clickhouse_connect.get_async_client(
             host=config.clickhouse.host,

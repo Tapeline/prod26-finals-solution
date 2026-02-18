@@ -205,7 +205,7 @@ class MakeDecision:
                         experiment_applied=False,
                         policy=ConflictPolicy.ONE_OR_NONE,
                     )
-                        for experiment in conflicts
+                    for experiment in conflicts
                 )
                 return None
             case ConflictPolicy.HIGHER_PRIORITY:
@@ -220,7 +220,7 @@ class MakeDecision:
                         experiment_applied=experiment is winner,
                         policy=ConflictPolicy.HIGHER_PRIORITY,
                     )
-                        for experiment in conflicts
+                    for experiment in conflicts
                 )
                 return winner
             case _:
@@ -326,7 +326,8 @@ class WarmUpStorages:
                 cached_experiment_from_experiment(experiment),
             )
         logger.info(
-            "Experiment cache warmed up for %s entries", len(experiments)
+            "Experiment cache warmed up for %s entries",
+            len(experiments),
         )
         self.experiments_cache.mark_ready()
         self.flags_cache.mark_ready()

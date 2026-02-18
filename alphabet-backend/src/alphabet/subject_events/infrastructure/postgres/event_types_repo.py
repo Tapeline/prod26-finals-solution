@@ -10,12 +10,14 @@ from alphabet.experiments.infrastructure.tables import (
 from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.commons import maybe_map
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager
-from alphabet.subject_events.application.exceptions import \
-    EventTypeAlreadyExists
+from alphabet.subject_events.application.exceptions import (
+    EventTypeAlreadyExists,
+)
 from alphabet.subject_events.application.interfaces import EventTypeRepository
 from alphabet.subject_events.domain.events import (
-    EventTypeId, EventType,
     EventSchema,
+    EventType,
+    EventTypeId,
 )
 from alphabet.subject_events.infrastructure.postgres.tables import event_types
 
@@ -27,8 +29,7 @@ class SqlEventTypeRepository(EventTypeRepository):
     @override
     async def get_by_id(self, event_type_id: EventTypeId) -> EventType | None:
         result = await self.session.execute(
-            select(event_types)
-            .where(event_types.c.id == event_type_id.value)
+            select(event_types).where(event_types.c.id == event_type_id.value),
         )
         return _row_to_event_type(result.first())
 
@@ -42,7 +43,7 @@ class SqlEventTypeRepository(EventTypeRepository):
                     schema=event_type.schema.json,
                     requires_attribution=maybe_map(
                         event_type.requires_attribution,
-                        attrgetter("value")
+                        attrgetter("value"),
                     ),
                     is_archived=event_type.is_archived,
                 ),
@@ -61,7 +62,7 @@ class SqlEventTypeRepository(EventTypeRepository):
                 schema=event_type.schema.json,
                 requires_attribution=maybe_map(
                     event_type.requires_attribution,
-                    attrgetter("value")
+                    attrgetter("value"),
                 ),
                 is_archived=event_type.is_archived,
             ),

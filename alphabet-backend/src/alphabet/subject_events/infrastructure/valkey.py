@@ -1,4 +1,5 @@
-from typing import final, override, Sequence
+from collections.abc import Sequence
+from typing import final, override
 
 from redis.asyncio import Redis
 
@@ -14,14 +15,17 @@ class ValkeyEventDeduplicator(EventDeduplicator):
     config: AppConfig
 
     @override
-    async def query_processed_before(self, evt_ids: list[str]) -> dict[str, bool]:
+    async def query_processed_before(
+        self,
+        evt_ids: list[str],
+    ) -> dict[str, bool]:
         if not evt_ids:
             return {}
         keys = [f"dedupevt-{evt_id}" for evt_id in evt_ids]
         values = await self.client.mget(keys)
         return {
             evt_id: val is not None
-            for evt_id, val in zip(evt_ids, values)
+            for evt_id, val in zip(evt_ids, values, strict=True)
         }
 
     @override
@@ -33,6 +37,6 @@ class ValkeyEventDeduplicator(EventDeduplicator):
                 await pipe.set(
                     f"dedupevt-{evt_id}",
                     b"1",
-                    ex=self.config.event_deduplication_ttl_s
+                    ex=self.config.event_deduplication_ttl_s,
                 )
             await pipe.execute()

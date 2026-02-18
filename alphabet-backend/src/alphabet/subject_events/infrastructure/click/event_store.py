@@ -1,14 +1,13 @@
 import asyncio
 import json
-from datetime import datetime
 from logging import getLogger
-from typing import final, Final, override
+from typing import Final, final, override
 
 from clickhouse_connect.driver import AsyncClient
 
 from alphabet.shared.application.time import TimeProvider
 from alphabet.subject_events.application.interfaces import EventStore
-from alphabet.subject_events.domain.events import Event, DiscardedEvent
+from alphabet.subject_events.domain.events import DiscardedEvent, Event
 
 # TODO: maybe put into config?
 _BUFFER_SIZE_THRESHOLD: Final = 2000
@@ -17,12 +16,12 @@ _FLUSH_INTERVAL_SECONDS: Final = 5
 
 @final
 class ClickHouseEventStore(EventStore):
-    def __init__(self, click: AsyncClient, time: TimeProvider):
+    def __init__(self, click: AsyncClient, time: TimeProvider) -> None:
         self._ok_buf: list[Event] = []
         self._err_buf: list[DiscardedEvent] = []
         self._dup_buf: list[Event] = []
         self._write_lock = asyncio.Lock()
-        self._last_flush = datetime.now()
+        self._last_flush = time.now()
         self.click = click
         self.time = time
         self.logger = getLogger(__name__)
@@ -36,7 +35,7 @@ class ClickHouseEventStore(EventStore):
         self,
         ok: list[Event],
         duplicates: list[Event],
-        erroneous: list[DiscardedEvent]
+        erroneous: list[DiscardedEvent],
     ) -> None:
         async with self._write_lock:
             self._ok_buf.extend(ok)
@@ -59,50 +58,92 @@ class ClickHouseEventStore(EventStore):
         # TODO: clean this mess
         if self._ok_buf:
             await self.click.insert(
-                "events", [
+                "events",
+                [
                     [
-                        str(e.id), e.decision_id, e.event_type.value,
+                        str(e.id),
+                        e.decision_id,
+                        e.event_type.value,
                         e.variant_id,
-                        e.issued_at, e.received_at, json.dumps(e.attributes),
+                        e.issued_at,
+                        e.received_at,
+                        json.dumps(e.attributes),
                         e.status.value,
-                        e.wants_event_type.value if e.wants_event_type else None
-                    ] for e in self._ok_buf
-                ], column_names=[
-                    "id", "decision_id", "event_type", "variant_id",
-                    "issued_at", "received_at", "attributes", "status",
-                    "wants_event_type"
-                ]
+                        e.wants_event_type.value
+                        if e.wants_event_type
+                        else None,
+                    ]
+                    for e in self._ok_buf
+                ],
+                column_names=[
+                    "id",
+                    "decision_id",
+                    "event_type",
+                    "variant_id",
+                    "issued_at",
+                    "received_at",
+                    "attributes",
+                    "status",
+                    "wants_event_type",
+                ],
             )
             self._ok_buf.clear()
         if self._err_buf:
             await self.click.insert(
-                "discarded_events", [
+                "discarded_events",
+                [
                     [
-                        str(e.id), e.decision_id, e.event_type_id,
-                        e.issued_at, e.received_at, json.dumps(e.attributes),
-                        e.discard_reason
-                    ] for e in self._err_buf
-                ], column_names=[
-                    "id", "decision_id", "event_type_id",
-                    "issued_at", "received_at", "attributes", "discard_reason"
-                ]
+                        str(e.id),
+                        e.decision_id,
+                        e.event_type_id,
+                        e.issued_at,
+                        e.received_at,
+                        json.dumps(e.attributes),
+                        e.discard_reason,
+                    ]
+                    for e in self._err_buf
+                ],
+                column_names=[
+                    "id",
+                    "decision_id",
+                    "event_type_id",
+                    "issued_at",
+                    "received_at",
+                    "attributes",
+                    "discard_reason",
+                ],
             )
             self._err_buf.clear()
         if self._dup_buf:
             await self.click.insert(
-                "duplicate_events", [
+                "duplicate_events",
+                [
                     [
-                        str(e.id), e.decision_id, e.event_type.value,
+                        str(e.id),
+                        e.decision_id,
+                        e.event_type.value,
                         e.variant_id,
-                        e.issued_at, e.received_at, json.dumps(e.attributes),
+                        e.issued_at,
+                        e.received_at,
+                        json.dumps(e.attributes),
                         e.status.value,
-                        e.wants_event_type.value if e.wants_event_type else None
-                    ] for e in self._dup_buf
-                ], column_names=[
-                    "id", "decision_id", "event_type", "variant_id",
-                    "issued_at", "received_at", "attributes", "status",
-                    "wants_event_type"
-                ]
+                        e.wants_event_type.value
+                        if e.wants_event_type
+                        else None,
+                    ]
+                    for e in self._dup_buf
+                ],
+                column_names=[
+                    "id",
+                    "decision_id",
+                    "event_type",
+                    "variant_id",
+                    "issued_at",
+                    "received_at",
+                    "attributes",
+                    "status",
+                    "wants_event_type",
+                ],
             )
             self._dup_buf.clear()
         self._last_flush = self.time.now()

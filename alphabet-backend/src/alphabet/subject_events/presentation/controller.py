@@ -1,12 +1,20 @@
 from collections.abc import Sequence
 from datetime import datetime
-from typing import Final, Any
+from typing import Any
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, get, patch, post
 from msgspec import Struct
 
+from alphabet.shared.application.pagination import Pagination
+from alphabet.shared.presentation.framework.openapi import (
+    RESPONSE_NOT_AUTH_AND_FORBIDDEN,
+    RESPONSE_NOT_AUTHENTICATED,
+    RESPONSE_NOT_FOUND,
+    success_spec,
+)
+from alphabet.shared.presentation.openapi import security_defs
 from alphabet.subject_events.application.interactors import (
     ArchiveEventType,
     CreateEventType,
@@ -24,15 +32,6 @@ from alphabet.subject_events.domain.events import (
     EventType,
     EventTypeId,
 )
-from alphabet.shared.application.pagination import Pagination
-from alphabet.shared.presentation.framework.openapi import (
-    RESPONSE_NOT_AUTH_AND_FORBIDDEN,
-    RESPONSE_NOT_AUTHENTICATED,
-    RESPONSE_NOT_FOUND,
-    error_spec,
-    success_spec,
-)
-from alphabet.shared.presentation.openapi import security_defs
 
 
 class CreateEventTypeRequest(Struct):
@@ -118,7 +117,7 @@ class EventsController(Controller):
                 requires_attribution=EventTypeId(data.requires_attribution)
                 if data.requires_attribution
                 else None,
-            )
+            ),
         )
         return EventTypeResponse.from_event_type(event_type)
 

@@ -53,6 +53,18 @@ layers=
     domain
 exhaustive = true
 
+[importlinter:contract:layers-events]
+name=Layered Subject Events
+type=layers
+containers =
+    alphabet.subject_events
+layers=
+    presentation
+    infrastructure
+    application
+    domain
+exhaustive = true
+
 [importlinter:contract:no-bootstrap-import]
 name = No bootstrap import
 type = forbidden

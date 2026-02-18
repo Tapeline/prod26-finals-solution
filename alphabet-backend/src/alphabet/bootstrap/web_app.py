@@ -44,12 +44,6 @@ from alphabet.experiments.presentation.errors import (
 )
 from alphabet.experiments.presentation.experiments import ExperimentsController
 from alphabet.experiments.presentation.flags import FlagsController
-from alphabet.subject_events.application.interactors import WarmUpEventTypes
-from alphabet.subject_events.application.interfaces import EventStore
-from alphabet.subject_events.presentation.errors import (
-    subject_events_err_handlers,
-)
-from alphabet.subject_events.presentation.controller import EventsController
 from alphabet.shared.config import Config
 from alphabet.shared.domain.exceptions import NotAuthenticated
 from alphabet.shared.presentation.framework.errors import (
@@ -60,6 +54,12 @@ from alphabet.shared.presentation.framework.middlewares import (
     RequestIdMiddleware,
 )
 from alphabet.shared.presentation.openapi import security_components
+from alphabet.subject_events.application.interactors import WarmUpEventTypes
+from alphabet.subject_events.application.interfaces import EventStore
+from alphabet.subject_events.presentation.controller import EventsController
+from alphabet.subject_events.presentation.errors import (
+    subject_events_err_handlers,
+)
 
 logger = getLogger(__name__)
 
