@@ -60,9 +60,9 @@ run-integration-tests:
   artifacts:
     when: always
     paths:
-      - sys-tests/junit-report.xml
+      - alphabet-backend/junit-report.xml
     reports:
-      junit: sys-tests/junit-report.xml
+      junit: alphabet-backend/junit-report.xml
 
 run-acceptance-tests:
   stage: test
