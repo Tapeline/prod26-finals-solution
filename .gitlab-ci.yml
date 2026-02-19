@@ -38,7 +38,22 @@ run-lint:
 run-integration-tests:
   stage: test
   needs: [run-lint]
+  services:
+    - name: docker:dind
+      alias: docker
+  variables:
+    DOCKER_HOST: tcp://docker:2375
+    DOCKER_TLS_CERTDIR: ""
+    DOCKER_DRIVER: overlay2
+  before_script:
+    # some fix from gemini idk
+    - pip install uv
+    - apt-get update && apt-get install -y docker.io curl
+    - mkdir -p /usr/local/lib/docker/cli-plugins
+    - curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
+    - chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
   script:
+    - docker compose up -d clickhouse
     - cd alphabet-backend
     - uv sync --group test
     - uv run pytest tests --junit-xml=junit-report.xml
@@ -62,9 +77,7 @@ run-acceptance-tests:
   before_script:
     # some fix from gemini idk
     - pip install uv
-    # 1. Install Docker CLI (client) and curl
     - apt-get update && apt-get install -y docker.io curl
-    # 2. Install Docker Compose V2 Plugin manually
     - mkdir -p /usr/local/lib/docker/cli-plugins
     - curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
     - chmod +x /usr/local/lib/docker/cli-plugins/docker-compose

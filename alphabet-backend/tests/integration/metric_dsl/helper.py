@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from datetime import datetime, timedelta
 from typing import Any
 
-from alphabet.metrics.domain.dsl import compile_metric_dsl
+from alphabet.metrics.infrastructure.dsl import ClickHouseDSLCompiler
 from alphabet.metrics.domain.metrics import Metric, MetricKey
 from alphabet.shared.commons import MaybeMissing, MISSING
 from alphabet.shared.uuid import generate_uuid
@@ -185,7 +185,7 @@ async def insert_events(
 
 
 def compile_dsl(dsl: str):
-    return compile_metric_dsl(dsl)
+    return ClickHouseDSLCompiler().compile_dsl(dsl)
 
 
 def a_metric(key: str, dsl: str) -> Metric:
