@@ -27,6 +27,7 @@ from alphabet.bootstrap.di.access import AccessDIProvider
 from alphabet.bootstrap.di.decisions import DecisionsDIProvider
 from alphabet.bootstrap.di.events import EventsDIProvider
 from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
+from alphabet.bootstrap.di.metrics import MetricsDIProvider
 from alphabet.bootstrap.di.shared import (
     ClickHouseDIProvider,
     ConfigDIProvider,
@@ -44,6 +45,8 @@ from alphabet.experiments.presentation.errors import (
 )
 from alphabet.experiments.presentation.experiments import ExperimentsController
 from alphabet.experiments.presentation.flags import FlagsController
+from alphabet.metrics.presentation.metrics import MetricsController
+from alphabet.metrics.presentation.reports import ReportsController
 from alphabet.shared.config import Config
 from alphabet.shared.domain.exceptions import NotAuthenticated
 from alphabet.shared.presentation.framework.errors import (
@@ -60,6 +63,7 @@ from alphabet.subject_events.presentation.controller import EventsController
 from alphabet.subject_events.presentation.errors import (
     subject_events_err_handlers,
 )
+from alphabet.metrics.presentation.errors import metrics_err_handlers
 
 logger = getLogger(__name__)
 
@@ -78,12 +82,17 @@ def _create_container(config: Config) -> AsyncContainer:
         ClickHouseDIProvider(),
         AccessDIProvider(),
         FlagsExperimentsDIProvider(),
+        MetricsDIProvider(),
         DecisionsDIProvider(),
         EventsDIProvider(),
         context={
             Config: config,
         },
     )
+
+
+class CustomPrometheusController(PrometheusController):
+    path = "/_internal/metrics"
 
 
 def create_app() -> Litestar:
@@ -95,7 +104,7 @@ def create_app() -> Litestar:
     prometheus_config = PrometheusConfig(
         app_name="alphabet",
         group_path=True,
-        exclude=["/metrics"],
+        exclude=["/_internal/metrics"],
     )
     litestar_app = Litestar(
         debug=config.is_debug,
@@ -105,7 +114,9 @@ def create_app() -> Litestar:
             ExperimentsController,
             DecisionsController,
             EventsController,
-            PrometheusController,
+            MetricsController,
+            ReportsController,
+            CustomPrometheusController,
         ],
         middleware=[
             DefineMiddleware(RequestIdMiddleware),
@@ -116,6 +127,7 @@ def create_app() -> Litestar:
                 **access_err_handlers,  # type: ignore[dict-item]
                 **flags_experiments_err_handlers,
                 **subject_events_err_handlers,  # type: ignore[dict-item]
+                **metrics_err_handlers,
                 NotAuthenticated: (401, infer_code),
             },
         ),

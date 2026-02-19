@@ -34,6 +34,8 @@ def clickhouse_client():
 @pytest.fixture(autouse=True)
 def clean_db(db_engine, redis_client, clickhouse_client):
     with db_engine.connect() as conn:
+        conn.execute(text("DELETE FROM reports"))
+        conn.execute(text("DELETE FROM metrics"))
         conn.execute(text("DELETE FROM event_types"))
         conn.execute(text("DELETE FROM review_decisions"))
         conn.execute(text("DELETE FROM approvals"))

@@ -65,6 +65,9 @@ class EventStatus(StrEnum):
 class Event:
     id: EventId
     decision_id: str
+    experiment_id: str
+    subject_id: str
+    flag_key: str
     event_type: EventTypeId
     variant_id: str
     issued_at: datetime
@@ -79,6 +82,9 @@ class Event:
 class DiscardedEvent:
     id: EventId
     decision_id: str
+    experiment_id: str
+    subject_id: str
+    flag_key: str
     event_type_id: str
     issued_at: datetime
     received_at: datetime

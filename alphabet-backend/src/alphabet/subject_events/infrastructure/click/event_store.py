@@ -63,6 +63,9 @@ class ClickHouseEventStore(EventStore):
                     [
                         str(e.id),
                         e.decision_id,
+                        e.experiment_id,
+                        e.flag_key,
+                        e.subject_id,
                         e.event_type.value,
                         e.variant_id,
                         e.issued_at,
@@ -78,6 +81,9 @@ class ClickHouseEventStore(EventStore):
                 column_names=[
                     "id",
                     "decision_id",
+                    "experiment_id",
+                    "flag_key",
+                    "subject_id",
                     "event_type",
                     "variant_id",
                     "issued_at",
@@ -95,6 +101,9 @@ class ClickHouseEventStore(EventStore):
                     [
                         str(e.id),
                         e.decision_id,
+                        e.experiment_id,
+                        e.flag_key,
+                        e.subject_id,
                         e.event_type_id,
                         e.issued_at,
                         e.received_at,
@@ -106,6 +115,9 @@ class ClickHouseEventStore(EventStore):
                 column_names=[
                     "id",
                     "decision_id",
+                    "experiment_id",
+                    "flag_key",
+                    "subject_id",
                     "event_type_id",
                     "issued_at",
                     "received_at",
@@ -121,6 +133,9 @@ class ClickHouseEventStore(EventStore):
                     [
                         str(e.id),
                         e.decision_id,
+                        e.experiment_id,
+                        e.flag_key,
+                        e.subject_id,
                         e.event_type.value,
                         e.variant_id,
                         e.issued_at,
@@ -136,6 +151,9 @@ class ClickHouseEventStore(EventStore):
                 column_names=[
                     "id",
                     "decision_id",
+                    "experiment_id",
+                    "flag_key",
+                    "subject_id",
                     "event_type",
                     "variant_id",
                     "issued_at",

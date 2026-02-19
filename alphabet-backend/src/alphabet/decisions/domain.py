@@ -95,7 +95,9 @@ def make_decision(
     else:
         chosen_name, chosen_value = chosen
     return Decision(
-        id=DecisionId(f"{experiment_id}:{subject_id}:{chosen_name}"),
+        id=DecisionId(
+            f"{experiment_id}:{flag_key}:{subject_id}:{chosen_name}"
+        ),
         flag_key=flag_key,
         value=chosen_value,
         experiment_id=experiment_id,

@@ -38,6 +38,9 @@ class AttributionWorker:
         SELECT
             child.id,
             child.decision_id,
+            child.experiment_id,
+            child.flag_key,
+            child.subject_id,
             child.event_type,
             child.variant_id,
             child.issued_at,
@@ -61,6 +64,9 @@ class AttributionWorker:
         SELECT
             id,
             decision_id,
+            experiment_id,
+            flag_key,
+            subject_id,
             event_type,
             variant_id,
             issued_at,

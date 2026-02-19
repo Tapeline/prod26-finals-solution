@@ -19,6 +19,7 @@ from alphabet.experiments.application.interfaces import (
 from alphabet.experiments.domain.dsl.dsl import compile_dsl
 from alphabet.experiments.domain.experiment import ConflictPolicy, Experiment
 from alphabet.shared.commons import interactor
+from alphabet.shared.uuid import generate_uuid
 
 logger = getLogger(__name__)
 
@@ -276,7 +277,11 @@ class MakeDecision:
         if value is None:
             return None
         return Decision(
-            DecisionId(f"{flag_key}:{subject_id}:!default"),
+            # TODO: REFACTOR ONE MORE TIME
+            # TODO: at least make decision ids uniform so
+            #       I can pull out flag and exp ids on event site
+            # idk, can we just leave it like that?
+            DecisionId(f":{flag_key}:{subject_id}:!default-{generate_uuid()}"),
             flag_key=flag_key,
             value=value,
             experiment_id=None,

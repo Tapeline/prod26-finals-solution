@@ -29,6 +29,9 @@ nav:
       - 007 — Разреш. конфликтов: adr/007-conflict-resolution.md
       - 008 — Insights UI: adr/008-insights.md
       - 009 — Evt. JSON Schema: adr/009-event-schema.md
+      - 010 — Архитектура: adr/010-arch.md
+      - 011 — Стек: adr/011-stack.md
+      - 012 — DSL метрик: adr/012-metric-dsl.md
   - Спецификации:
       - Оглавление: spec/toc.md
       - Метаязык определения DSL: spec/metalang.md

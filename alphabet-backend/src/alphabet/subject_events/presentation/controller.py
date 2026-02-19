@@ -176,7 +176,7 @@ class EventsController(Controller):
         )
         return EventTypeResponse.from_event_type(event_type)
 
-    @patch(
+    @post(
         path="/types/{event_type_id:str}/archive",
         responses={
             200: success_spec("Archived.", EventTypeResponse),

@@ -152,7 +152,19 @@ class IncomingEventDTO:
 
     @property
     def variant_id(self) -> str:
-        return self.decision_id.split(":", maxsplit=2)[2]
+        return self.decision_id.split(":", maxsplit=3)[3]
+
+    @property
+    def experiment_id(self) -> str:
+        return self.decision_id.split(":", maxsplit=3)[0]
+
+    @property
+    def flag_key(self) -> str:
+        return self.decision_id.split(":", maxsplit=3)[1]
+
+    @property
+    def subject_id(self) -> str:
+        return self.decision_id.split(":", maxsplit=3)[2]
 
 
 @final
@@ -253,6 +265,9 @@ def _to_discarded(
         attributes=dto.payload,
         discard_reason=reason,
         event_type_id=dto.event_type,
+        experiment_id=dto.experiment_id,
+        subject_id=dto.subject_id,
+        flag_key=dto.flag_key,
     )
 
 
@@ -273,6 +288,9 @@ def _to_event(
         if event_type.requires_attribution is not None
         else EventStatus.ACCEPTED,
         wants_event_type=event_type.requires_attribution,
+        experiment_id=dto.experiment_id,
+        subject_id=dto.subject_id,
+        flag_key=dto.flag_key,
     )
 
 

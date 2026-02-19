@@ -129,7 +129,8 @@ def setup_active_experiment(
     flag_key: str,
     variants: list = None,
     targeting: str | None = None,
-    audience: int = 100
+    audience: int = 100,
+    **kwargs,
 ):
     if variants is None:
         variants = [
@@ -150,7 +151,8 @@ def setup_active_experiment(
     exp_params = {
         "flag_key": flag_key,
         "variants": variants,
-        "audience": audience
+        "audience": audience,
+        **kwargs
     }
 
     if targeting:

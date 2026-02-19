@@ -1,6 +1,9 @@
 CREATE TABLE IF NOT EXISTS events (
     id String,
     decision_id String,
+    experiment_id String,
+    flag_key String,
+    subject_id String,
     event_type String,
     variant_id String,
     issued_at DateTime64(3),
@@ -14,6 +17,9 @@ ORDER BY (event_type, decision_id, id);
 CREATE TABLE IF NOT EXISTS discarded_events (
     id String,
     decision_id String,
+    experiment_id String,
+    flag_key String,
+    subject_id String,
     event_type_id String,
     issued_at DateTime64(3),
     received_at DateTime64(3),
@@ -25,6 +31,9 @@ ORDER BY (event_type_id, decision_id, id);
 CREATE TABLE IF NOT EXISTS duplicate_events (
     id String,
     decision_id String,
+    experiment_id String,
+    flag_key String,
+    subject_id String,
     event_type String,
     variant_id String,
     issued_at DateTime64(3),

@@ -10,6 +10,7 @@ from alphabet.shared.infrastructure import sql_meta
 from alphabet.access.infrastructure import tables  # noqa
 from alphabet.experiments.infrastructure import tables  # noqa
 from alphabet.subject_events.infrastructure.postgres import tables  # noqa
+from alphabet.metrics.infrastructure import tables  # noqa
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
