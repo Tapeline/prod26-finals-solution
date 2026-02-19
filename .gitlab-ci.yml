@@ -35,6 +35,20 @@ run-lint:
   rules:
     - if: $CI_PIPELINE_SOURCE == "push" || $CI_PIPELINE_SOURCE == "merge_request_event"
 
+run-integration-tests:
+  stage: test
+  needs: [run-lint]
+  script:
+    - cd alphabet-backend
+    - uv sync --group test
+    - uv run pytest tests --junit-xml=junit-report.xml
+  artifacts:
+    when: always
+    paths:
+      - sys-tests/junit-report.xml
+    reports:
+      junit: sys-tests/junit-report.xml
+
 run-acceptance-tests:
   stage: test
   needs: [run-lint]

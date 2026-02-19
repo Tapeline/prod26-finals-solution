@@ -77,7 +77,9 @@ class FilterPrimaryNode(Node):
     token: MetricDSLToken
     path: list[str]
     operator: FilterEquality
-    literal: LiteralStrNode | LiteralNumberNode | LiteralBoolNode | LiteralNullNode
+    literal: (
+        LiteralStrNode | LiteralNumberNode | LiteralBoolNode | LiteralNullNode
+    )
 
 
 @final

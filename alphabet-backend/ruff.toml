@@ -98,3 +98,4 @@ exclude = [
     "ANN", # no types
 ]
 "src/alphabet/experiments/domain/dsl/codegen.py" = ["N802"]
+"src/alphabet/metrics/infrastructure/codegen.py" = ["N802"]

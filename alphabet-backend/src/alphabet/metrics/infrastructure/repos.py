@@ -1,4 +1,4 @@
-from typing import Any, override, final
+from typing import Any, final, override
 
 from adaptix import Retort
 from sqlalchemy import Row, delete, insert, select, update
@@ -15,7 +15,8 @@ from alphabet.metrics.domain.metrics import (
     MetricKey,
     Report,
     ReportId,
-    ReportWindow, SQLFragment,
+    ReportWindow,
+    SQLFragment,
 )
 from alphabet.metrics.infrastructure.tables import metrics, reports
 from alphabet.shared.application.pagination import Pagination
@@ -55,9 +56,11 @@ class SqlMetricRepository(MetricRepository):
 
     @override
     async def get_by_key(self, key: MetricKey) -> Metric | None:
-        row = (await self.session.execute(
-            select(metrics).where(metrics.c.key == key.value),
-        )).first()
+        row = (
+            await self.session.execute(
+                select(metrics).where(metrics.c.key == key.value),
+            )
+        ).first()
         if not row:
             return None
         return _row_to_metric(row)
@@ -65,9 +68,7 @@ class SqlMetricRepository(MetricRepository):
     @override
     async def all(self, pagination: Pagination) -> list[Metric]:
         result = await self.session.execute(
-            select(metrics)
-            .limit(pagination.limit)
-            .offset(pagination.offset)
+            select(metrics).limit(pagination.limit).offset(pagination.offset),
         )
         return list(map(_row_to_metric, result.all()))
 
@@ -115,9 +116,11 @@ class SqlReportRepository(ReportRepository):
 
     @override
     async def get_by_id(self, report_id: ReportId) -> Report | None:
-        row = (await self.session.execute(
-            select(reports).where(reports.c.id == report_id),
-        )).first()
+        row = (
+            await self.session.execute(
+                select(reports).where(reports.c.id == report_id),
+            )
+        ).first()
         if not row:
             return None
         return _row_to_report(row)
@@ -131,7 +134,7 @@ class SqlReportRepository(ReportRepository):
 
 
 def _dump_compiled(
-    compiled: tuple[SQLFragment, SQLFragment | None]
+    compiled: tuple[SQLFragment, SQLFragment | None],
 ) -> list[dict[str, Any]]:
     return [
         _retort.dump(compiled[0], SQLFragment),
@@ -140,7 +143,7 @@ def _dump_compiled(
 
 
 def _load_compiled(
-    value: list[dict[str, Any]]
+    value: list[dict[str, Any]],
 ) -> tuple[SQLFragment, SQLFragment | None]:
     return (
         _retort.load(value[0], SQLFragment),

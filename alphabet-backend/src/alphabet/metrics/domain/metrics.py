@@ -7,7 +7,7 @@ from alphabet.metrics.domain.exceptions import (
     InvalidMetricKey,
     InvalidReportWindow,
 )
-from alphabet.shared.commons import entity, value_object, dto
+from alphabet.shared.commons import entity, value_object
 
 ReportId = NewType("ReportId", str)
 

@@ -1,38 +1,29 @@
 from collections.abc import Sequence
 from datetime import datetime
-from typing import Final
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
-from litestar import Controller, get, post, delete
+from litestar import Controller, delete, get, post
 from msgspec import Struct
 
 from alphabet.experiments.domain.experiment import ExperimentId
 from alphabet.metrics.application.interactors import (
-    CreateMetric,
-    CreateMetricDTO,
     CreateReport,
     CreateReportDTO,
+    DeleteReport,
     GetReportResult,
-    ListMetrics,
+    ListReportsByExperiment,
     MetricPointDTO,
     ReportResultDTO,
-    UpdateMetric,
-    DeleteReport, ListReportsByExperiment,
 )
 from alphabet.metrics.domain.metrics import (
-    MetricKey,
+    Report,
     ReportId,
-    Metric,
-    Report, SQLFragment,
 )
-from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.presentation.framework.openapi import (
-    RESPONSE_FORBIDDEN,
     RESPONSE_NOT_AUTH_AND_FORBIDDEN,
     RESPONSE_NOT_AUTHENTICATED,
     RESPONSE_NOT_FOUND,
-    error_spec,
     success_spec,
 )
 from alphabet.shared.presentation.openapi import security_defs
@@ -164,13 +155,13 @@ class ReportsController(Controller):
         responses={
             200: success_spec("Retrieved.", list[MinimalReportResponse]),
             **RESPONSE_NOT_AUTHENTICATED,
-        }
+        },
     )
     @inject
     async def list_for_experiment(
         self,
         experiment_id: str,
-        interactor: FromDishka[ListReportsByExperiment]
+        interactor: FromDishka[ListReportsByExperiment],
     ) -> list[MinimalReportResponse]:
         reports = await interactor(ExperimentId(experiment_id))
         return list(map(MinimalReportResponse.from_report, reports))

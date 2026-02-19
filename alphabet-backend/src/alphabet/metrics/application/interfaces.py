@@ -2,8 +2,14 @@ from abc import abstractmethod
 from datetime import datetime
 from typing import Protocol, final
 
-from alphabet.experiments.domain.experiment import Experiment, ExperimentId
-from alphabet.metrics.domain.metrics import Metric, MetricKey, Report, ReportId
+from alphabet.experiments.domain.experiment import ExperimentId
+from alphabet.metrics.domain.metrics import (
+    Metric,
+    MetricKey,
+    Report,
+    ReportId,
+    SQLFragment,
+)
 from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.commons import dto
 
@@ -65,4 +71,12 @@ class MetricEvaluator(Protocol):
         start_at: datetime,
         end_at: datetime,
     ) -> dict[MetricKey, MetricEvaluationResult]:
+        raise NotImplementedError
+
+
+class DSLCompiler(Protocol):
+    @abstractmethod
+    def compile_dsl(
+        self, dsl_string: str,
+    ) -> tuple[SQLFragment, SQLFragment | None]:
         raise NotImplementedError

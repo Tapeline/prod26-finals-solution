@@ -16,4 +16,3 @@ class ExperimentForReportNotFound(AppException):
 @final
 class MetricNotInExperiment(AppException):
     text = "Metric is not configured for this experiment"
-

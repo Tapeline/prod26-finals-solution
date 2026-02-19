@@ -45,6 +45,7 @@ from alphabet.experiments.presentation.errors import (
 )
 from alphabet.experiments.presentation.experiments import ExperimentsController
 from alphabet.experiments.presentation.flags import FlagsController
+from alphabet.metrics.presentation.errors import metrics_err_handlers
 from alphabet.metrics.presentation.metrics import MetricsController
 from alphabet.metrics.presentation.reports import ReportsController
 from alphabet.shared.config import Config
@@ -63,7 +64,6 @@ from alphabet.subject_events.presentation.controller import EventsController
 from alphabet.subject_events.presentation.errors import (
     subject_events_err_handlers,
 )
-from alphabet.metrics.presentation.errors import metrics_err_handlers
 
 logger = getLogger(__name__)
 

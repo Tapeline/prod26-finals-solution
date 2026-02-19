@@ -54,7 +54,7 @@ def waiting_evt(
         attributes=attributes,
         status="waiting_attribution",
         wants_event_type=wants,
-        variant_id=variant
+        variant_id=variant,
     )
 
 
@@ -82,14 +82,15 @@ def ok_evt(
         attributes=attributes,
         status="accepted",
         wants_event_type=None,
-        variant_id=variant
+        variant_id=variant,
     )
 
 
 def err_evt(
     event_type: str,
     decision_id: str,
-    attributes: dict[str, Any] | MaybeMissing = MISSING, *,
+    attributes: dict[str, Any] | MaybeMissing = MISSING,
+    *,
     reason: str,
     delivery_latency_ms: int = 1,
     eid: str | MaybeMissing = MISSING,
@@ -188,11 +189,8 @@ def compile_dsl(dsl: str):
 
 
 def a_metric(key: str, dsl: str) -> Metric:
-    return Metric(
-        MetricKey(key),
-        dsl,
-        compile_dsl(dsl)
-    )
+    return Metric(MetricKey(key), dsl, compile_dsl(dsl))
+
 
 def now_window(
     forward_backward_delta: timedelta = timedelta(days=1),

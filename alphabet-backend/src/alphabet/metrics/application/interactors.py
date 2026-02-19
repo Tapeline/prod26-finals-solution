@@ -6,11 +6,11 @@ from alphabet.experiments.application.interfaces import ExperimentsRepository
 from alphabet.experiments.domain.experiment import ExperimentId
 from alphabet.metrics.application.exceptions import ExperimentForReportNotFound
 from alphabet.metrics.application.interfaces import (
+    DSLCompiler,
     MetricEvaluator,
     MetricRepository,
     ReportRepository,
 )
-from alphabet.metrics.domain.dsl import compile_metric_dsl
 from alphabet.metrics.domain.exceptions import (
     NoSuchMetric,
     NoSuchReport,
@@ -27,8 +27,9 @@ from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import (
+    UserReader,
+    require_any_user,
     require_user_with_role,
-    UserReader, require_any_user,
 )
 from alphabet.shared.commons import interactor
 from alphabet.shared.domain.user import Role
@@ -49,12 +50,13 @@ class CreateMetric:
     user_reader: UserReader
     metrics: MetricRepository
     tx: TransactionManager
+    compiler: DSLCompiler
 
     async def __call__(self, dto: CreateMetricDTO) -> Metric:
         metric = Metric(
             key=dto.key,
             expression=dto.expression,
-            compiled_expression=compile_metric_dsl(dto.expression),
+            compiled_expression=self.compiler.compile_dsl(dto.expression),
         )
         async with self.tx:
             await require_user_with_role(self, {Role.ADMIN, Role.EXPERIMENTER})
@@ -80,6 +82,7 @@ class UpdateMetric:
     tx: TransactionManager
     idp: UserIdProvider
     user_reader: UserReader
+    compiler: DSLCompiler
 
     async def __call__(self, target: MetricKey, new_expr: str) -> Metric:
         async with self.tx:
@@ -88,7 +91,7 @@ class UpdateMetric:
             metric = await self.metrics.get_by_key(target)
             if not metric:
                 raise NoSuchMetric
-            metric.compiled_expression = compile_metric_dsl(new_expr)
+            metric.compiled_expression = self.compiler.compile_dsl(new_expr)
             metric.expression = new_expr
             await self.metrics.save(metric)
             return metric
@@ -133,7 +136,7 @@ class CreateReport:
         )
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER}
+                self, {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER},
             )
             await self.reports.create(report)
         return report
@@ -150,7 +153,7 @@ class DeleteReport:
     async def __call__(self, report_id: ReportId) -> None:
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER}
+                self, {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER},
             )
             report = await self.reports.get_by_id(report_id)
             if not report:
@@ -169,8 +172,7 @@ class ListReportsByExperiment:
     async def __call__(self, experiment_id: ExperimentId) -> list[Report]:
         async with self.tx:
             await require_any_user(self)
-            reports = await self.reports.all_for_experiment(experiment_id)
-            return reports
+            return await self.reports.all_for_experiment(experiment_id)
 
 
 @final

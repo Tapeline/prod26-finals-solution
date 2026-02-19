@@ -2,19 +2,20 @@ from collections.abc import Sequence
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
-from litestar import Controller, get, post, patch
+from litestar import Controller, get, patch, post
 from msgspec import Struct
 
 from alphabet.metrics.application.interactors import (
     CreateMetric,
     CreateMetricDTO,
     ListMetrics,
-    UpdateMetric,
     ReadMetric,
+    UpdateMetric,
 )
 from alphabet.metrics.domain.metrics import (
+    Metric,
     MetricKey,
-    Metric, SQLFragment,
+    SQLFragment,
 )
 from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.presentation.framework.openapi import (
@@ -22,7 +23,8 @@ from alphabet.shared.presentation.framework.openapi import (
     RESPONSE_NOT_AUTH_AND_FORBIDDEN,
     RESPONSE_NOT_AUTHENTICATED,
     RESPONSE_NOT_FOUND,
-    success_spec, error_spec,
+    error_spec,
+    success_spec,
 )
 from alphabet.shared.presentation.openapi import security_defs
 
@@ -37,7 +39,7 @@ class MetricSchema(Struct):
         return MetricSchema(
             key=metric.key.value,
             expr=metric.expression,
-            compiled=metric.compiled_expression
+            compiled=metric.compiled_expression,
         )
 
 
@@ -73,7 +75,7 @@ class MetricsController(Controller):
             CreateMetricDTO(
                 key=MetricKey(data.key),
                 expression=data.expr,
-            )
+            ),
         )
         return MetricSchema.from_metric(metric)
 
@@ -96,19 +98,19 @@ class MetricsController(Controller):
         return list(map(MetricSchema.from_metric, metrics))
 
     @patch(
-       path="/{metric_key:str}",
-       responses={
-           200: success_spec("Updated.", MetricSchema),
-           **RESPONSE_NOT_AUTH_AND_FORBIDDEN,
-           **RESPONSE_NOT_FOUND,
-       }
+        path="/{metric_key:str}",
+        responses={
+            200: success_spec("Updated.", MetricSchema),
+            **RESPONSE_NOT_AUTH_AND_FORBIDDEN,
+            **RESPONSE_NOT_FOUND,
+        },
     )
     @inject
     async def update_metric(
         self,
         metric_key: str,
         interactor: FromDishka[UpdateMetric],
-        data: UpdateMetricRequest
+        data: UpdateMetricRequest,
     ) -> MetricSchema:
         metric = await interactor(MetricKey(metric_key), data.expr)
         return MetricSchema.from_metric(metric)
@@ -119,7 +121,7 @@ class MetricsController(Controller):
             200: success_spec("Retrieved.", MetricSchema),
             **RESPONSE_NOT_AUTH_AND_FORBIDDEN,
             **RESPONSE_NOT_FOUND,
-        }
+        },
     )
     @inject
     async def read_metric(

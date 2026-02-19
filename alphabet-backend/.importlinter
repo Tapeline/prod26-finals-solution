@@ -65,6 +65,18 @@ layers=
     domain
 exhaustive = true
 
+[importlinter:contract:layers-metrics]
+name=Layered Metrics
+type=layers
+containers =
+    alphabet.metrics
+layers=
+    presentation
+    infrastructure
+    application
+    domain
+exhaustive = true
+
 [importlinter:contract:no-bootstrap-import]
 name = No bootstrap import
 type = forbidden

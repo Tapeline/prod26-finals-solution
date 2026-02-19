@@ -1,5 +1,5 @@
 from types import MappingProxyType
-from typing import cast, Final, assert_never
+from typing import Final, assert_never, cast
 
 from syntactix.parser.parser import ParserBase
 
@@ -12,6 +12,7 @@ from alphabet.metrics.domain.dsl.nodes import (
     Attribution,
     ComponentNode,
     FilterAndNode,
+    FilterEquality,
     FilterOrNode,
     FilterPrimaryNode,
     LiteralBoolNode,
@@ -23,7 +24,7 @@ from alphabet.metrics.domain.dsl.nodes import (
     Source,
     SystemValueKind,
     SystemValueNode,
-    ValueNode, FilterEquality,
+    ValueNode,
 )
 
 _AGG_TOKEN_TO_AGG: Final = MappingProxyType(
@@ -37,7 +38,7 @@ _AGG_TOKEN_TO_AGG: Final = MappingProxyType(
         MetricDSLTokenType.P95: Aggregation.P95,
         MetricDSLTokenType.P99: Aggregation.P99,
         MetricDSLTokenType.COUNT: Aggregation.COUNT,
-    }
+    },
 )
 
 
@@ -86,7 +87,8 @@ class MetricDSLParser(
             MetricDSLTokenType.WILDCARD,
         )
         event_type = (
-            "*" if event_type_token.type == MetricDSLTokenType.WILDCARD
+            "*"
+            if event_type_token.type == MetricDSLTokenType.WILDCARD
             else cast(str, event_type_token.value)
         )
 
@@ -155,7 +157,9 @@ class MetricDSLParser(
 
     def _parse_literal(
         self,
-    ) -> LiteralStrNode | LiteralNumberNode | LiteralBoolNode | LiteralNullNode:
+    ) -> (
+        LiteralStrNode | LiteralNumberNode | LiteralBoolNode | LiteralNullNode
+    ):
         token = self.peek
         if tok := self.match(MetricDSLTokenType.STRING):
             return LiteralStrNode(token, cast(str, tok.value))

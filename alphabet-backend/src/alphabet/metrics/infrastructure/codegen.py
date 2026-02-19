@@ -1,10 +1,12 @@
-from typing import Final, cast, assert_never
+from types import MappingProxyType
+from typing import Final, assert_never, cast
 
 from alphabet.metrics.domain.dsl.nodes import (
     Aggregation,
     Attribution,
     ComponentNode,
     FilterAndNode,
+    FilterEquality,
     FilterOrNode,
     FilterPrimaryNode,
     LiteralBoolNode,
@@ -17,16 +19,25 @@ from alphabet.metrics.domain.dsl.nodes import (
     SystemValueKind,
     SystemValueNode,
     ValueNode,
-    FilterEquality,
 )
 from alphabet.metrics.domain.metrics import SQLFragment
 
-_SOURCE_TO_TABLE: Final = {
+_SOURCE_TO_TABLE: Final = MappingProxyType({
     Source.EVENTS: "events",
     Source.DISCARDED: "discarded_events",
     Source.DUPLICATE: "duplicate_events",
-}
-
+})
+_AGG_FUNCTION_TEMPLATES: Final = MappingProxyType({
+    Aggregation.COUNT: "count({})",
+    Aggregation.SUM: "sum({})",
+    Aggregation.MIN: "min({})",
+    Aggregation.MAX: "max({})",
+    Aggregation.P50: "quantile(0.50)({})",
+    Aggregation.P75: "quantile(0.75)({})",
+    Aggregation.P90: "quantile(0.90)({})",
+    Aggregation.P95: "quantile(0.95)({})",
+    Aggregation.P99: "quantile(0.99)({})",
+})
 
 class CodeGenerator:
     def __init__(self, expr: MetricExprNode) -> None:
@@ -39,12 +50,12 @@ class CodeGenerator:
         generator = getattr(self, f"_gen_{node.__class__.__name__}", None)
         if not generator:
             raise NotImplementedError(
-                f"Generator not implemented for {type(node)}"
+                f"Generator not implemented for {type(node)}",
             )
         return generator(node)  # type: ignore[no-any-return]
 
     def _gen_MetricExprNode(
-        self, node: MetricExprNode
+        self, node: MetricExprNode,
     ) -> tuple[SQLFragment, SQLFragment | None]:
         numerator = self._gen_ComponentNode(node.numerator)
         denominator = None
@@ -57,7 +68,7 @@ class CodeGenerator:
         select_expr = self._gen_aggregation(node)
         where_expr = self._gen_component_where(node)
         return SQLFragment(
-            select=select_expr, where=where_expr, table=table_name
+            select=select_expr, where=where_expr, table=table_name,
         )
 
     def _gen_aggregation(self, node: ComponentNode) -> str:
@@ -65,29 +76,11 @@ class CodeGenerator:
         if node.value:
             is_numeric_agg = node.aggregation != Aggregation.COUNT
             value_sql = self._gen_value_extractor(
-                node.value, as_float=is_numeric_agg
+                node.value, as_float=is_numeric_agg,
             )
-        match node.aggregation:
-            case Aggregation.COUNT:
-                return f"count({value_sql})" if value_sql else "count()"
-            case Aggregation.SUM:
-                return f"sum({value_sql})"
-            case Aggregation.MIN:
-                return f"min({value_sql})"
-            case Aggregation.MAX:
-                return f"max({value_sql})"
-            case Aggregation.P50:
-                return f"quantile(0.50)({value_sql})"
-            case Aggregation.P75:
-                return f"quantile(0.75)({value_sql})"
-            case Aggregation.P90:
-                return f"quantile(0.90)({value_sql})"
-            case Aggregation.P95:
-                return f"quantile(0.95)({value_sql})"
-            case Aggregation.P99:
-                return f"quantile(0.99)({value_sql})"
-            case _:
-                assert_never(node.aggregation)
+        if node.aggregation == Aggregation.COUNT and not value_sql:
+            return "count()"
+        return _AGG_FUNCTION_TEMPLATES[node.aggregation].format(value_sql)
 
     def _gen_component_where(self, node: ComponentNode) -> str:
         parts: list[str] = []
@@ -107,15 +100,14 @@ class CodeGenerator:
         return " AND ".join(parts) if parts else "1=1"
 
     def _gen_value_extractor(
-        self, node: ValueNode | SystemValueNode, as_float: bool = False
+        self, node: ValueNode | SystemValueNode, *, as_float: bool = False,
     ) -> str:
         if isinstance(node, SystemValueNode):
             return self._gen_SystemValueNode(node)
         path_str = ", ".join(f"'{p}'" for p in node.path)
         if as_float:
             return f"JSONExtractFloat(attributes, {path_str})"
-        else:
-            return f"JSONExtractString(attributes, {path_str})"
+        return f"JSONExtractString(attributes, {path_str})"
 
     def _gen_SystemValueNode(self, node: SystemValueNode) -> str:
         match node.kind:
@@ -134,13 +126,13 @@ class CodeGenerator:
 
     def _gen_FilterPrimaryNode(self, node: FilterPrimaryNode) -> str:
         path_sql = self._gen_value_extractor(
-            ValueNode(token=node.token, path=node.path), as_float=False
+            ValueNode(token=node.token, path=node.path), as_float=False,
         )
         literal_sql = self._gen(node.literal)
         if isinstance(node.literal, LiteralNullNode):
             if node.operator == FilterEquality.EQ:
                 return f"{path_sql} IS NULL"
-            elif node.operator == FilterEquality.NE:
+            if node.operator == FilterEquality.NE:
                 return f"{path_sql} IS NOT NULL"
         op = "=" if node.operator == FilterEquality.EQ else "!="
         return f"{path_sql} {op} {literal_sql}"

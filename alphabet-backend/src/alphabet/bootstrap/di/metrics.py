@@ -10,10 +10,12 @@ from alphabet.metrics.application.interactors import (
     UpdateMetric,
 )
 from alphabet.metrics.application.interfaces import (
+    DSLCompiler,
     MetricEvaluator,
     MetricRepository,
     ReportRepository,
 )
+from alphabet.metrics.infrastructure.dsl import ClickHouseDSLCompiler
 from alphabet.metrics.infrastructure.evaluator import ClickHouseMetricEvaluator
 from alphabet.metrics.infrastructure.repos import (
     SqlMetricRepository,
@@ -48,4 +50,8 @@ class MetricsDIProvider(Provider):
         provides=MetricEvaluator,
         scope=Scope.REQUEST,
     )
-
+    ch_compiler = provide(
+        ClickHouseDSLCompiler,
+        provides=DSLCompiler,
+        scope=Scope.APP,
+    )
