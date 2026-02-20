@@ -1,9 +1,3 @@
-???? ??? Что такое:
-???? ??? фильтры (severity, конкретные метрики, окно времени, окружение prod/stage),
-???? ??? в уведомлениях
-
-Как хранить версии экспериментов — все в одной таблице или разделять старые и актуальные?
-
 Insights UI - Почему не графана?
 
 Объяснить выбор архитектуры
@@ -16,3 +10,50 @@ Insights UI - Почему не графана?
 - как сделать распределение более равномерным?
 - стоит ли вообще хранить выданные варианты?
 - работает ли оно нормально под большой нагрузкой (в т.ч. конкурентно)?
+
+TODO:
+
+- Guardrails
+    - Audit querying
+    - Infrastructure
+    - Implement batching methods in other contexts
+    - Presentation
+    - Worker entrypoint
+    - Acceptance tests
+- Notifications
+    - Domain
+        - Entities
+        - DSL AGAIN
+    - Application
+    - Infrastructure
+        - Buffering
+        - Email sender
+        - Telegram bot sender
+    - Presentation
+    - Integrate with other contexts
+    - Acceptance tests
+- Insights UI
+    - Querying
+    - Build charts
+    - Connect frontend with IAP
+    - Deploy frontend
+- Infra
+    - Get rid of instant notifier so we can use faststream
+    - Add pgbouncer and such
+    - Revise logging (add many many logs)
+    - Add business-metrics to prometheus
+    - /health and /ready
+    - Why does request id vanish from logs...
+- Tests
+    - Unit tests (idk how many and thorough)
+    - Overall integration tests (idk how many and thorough)
+- Docs
+    - Repository map
+    - Revise component diagram
+    - Getting started
+    - Runbook (whatever it means...)
+    - Matrix (whatever it means...)
+    - Testing reports (maybe integrate with gitlab?)
+    - ADR009
+    - ADR010
+    - Fix mismatches in reference and actual application

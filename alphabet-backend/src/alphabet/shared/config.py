@@ -50,10 +50,24 @@ class AppConfig:
 
 
 @dto
+class WorkersConfig:
+    attribution_interval_s: int = 60
+    guardrail_interval_s: int = 60
+
+
+@dto
+class EventBufferConfig:
+    size: int = 2000
+    force_flush_interval_s: int = 60
+
+
+@dto
 class Config:
     postgres: PostgresConfig
     logging: LoggingConfig
     valkey: ValkeyConfig
     clickhouse: ClickHouseConfig
     app: AppConfig
+    workers: WorkersConfig
+    event_buffer: EventBufferConfig
     is_debug: bool = True

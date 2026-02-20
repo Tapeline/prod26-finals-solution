@@ -24,7 +24,7 @@ async def run_worker() -> None:
         password=config.clickhouse.password,
     )
 
-    worker = AttributionWorker(clickhouse_client)
+    worker = AttributionWorker(clickhouse_client, config.workers)
 
     # thanks cursor for this suggestion
     shutdown_event = asyncio.Event()

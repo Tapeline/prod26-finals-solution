@@ -55,3 +55,26 @@ class MetricsDIProvider(Provider):
         provides=DSLCompiler,
         scope=Scope.APP,
     )
+
+
+class OnlyMetircsDataDIProvider(Provider):
+    metrics_repo = provide(
+        SqlMetricRepository,
+        provides=MetricRepository,
+        scope=Scope.REQUEST,
+    )
+    reports_repo = provide(
+        SqlReportRepository,
+        provides=ReportRepository,
+        scope=Scope.REQUEST,
+    )
+    evaluator = provide(
+        ClickHouseMetricEvaluator,
+        provides=MetricEvaluator,
+        scope=Scope.REQUEST,
+    )
+    ch_compiler = provide(
+        ClickHouseDSLCompiler,
+        provides=DSLCompiler,
+        scope=Scope.APP,
+    )

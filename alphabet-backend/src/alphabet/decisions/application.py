@@ -1,7 +1,7 @@
 from abc import abstractmethod
 from collections.abc import Collection
 from itertools import groupby
-from logging import getLogger
+from structlog import getLogger
 from operator import attrgetter
 from typing import Protocol, assert_never, final
 
@@ -117,6 +117,9 @@ class MakeDecision:
     ) -> dict[str, Decision | None]:
         logger.debug("making decision for %s", subject_id)
         experiments = self._get_only_running_experiments(flag_keys)
+        in_cooldown = await self.decision_data.is_in_cooldown_or_set_if_needed(
+            subject_id,
+        )
 
         unassigned = set(flag_keys)
         assigned: dict[str, Decision | None] = {}
@@ -145,11 +148,15 @@ class MakeDecision:
                 logger.debug("defaulting no match %s", flag)
                 assigned[flag] = self._default_for(flag, subject_id)
             else:
-                logger.debug("assigning %s", flag)
-                assigned[flag] = self._make_decision(
-                    subject_id,
-                    experiment,
-                )
+                if in_cooldown:
+                    logger.debug("defaulting due to cooldown %s", flag)
+                    assigned[flag] = self._default_for(flag, subject_id)
+                else:
+                    logger.debug("assigning %s", flag)
+                    assigned[flag] = self._make_decision(
+                        subject_id,
+                        experiment,
+                    )
 
         unassigned.difference_update(assigned.keys())
         for left_flag in unassigned:
@@ -158,7 +165,11 @@ class MakeDecision:
 
         await self.decision_data.save_decisions(
             subject_id,
-            [decision for decision in assigned.values() if decision],
+            [
+                decision
+                for decision in assigned.values()
+                if decision and decision.experiment_id is not None
+            ],
         )
         if resolutions:
             # TODO: maybe move to background

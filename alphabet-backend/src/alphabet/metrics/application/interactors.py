@@ -233,7 +233,10 @@ class GetReportResult:
 
         eval_results = await self.evaluator.evaluate_for_experiment(
             experiment.id,
-            {variant.value: variant.name for variant in experiment.variants},
+            # NOTE: `variant_id` in events is derived from decision_id and
+            # currently contains variant *name* (see subject_events IncomingEventDTO).
+            # So for correct per-variant aggregation we map by variant.name.
+            {variant.name: variant.name for variant in experiment.variants},
             metric_models,
             report.window.start_at,
             report.window.end_at,

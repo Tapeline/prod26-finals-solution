@@ -16,3 +16,15 @@ clickhouse:
   username: chuser
   password: chpass
   database: default
+
+app:
+  cooldown_after_s: 15
+  cooldown_for_s: 15
+
+workers:
+  attribution_interval_s: 5
+  guardrail_interval_s: 5
+
+event_buffer:
+  size: 2000
+  force_flush_interval_s: 5

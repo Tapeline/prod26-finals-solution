@@ -125,6 +125,62 @@ def get_flags(subject_id: str, flag_keys: list[str], attributes: dict = None):
     return response.json()["flags"]
 
 
+def get_flag_decision(
+    subject_id: str,
+    flag_key: str,
+    attributes: dict | None = None,
+):
+    """Возвращает решение по одному флагу."""
+    return get_flags(
+        subject_id=subject_id,
+        flag_keys=[flag_key],
+        attributes=attributes,
+    )[flag_key]
+
+
+def decision_variant_name(decision_id: str) -> str:
+    """Достаёт имя варианта (control/treatment/...) из decision_id."""
+    return decision_id.split(":")[-1]
+
+
+def find_subject_for_variant_name(
+    flag_key: str,
+    desired_variant_name: str,
+    *,
+    prefix: str = "subj",
+    max_tries: int = 500,
+):
+    """
+    Подбирает subject_id, который попадёт в нужный variant_name.
+
+    Важно: используем детерминированность раздачи (B2-4).
+    """
+    for i in range(max_tries):
+        subject_id = f"{prefix}_{desired_variant_name}_{i}"
+        decision = get_flag_decision(subject_id, flag_key)
+        if decision_variant_name(decision["id"]) == desired_variant_name:
+            return subject_id, decision
+    raise AssertionError(
+        f"Could not find subject for variant '{desired_variant_name}' "
+        f"for flag '{flag_key}' in {max_tries} tries"
+    )
+
+
+def finish_experiment(
+    exp_id: str,
+    login: dict[str, str] = DEFAULT_EXPERIMENTER_LOGIN,
+):
+    """Останавливает running эксперимент переводом в finished."""
+    response = httpx.post(
+        f"{app_url}/api/v1/experiments/{exp_id}/manage-running",
+        json={"new_state": "finished"},
+        headers=login,
+        timeout=10.0,
+    )
+    response.raise_for_status()
+    return response.json()
+
+
 def setup_active_experiment(
     flag_key: str,
     variants: list = None,

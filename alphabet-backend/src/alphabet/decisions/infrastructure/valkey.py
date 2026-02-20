@@ -84,16 +84,17 @@ def _load_decision(decision_str: str) -> Decision:
         ";",
         maxsplit=3,
     )
+    exp_id: str | None = experiment_id if experiment_id != "" else None
     return Decision(
         DecisionId(decision_id),
         flag_key,
         value,
-        experiment_id,
+        exp_id,
     )
 
 
 def _dump_decision(decision: Decision) -> str:
+    exp_id = decision.experiment_id or ""
     return (
-        f"{decision.id};{decision.flag_key};"
-        f"{decision.experiment_id};{decision.value}"
+        f"{decision.id};{decision.flag_key};{exp_id};{decision.value}"
     )

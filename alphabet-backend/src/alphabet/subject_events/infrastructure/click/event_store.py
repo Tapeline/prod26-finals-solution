@@ -1,22 +1,19 @@
 import asyncio
 import json
-from logging import getLogger
+from structlog import getLogger
 from typing import Final, final, override
 
 from clickhouse_connect.driver import AsyncClient
 
 from alphabet.shared.application.time import TimeProvider
+from alphabet.shared.config import Config
 from alphabet.subject_events.application.interfaces import EventStore
 from alphabet.subject_events.domain.events import DiscardedEvent, Event
-
-# TODO: maybe put into config?
-_BUFFER_SIZE_THRESHOLD: Final = 2000
-_FLUSH_INTERVAL_SECONDS: Final = 5
 
 
 @final
 class ClickHouseEventStore(EventStore):
-    def __init__(self, click: AsyncClient, time: TimeProvider) -> None:
+    def __init__(self, click: AsyncClient, time: TimeProvider, config: Config) -> None:
         self._ok_buf: list[Event] = []
         self._err_buf: list[DiscardedEvent] = []
         self._dup_buf: list[Event] = []
@@ -25,6 +22,8 @@ class ClickHouseEventStore(EventStore):
         self.click = click
         self.time = time
         self.logger = getLogger(__name__)
+        self._size = config.event_buffer.size
+        self._interval = config.event_buffer.force_flush_interval_s
 
     @property
     def _accumulated(self) -> int:
@@ -41,7 +40,7 @@ class ClickHouseEventStore(EventStore):
             self._ok_buf.extend(ok)
             self._dup_buf.extend(duplicates)
             self._err_buf.extend(erroneous)
-            if self._accumulated >= _BUFFER_SIZE_THRESHOLD:
+            if self._accumulated >= self._size:
                 self.logger.info("Flushing events from threshold")
                 await self._flush_no_lock()
 
@@ -49,7 +48,7 @@ class ClickHouseEventStore(EventStore):
     async def periodic_flush_routine(self) -> None:
         self.logger.info("Starting event flush routine")
         while True:
-            await asyncio.sleep(_FLUSH_INTERVAL_SECONDS)
+            await asyncio.sleep(self._interval)
             self.logger.info("Flushing events from routine")
             async with self._write_lock:
                 await self._flush_no_lock()

@@ -4,16 +4,16 @@ from typing import Final, final
 import structlog
 from clickhouse_connect.driver import AsyncClient
 
-# TODO: maybe move into config?
-_WORKER_INTERVAL_S: Final = 60
+from alphabet.shared.config import WorkersConfig
 
 
 @final
 class AttributionWorker:
-    def __init__(self, click: AsyncClient) -> None:
+    def __init__(self, click: AsyncClient, config: WorkersConfig) -> None:
         self.click = click
         self.is_running = False
         self.logger = structlog.get_logger("attribution_worker")
+        self.interval = config.attribution_interval_s
 
     async def start(self) -> None:
         self.is_running = True
@@ -26,7 +26,7 @@ class AttributionWorker:
                     "Attribution worker cycle failed",
                     exc_info=exc,
                 )
-            await asyncio.sleep(_WORKER_INTERVAL_S)
+            await asyncio.sleep(self.interval)
 
     async def stop(self) -> None:
         self.is_running = False

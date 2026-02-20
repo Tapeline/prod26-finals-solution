@@ -1,5 +1,5 @@
 from datetime import datetime
-from logging import getLogger
+from structlog import getLogger
 from typing import Any, Final, Literal, cast, final
 
 import jsonschema_rs

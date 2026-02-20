@@ -27,6 +27,7 @@ from alphabet.bootstrap.di.access import AccessDIProvider
 from alphabet.bootstrap.di.decisions import DecisionsDIProvider
 from alphabet.bootstrap.di.events import EventsDIProvider
 from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
+from alphabet.bootstrap.di.guardrails import GuardrailsDIProvider
 from alphabet.bootstrap.di.metrics import MetricsDIProvider
 from alphabet.bootstrap.di.shared import (
     ClickHouseDIProvider,
@@ -45,9 +46,12 @@ from alphabet.experiments.presentation.errors import (
 )
 from alphabet.experiments.presentation.experiments import ExperimentsController
 from alphabet.experiments.presentation.flags import FlagsController
+from alphabet.guardrails.presentation.controller import GuardRulesController
+from alphabet.guardrails.presentation.errors import guardrail_err_handlers
 from alphabet.metrics.presentation.errors import metrics_err_handlers
 from alphabet.metrics.presentation.metrics import MetricsController
 from alphabet.metrics.presentation.reports import ReportsController
+from alphabet.bootstrap.live_ready import LivenessReadinessController
 from alphabet.shared.config import Config
 from alphabet.shared.domain.exceptions import NotAuthenticated
 from alphabet.shared.presentation.framework.errors import (
@@ -85,6 +89,7 @@ def _create_container(config: Config) -> AsyncContainer:
         MetricsDIProvider(),
         DecisionsDIProvider(),
         EventsDIProvider(),
+        GuardrailsDIProvider(),
         context={
             Config: config,
         },
@@ -116,11 +121,13 @@ def create_app() -> Litestar:
             EventsController,
             MetricsController,
             ReportsController,
+            GuardRulesController,
+            LivenessReadinessController,
             CustomPrometheusController,
         ],
         middleware=[
-            DefineMiddleware(RequestIdMiddleware),
             prometheus_config.middleware,
+            DefineMiddleware(RequestIdMiddleware),
         ],
         exception_handlers=gen_handler_mapping(  # type: ignore[arg-type]
             {
@@ -128,6 +135,7 @@ def create_app() -> Litestar:
                 **flags_experiments_err_handlers,
                 **subject_events_err_handlers,  # type: ignore[dict-item]
                 **metrics_err_handlers,
+                **guardrail_err_handlers,  # type: ignore[dict-item]
                 NotAuthenticated: (401, infer_code),
             },
         ),

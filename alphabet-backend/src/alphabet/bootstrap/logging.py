@@ -18,7 +18,6 @@ def setup_processors(
     *,
     use_json: bool = False,
 ) -> list[structlog.types.Processor]:
-    """Setup structlog processors."""
     if use_json:
         return [
             *shared_processors,  # type: ignore[list-item]
@@ -37,7 +36,6 @@ def setup_processors(
 
 
 def configure_structlog(*, use_json: bool = False) -> None:
-    """Configure structlog for standalone scripts."""
     structlog.configure(
         processors=setup_processors(use_json=use_json),
         logger_factory=structlog.PrintLoggerFactory(),
@@ -47,7 +45,6 @@ def configure_structlog(*, use_json: bool = False) -> None:
 
 
 def get_structlog_plugin_def(*, use_json: bool = False) -> StructlogPlugin:
-    """Setup structlog plugin for Litestar."""
     return StructlogPlugin(
         StructlogConfig(
             StructLoggingConfig(

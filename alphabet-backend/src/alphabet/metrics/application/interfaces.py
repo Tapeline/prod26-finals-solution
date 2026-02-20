@@ -31,6 +31,10 @@ class MetricRepository(Protocol):
     async def all(self, pagination: Pagination) -> list[Metric]:
         raise NotImplementedError
 
+    @abstractmethod
+    async def get_by_keys(self, keys: list[MetricKey]) -> list[Metric]:
+        raise NotImplementedError
+
 
 class ReportRepository(Protocol):
     @abstractmethod
@@ -71,6 +75,16 @@ class MetricEvaluator(Protocol):
         start_at: datetime,
         end_at: datetime,
     ) -> dict[MetricKey, MetricEvaluationResult]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def evaluate_only_overall_for_experiment(
+        self,
+        experiment_id: str,
+        metrics: list[Metric],
+        start_at: datetime,
+        end_at: datetime,
+    ) -> dict[MetricKey, float | None]:
         raise NotImplementedError
 
 

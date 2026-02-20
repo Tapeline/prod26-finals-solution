@@ -70,3 +70,11 @@ class FlagsExperimentsDIProvider(Provider):
         provides=ReviewRepository,
         scope=Scope.REQUEST,
     )
+
+
+class OnlyExperimentRepoDIProvider(Provider):
+    experiments_repo = provide(
+        SqlExperimentsRepository,
+        provides=ExperimentsRepository,
+        scope=Scope.REQUEST,
+    )

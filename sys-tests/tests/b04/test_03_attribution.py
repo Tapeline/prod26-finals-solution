@@ -1,3 +1,6 @@
+import os
+import time
+
 import httpx
 from datetime import datetime, timezone, timedelta
 from tests.config import app_url
@@ -11,42 +14,89 @@ from tests.helpers import (
 )
 
 
-# TODO: extend the tests when metrics are implemented
-
 def test_b4_4_saves_exposure_with_decision_id(
     create_default_experimenter_in_db,
     create_default_admin_in_db
 ):
     flag_key = "flag_b4_4"
     create_flag(key=flag_key, type="string", default="default")
-    setup_active_experiment(flag_key=flag_key)
-    
+    experiment = setup_active_experiment(flag_key=flag_key, metrics={
+        "primary": "conversion",
+        "secondary": [],
+        "guarding": []
+    })
+
     create_event_type(
-        id="exposure",
+        id="exposure_b4_4",
         name="Exposure Event",
         schema={
             "type": "object",
             "properties": {}
         }
     )
-    
+
+    create_event_type(
+        id="click_b4_4",
+        name="Click Event",
+        schema={
+            "type": "object",
+            "properties": {
+                "value": {"type": "number"}
+            }
+        },
+        requires_attribution="exposure_b4_4"
+    )
+
+    httpx.post(
+        f"{app_url}/api/v1/metrics/create",
+        json={
+            "key": "conversion",
+            "expr": "count attributed click_b4_4",
+        },
+        headers=DEFAULT_EXPERIMENTER_LOGIN,
+        timeout=10.0,
+    ).raise_for_status()
+
     decisions = get_flags("user_1", [flag_key])
     decision_id = decisions[flag_key]["id"]
-    
-    event_data = create_event_data(
-        event_type="exposure",
+
+    exposure_event = create_event_data(
+        event_type="exposure_b4_4",
         decision_id=decision_id,
         event_id="evt_exposure_1"
     )
-    
-    response = httpx.post(
+
+    httpx.post(
         f"{app_url}/api/v1/events/receive",
-        json={"events": [event_data]}
+        json={"events": [exposure_event]}
+    ).raise_for_status()
+
+    click_event = create_event_data(
+        event_type="click_b4_4",
+        decision_id=decision_id,
+        event_id="evt_click_1",
+        payload={"value": 100}
     )
-    
-    assert response.status_code == 200
-    result = response.json()
-    assert result["ok_count"] == 1
+
+    httpx.post(
+        f"{app_url}/api/v1/events/receive",
+        json={"events": [click_event]}
+    ).raise_for_status()
+
+    time.sleep(5 + 1)  # wait for the attribution worker
+
+    report_resp = httpx.post(
+        f"{app_url}/api/v1/reports/create",
+        json={
+            "experiment_id": experiment["id"],
+            "start_at": (datetime.now() - timedelta(days=1)).isoformat(),
+            "end_at": (datetime.now() + timedelta(days=1)).isoformat(),
+        },
+        headers=DEFAULT_EXPERIMENTER_LOGIN,
+        timeout=10.0,
+    ).raise_for_status().json()
+
+    assert report_resp["metrics"][0]["overall"] == 1, report_resp
 
 
 def test_b4_5_attributes_conversion_only_with_exposure(
@@ -55,8 +105,12 @@ def test_b4_5_attributes_conversion_only_with_exposure(
 ):
     flag_key = "flag_b4_5"
     create_flag(key=flag_key, type="string", default="default")
-    setup_active_experiment(flag_key=flag_key)
-    
+    experiment = setup_active_experiment(flag_key=flag_key, metrics={
+        "primary": "conversion",
+        "secondary": [],
+        "guarding": []
+    })
+
     create_event_type(
         id="exposure_b4_5",
         name="Exposure Event",
@@ -65,10 +119,10 @@ def test_b4_5_attributes_conversion_only_with_exposure(
             "properties": {}
         }
     )
-    
+
     create_event_type(
-        id="conversion_b4_5",
-        name="Conversion Event",
+        id="click_b4_5",
+        name="Click Event",
         schema={
             "type": "object",
             "properties": {
@@ -77,38 +131,43 @@ def test_b4_5_attributes_conversion_only_with_exposure(
         },
         requires_attribution="exposure_b4_5"
     )
-    
+
+    httpx.post(
+        f"{app_url}/api/v1/metrics/create",
+        json={
+            "key": "conversion",
+            "expr": "count attributed click_b4_5",
+        },
+        headers=DEFAULT_EXPERIMENTER_LOGIN,
+        timeout=10.0,
+    ).raise_for_status()
+
     decisions = get_flags("user_1", [flag_key])
     decision_id = decisions[flag_key]["id"]
-    
-    conversion_data = create_event_data(
-        event_type="conversion_b4_5",
+
+    unattributed_click = create_event_data(
+        event_type="click_b4_5",
         decision_id=decision_id,
         event_id="evt_conv_1",
         payload={"value": 100}
     )
-    
-    conversion_response = httpx.post(
+
+    httpx.post(
         f"{app_url}/api/v1/events/receive",
-        json={"events": [conversion_data]}
-    )
-    
-    assert conversion_response.status_code == 200
-    conv_result = conversion_response.json()
-    assert conv_result["ok_count"] == 1
-    
-    exposure_data = create_event_data(
-        event_type="exposure_b4_5",
-        decision_id=decision_id,
-        event_id="evt_exp_1",
-        issued_at=(datetime.now(timezone.utc) - timedelta(seconds=10)).isoformat()
-    )
-    
-    exposure_response = httpx.post(
-        f"{app_url}/api/v1/events/receive",
-        json={"events": [exposure_data]}
-    )
-    
-    assert exposure_response.status_code == 200
-    exp_result = exposure_response.json()
-    assert exp_result["ok_count"] == 1
+        json={"events": [unattributed_click]}
+    ).raise_for_status()
+
+    time.sleep(5 + 1)  # wait for the attribution worker
+
+    report_resp = httpx.post(
+        f"{app_url}/api/v1/reports/create",
+        json={
+            "experiment_id": experiment["id"],
+            "start_at": (datetime.now() - timedelta(days=1)).isoformat(),
+            "end_at": (datetime.now() + timedelta(days=1)).isoformat(),
+        },
+        headers=DEFAULT_EXPERIMENTER_LOGIN,
+        timeout=10.0,
+    ).raise_for_status().json()
+
+    assert report_resp["metrics"][0]["overall"] == 0, report_resp
