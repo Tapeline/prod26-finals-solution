@@ -77,6 +77,18 @@ layers=
     domain
 exhaustive = true
 
+[importlinter:contract:layers-guardrails]
+name=Layered Guardrails
+type=layers
+containers =
+    alphabet.guardrails
+layers=
+    presentation
+    infrastructure
+    application
+    domain
+exhaustive = true
+
 [importlinter:contract:no-bootstrap-import]
 name = No bootstrap import
 type = forbidden
