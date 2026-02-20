@@ -136,7 +136,8 @@ class CreateReport:
         )
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER},
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER},
             )
             await self.reports.create(report)
         return report
@@ -153,7 +154,8 @@ class DeleteReport:
     async def __call__(self, report_id: ReportId) -> None:
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER},
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER},
             )
             report = await self.reports.get_by_id(report_id)
             if not report:
@@ -233,9 +235,6 @@ class GetReportResult:
 
         eval_results = await self.evaluator.evaluate_for_experiment(
             experiment.id,
-            # NOTE: `variant_id` in events is derived from decision_id and
-            # currently contains variant *name* (see subject_events IncomingEventDTO).
-            # So for correct per-variant aggregation we map by variant.name.
             {variant.name: variant.name for variant in experiment.variants},
             metric_models,
             report.window.start_at,

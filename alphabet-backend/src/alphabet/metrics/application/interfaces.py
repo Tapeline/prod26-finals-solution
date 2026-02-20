@@ -91,6 +91,7 @@ class MetricEvaluator(Protocol):
 class DSLCompiler(Protocol):
     @abstractmethod
     def compile_dsl(
-        self, dsl_string: str,
+        self,
+        dsl_string: str,
     ) -> tuple[SQLFragment, SQLFragment | None]:
         raise NotImplementedError

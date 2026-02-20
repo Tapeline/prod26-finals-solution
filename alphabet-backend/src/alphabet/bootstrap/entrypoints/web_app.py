@@ -38,6 +38,7 @@ from alphabet.bootstrap.di.shared import (
     TimeDIProvider,
     ValkeyDIProvider,
 )
+from alphabet.bootstrap.live_ready import LivenessReadinessController
 from alphabet.bootstrap.logging import get_structlog_plugin_def
 from alphabet.decisions.application import WarmUpStorages
 from alphabet.decisions.presentation import DecisionsController
@@ -51,7 +52,6 @@ from alphabet.guardrails.presentation.errors import guardrail_err_handlers
 from alphabet.metrics.presentation.errors import metrics_err_handlers
 from alphabet.metrics.presentation.metrics import MetricsController
 from alphabet.metrics.presentation.reports import ReportsController
-from alphabet.bootstrap.live_ready import LivenessReadinessController
 from alphabet.shared.config import Config
 from alphabet.shared.domain.exceptions import NotAuthenticated
 from alphabet.shared.presentation.framework.errors import (

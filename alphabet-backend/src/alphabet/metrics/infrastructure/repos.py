@@ -75,8 +75,9 @@ class SqlMetricRepository(MetricRepository):
     @override
     async def get_by_keys(self, keys: list[MetricKey]) -> list[Metric]:
         result = await self.session.execute(
-            select(metrics)
-            .where(metrics.c.key.in_({key.value for key in keys}))
+            select(metrics).where(
+                metrics.c.key.in_({key.value for key in keys}),
+            ),
         )
         return list(map(_row_to_metric, result.all()))
 

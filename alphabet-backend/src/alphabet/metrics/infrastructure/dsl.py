@@ -15,7 +15,8 @@ from alphabet.metrics.infrastructure.codegen import CodeGenerator
 class ClickHouseDSLCompiler(DSLCompiler):
     @override
     def compile_dsl(
-        self, dsl_string: str,
+        self,
+        dsl_string: str,
     ) -> tuple[SQLFragment, SQLFragment | None]:
         lexer = MetricDSLLexer.make_lexer(dsl_string)
         try:

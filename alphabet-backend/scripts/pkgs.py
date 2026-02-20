@@ -1,7 +1,7 @@
 import os
 import sys
 
-EXCLUDE_DIRS = {'__pycache__', '.git', '.idea', '.vscode', 'venv', 'env'}
+EXCLUDE_DIRS = {"__pycache__", ".git", ".idea", ".vscode", "venv", "env"}
 
 
 def get_package_string(root_package):
@@ -11,11 +11,11 @@ def get_package_string(root_package):
     for dirpath, dirnames, filenames in os.walk(root_package):
         dirnames[:] = [
             d
-            for d in dirnames if
-            d not in EXCLUDE_DIRS and not d.startswith('.')
+            for d in dirnames
+            if d not in EXCLUDE_DIRS and not d.startswith(".")
         ]
         rel_path = os.path.relpath(dirpath, base_dir)
-        dot_path = rel_path.replace(os.path.sep, '.')
+        dot_path = rel_path.replace(os.path.sep, ".")
         package_paths.append(f"{dot_path}.*")
     return " ".join(package_paths)
 

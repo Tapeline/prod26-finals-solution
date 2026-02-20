@@ -22,22 +22,27 @@ from alphabet.metrics.domain.dsl.nodes import (
 )
 from alphabet.metrics.domain.metrics import SQLFragment
 
-_SOURCE_TO_TABLE: Final = MappingProxyType({
-    Source.EVENTS: "events",
-    Source.DISCARDED: "discarded_events",
-    Source.DUPLICATE: "duplicate_events",
-})
-_AGG_FUNCTION_TEMPLATES: Final = MappingProxyType({
-    Aggregation.COUNT: "count({})",
-    Aggregation.SUM: "sum({})",
-    Aggregation.MIN: "min({})",
-    Aggregation.MAX: "max({})",
-    Aggregation.P50: "quantile(0.50)({})",
-    Aggregation.P75: "quantile(0.75)({})",
-    Aggregation.P90: "quantile(0.90)({})",
-    Aggregation.P95: "quantile(0.95)({})",
-    Aggregation.P99: "quantile(0.99)({})",
-})
+_SOURCE_TO_TABLE: Final = MappingProxyType(
+    {
+        Source.EVENTS: "events",
+        Source.DISCARDED: "discarded_events",
+        Source.DUPLICATE: "duplicate_events",
+    },
+)
+_AGG_FUNCTION_TEMPLATES: Final = MappingProxyType(
+    {
+        Aggregation.COUNT: "count({})",
+        Aggregation.SUM: "sum({})",
+        Aggregation.MIN: "min({})",
+        Aggregation.MAX: "max({})",
+        Aggregation.P50: "quantile(0.50)({})",
+        Aggregation.P75: "quantile(0.75)({})",
+        Aggregation.P90: "quantile(0.90)({})",
+        Aggregation.P95: "quantile(0.95)({})",
+        Aggregation.P99: "quantile(0.99)({})",
+    },
+)
+
 
 class CodeGenerator:
     def __init__(self, expr: MetricExprNode) -> None:
@@ -55,7 +60,8 @@ class CodeGenerator:
         return generator(node)  # type: ignore[no-any-return]
 
     def _gen_MetricExprNode(
-        self, node: MetricExprNode,
+        self,
+        node: MetricExprNode,
     ) -> tuple[SQLFragment, SQLFragment | None]:
         numerator = self._gen_ComponentNode(node.numerator)
         denominator = None
@@ -68,7 +74,9 @@ class CodeGenerator:
         select_expr = self._gen_aggregation(node)
         where_expr = self._gen_component_where(node)
         return SQLFragment(
-            select=select_expr, where=where_expr, table=table_name,
+            select=select_expr,
+            where=where_expr,
+            table=table_name,
         )
 
     def _gen_aggregation(self, node: ComponentNode) -> str:
@@ -76,7 +84,8 @@ class CodeGenerator:
         if node.value:
             is_numeric_agg = node.aggregation != Aggregation.COUNT
             value_sql = self._gen_value_extractor(
-                node.value, as_float=is_numeric_agg,
+                node.value,
+                as_float=is_numeric_agg,
             )
         if node.aggregation == Aggregation.COUNT and not value_sql:
             return "count()"
@@ -100,7 +109,10 @@ class CodeGenerator:
         return " AND ".join(parts) if parts else "1=1"
 
     def _gen_value_extractor(
-        self, node: ValueNode | SystemValueNode, *, as_float: bool = False,
+        self,
+        node: ValueNode | SystemValueNode,
+        *,
+        as_float: bool = False,
     ) -> str:
         if isinstance(node, SystemValueNode):
             return self._gen_SystemValueNode(node)
@@ -126,7 +138,8 @@ class CodeGenerator:
 
     def _gen_FilterPrimaryNode(self, node: FilterPrimaryNode) -> str:
         path_sql = self._gen_value_extractor(
-            ValueNode(token=node.token, path=node.path), as_float=False,
+            ValueNode(token=node.token, path=node.path),
+            as_float=False,
         )
         literal_sql = self._gen(node.literal)
         if isinstance(node.literal, LiteralNullNode):

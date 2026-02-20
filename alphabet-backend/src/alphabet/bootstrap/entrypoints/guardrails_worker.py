@@ -2,25 +2,23 @@ import asyncio
 import signal
 import sys
 
-from dishka import make_async_container, AsyncContainer
+from dishka import AsyncContainer, make_async_container
 
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.experiments import (
-    FlagsExperimentsDIProvider,
     OnlyExperimentRepoDIProvider,
 )
 from alphabet.bootstrap.di.guardrails import (
-    GuardrailsDIProvider,
     GuardrailWorkerDIProvider,
 )
 from alphabet.bootstrap.di.metrics import (
-    MetricsDIProvider,
     OnlyMetircsDataDIProvider,
 )
 from alphabet.bootstrap.di.shared import (
-    ConfigDIProvider,
-    SqlTransactionDIProvider, TimeDIProvider, IdentityProviderDIProvider,
     ClickHouseDIProvider,
+    ConfigDIProvider,
+    SqlTransactionDIProvider,
+    TimeDIProvider,
 )
 from alphabet.bootstrap.logging import configure_structlog
 from alphabet.guardrails.infrastructure.worker import GuardrailWorker

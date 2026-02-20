@@ -1,21 +1,22 @@
 from dishka import Provider, Scope, provide, provide_all
 
+from alphabet.guardrails.application.interactors import (
+    ArchiveRule,
+    CreateRule,
+    ReadAuditForExperiment,
+    ReadAuditForGuardRule,
+    ReadRule,
+    ReadRulesForExperiment,
+    RegularCheck,
+    UpdateRule,
+)
 from alphabet.guardrails.application.interfaces import (
-    GuardRuleRepository,
     AuditLog,
+    GuardRuleRepository,
 )
 from alphabet.guardrails.infrastructure.repos import (
-    SqlGuardRuleRepository,
     SqlAuditLog,
-)
-from alphabet.guardrails.application.interactors import (
-    CreateRule,
-    ReadRulesForExperiment,
-    UpdateRule,
-    ReadRule,
-    ArchiveRule,
-    ReadAuditForGuardRule,
-    ReadAuditForExperiment, RegularCheck,
+    SqlGuardRuleRepository,
 )
 
 

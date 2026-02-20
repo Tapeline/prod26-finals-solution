@@ -9,8 +9,10 @@ from alphabet.guardrails.application.interfaces import (
     GuardRuleRepository,
 )
 from alphabet.guardrails.domain import (
-    GuardRuleId, AuditRecord, AuditRecordId,
+    AuditRecord,
+    AuditRecordId,
     GuardRule,
+    GuardRuleId,
 )
 from alphabet.guardrails.infrastructure.tables import audit_log, guard_rules
 from alphabet.metrics.domain.metrics import (
@@ -36,30 +38,30 @@ class SqlAuditLog(AuditLog):
                 metric_key=record.metric_key.value,
                 metric_value=record.metric_value,
                 taken_action=record.taken_action,
-            )
+            ),
         )
 
     @override
     async def query_for_experiment(
-        self, exp_id: ExperimentId, pagination: Pagination
+        self, exp_id: ExperimentId, pagination: Pagination,
     ) -> list[AuditRecord]:
         result = await self.session.execute(
             select(audit_log)
             .where(audit_log.c.experiment_id == exp_id)
             .limit(pagination.limit)
-            .offset(pagination.offset)
+            .offset(pagination.offset),
         )
         return list(map(_row_to_audit_record, result.all()))
 
     @override
     async def query_for_rule(
-        self, rule_id: GuardRuleId, pagination: Pagination
+        self, rule_id: GuardRuleId, pagination: Pagination,
     ) -> list[AuditRecord]:
         result = await self.session.execute(
             select(audit_log)
             .where(audit_log.c.rule_id == rule_id)
             .limit(pagination.limit)
-            .offset(pagination.offset)
+            .offset(pagination.offset),
         )
         return list(map(_row_to_audit_record, result.all()))
 
@@ -91,7 +93,7 @@ class SqlGuardRuleRepository(GuardRuleRepository):
                 watch_window_s=rule.watch_window.total_seconds(),
                 action=rule.action.value,
                 is_archived=rule.is_archived,
-            )
+            ),
         )
 
     @override
@@ -104,13 +106,13 @@ class SqlGuardRuleRepository(GuardRuleRepository):
                 watch_window_s=int(rule.watch_window.total_seconds()),
                 action=rule.action.value,
                 is_archived=rule.is_archived,
-            )
+            ),
         )
 
     @override
     async def get_by_id(self, rule_id: GuardRuleId) -> GuardRule | None:
         result = await self.session.execute(
-            select(guard_rules).where(guard_rules.c.id == rule_id)
+            select(guard_rules).where(guard_rules.c.id == rule_id),
         )
         row = result.first()
         if not row:
@@ -119,27 +121,25 @@ class SqlGuardRuleRepository(GuardRuleRepository):
 
     @override
     async def for_experiment(
-        self, experiment_id: ExperimentId
+        self, experiment_id: ExperimentId,
     ) -> list[GuardRule]:
         result = await self.session.execute(
-            select(guard_rules)
-            .where(
+            select(guard_rules).where(
                 guard_rules.c.experiment_id == experiment_id,
-                guard_rules.c.is_archived == False
-            )
+                guard_rules.c.is_archived == False,  # noqa: E712
+            ),
         )
         return list(map(_row_to_guard_rule, result.all()))
 
     @override
     async def for_experiments(
-        self, experiment_ids: list[ExperimentId]
+        self, experiment_ids: list[ExperimentId],
     ) -> list[GuardRule]:
         result = await self.session.execute(
-            select(guard_rules)
-            .where(
+            select(guard_rules).where(
                 guard_rules.c.experiment_id.in_(experiment_ids),
-                guard_rules.c.is_archived == False
-            )
+                guard_rules.c.is_archived == False,  # noqa: E712
+            ),
         )
         return list(map(_row_to_guard_rule, result.all()))
 

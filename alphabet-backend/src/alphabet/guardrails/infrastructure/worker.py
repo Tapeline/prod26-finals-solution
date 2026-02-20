@@ -1,8 +1,8 @@
 import asyncio
-from structlog import getLogger
-from typing import final, Final
+from typing import final
 
 from dishka import AsyncContainer
+from structlog import getLogger
 
 from alphabet.guardrails.application.interactors import RegularCheck
 from alphabet.shared.config import WorkersConfig
@@ -10,7 +10,9 @@ from alphabet.shared.config import WorkersConfig
 
 @final
 class GuardrailWorker:
-    def __init__(self, container: AsyncContainer, config: WorkersConfig) -> None:
+    def __init__(
+        self, container: AsyncContainer, config: WorkersConfig,
+    ) -> None:
         self.container = container
         self.is_running = False
         self.logger = getLogger("guardrail-worker")

@@ -1,6 +1,13 @@
 from sqlalchemy import (
-    Column, Boolean, ForeignKey, String, Table, Double,
-    Integer, Enum, DateTime,
+    Boolean,
+    Column,
+    DateTime,
+    Double,
+    Enum,
+    ForeignKey,
+    Integer,
+    String,
+    Table,
 )
 
 from alphabet.guardrails.domain import GuardAction
@@ -15,7 +22,7 @@ guard_rules = Table(
     Column("threshold", Double),
     Column("watch_window_s", Integer),
     Column("action", Enum(GuardAction)),
-    Column("is_archived", Boolean)
+    Column("is_archived", Boolean),
 )
 
 audit_log = Table(

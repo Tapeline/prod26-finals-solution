@@ -31,15 +31,23 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
         for metric in metrics:
             num_fragment, denom_fragment = metric.compiled_expression
             num_data = await self._fetch_aggregated_data(
-                num_fragment, experiment_id, start_at, end_at,
+                num_fragment,
+                experiment_id,
+                start_at,
+                end_at,
             )
             denominator_data = None
             if denom_fragment:
                 denominator_data = await self._fetch_aggregated_data(
-                    denom_fragment, experiment_id, start_at, end_at,
+                    denom_fragment,
+                    experiment_id,
+                    start_at,
+                    end_at,
                 )
             results[metric.key] = self._calculate_result(
-                num_data, denominator_data, variants,
+                num_data,
+                denominator_data,
+                variants,
             )
         return results
 
@@ -67,7 +75,8 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
                 "end": end_at,
             }
             overall_res = await self.client.query(
-                overall_query, parameters=params,
+                overall_query,
+                parameters=params,
             )
             if (
                 overall_res.result_rows
@@ -87,14 +96,18 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
         fragment: SQLFragment,
         experiment_id: str,
         start_at: datetime,
-        end_at: datetime,/
+        end_at: datetime,
+        /,
     ) -> dict[str, float]:
         table = fragment.table or "events"
         if table == "events":
             table = "events FINAL"
         if table == "discarded_events":
             return await self._fetch_aggregated_data_from_discarded(
-                fragment, experiment_id, start_at, end_at,
+                fragment,
+                experiment_id,
+                start_at,
+                end_at,
             )
         query = f"""
             SELECT
@@ -107,7 +120,7 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
               AND ({fragment.where})
             GROUP BY variant_id
             WITH TOTALS
-        """ # noqa: S608
+        """  # noqa: S608
         # this is safe, no injection can occur
         params = {"exp_id": experiment_id, "start": start_at, "end": end_at}
         try:
@@ -127,7 +140,8 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
             """  # noqa: S608
             # this is safe, no injection can occur
             overall_res = await self.client.query(
-                overall_query, parameters=params,
+                overall_query,
+                parameters=params,
             )
             if (
                 overall_res.result_rows
@@ -147,18 +161,26 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
         fragment: SQLFragment,
         experiment_id: str,
         start_at: datetime,
-        end_at: datetime,/
+        end_at: datetime,
+        /,
     ) -> float | None:
         table = fragment.table or "events"
         if table == "events":
             table = "events FINAL"
         if table == "discarded_events":
-            return (await self._fetch_aggregated_data_from_discarded(
-                fragment, experiment_id, start_at, end_at,
-            )).get("_overall")
+            return (
+                await self._fetch_aggregated_data_from_discarded(
+                    fragment,
+                    experiment_id,
+                    start_at,
+                    end_at,
+                )
+            ).get("_overall")
         try:
             params = {
-                "exp_id": experiment_id, "start": start_at, "end": end_at
+                "exp_id": experiment_id,
+                "start": start_at,
+                "end": end_at,
             }
             overall_query = f"""
                 SELECT {fragment.select}
@@ -170,17 +192,18 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
             """  # noqa: S608
             # this is safe, no injection can occur
             overall_res = await self.client.query(
-                overall_query, parameters=params,
+                overall_query,
+                parameters=params,
             )
             if (
                 overall_res.result_rows
                 and overall_res.result_rows[0][0] is not None
             ):
                 return float(overall_res.result_rows[0][0])
-            else:
-                return 0.0
         except Exception as e:
             logger.exception("Error fetching metric part", exc_info=e)
+            return 0.0
+        else:
             return 0.0
 
     def _calculate_result(
@@ -205,24 +228,34 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
                 res = n_val
             per_variant[v_name] = res
         return MetricEvaluationResult(
-            overall=overall_res, per_variant=per_variant,
+            overall=overall_res,
+            per_variant=per_variant,
         )
 
     @override
     async def evaluate_only_overall_for_experiment(
-        self, experiment_id: str, metrics: list[Metric], start_at: datetime,
-        end_at: datetime
+        self,
+        experiment_id: str,
+        metrics: list[Metric],
+        start_at: datetime,
+        end_at: datetime,
     ) -> dict[MetricKey, float | None]:
         results: dict[MetricKey, float | None] = {}
         for metric in metrics:
             num_fragment, denom_fragment = metric.compiled_expression
             num_data = await self._fetch_only_overall_data(
-                num_fragment, experiment_id, start_at, end_at,
+                num_fragment,
+                experiment_id,
+                start_at,
+                end_at,
             )
             denominator_data = None
             if denom_fragment:
                 denominator_data = await self._fetch_only_overall_data(
-                    denom_fragment, experiment_id, start_at, end_at,
+                    denom_fragment,
+                    experiment_id,
+                    start_at,
+                    end_at,
                 )
             if num_data is None:
                 results[metric.key] = None

@@ -1,9 +1,9 @@
 import asyncio
 import json
-from structlog import getLogger
-from typing import Final, final, override
+from typing import final, override
 
 from clickhouse_connect.driver import AsyncClient
+from structlog import getLogger
 
 from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.config import Config
@@ -13,7 +13,9 @@ from alphabet.subject_events.domain.events import DiscardedEvent, Event
 
 @final
 class ClickHouseEventStore(EventStore):
-    def __init__(self, click: AsyncClient, time: TimeProvider, config: Config) -> None:
+    def __init__(
+        self, click: AsyncClient, time: TimeProvider, config: Config,
+    ) -> None:
         self._ok_buf: list[Event] = []
         self._err_buf: list[DiscardedEvent] = []
         self._dup_buf: list[Event] = []

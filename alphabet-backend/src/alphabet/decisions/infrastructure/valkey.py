@@ -95,6 +95,4 @@ def _load_decision(decision_str: str) -> Decision:
 
 def _dump_decision(decision: Decision) -> str:
     exp_id = decision.experiment_id or ""
-    return (
-        f"{decision.id};{decision.flag_key};{exp_id};{decision.value}"
-    )
+    return f"{decision.id};{decision.flag_key};{exp_id};{decision.value}"

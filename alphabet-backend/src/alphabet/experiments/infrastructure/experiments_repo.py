@@ -102,7 +102,8 @@ class SqlExperimentsRepository(ExperimentsRepository):
                 if experiment.priority
                 else None,
                 conflict_domain=experiment.conflict_domain.value
-                if experiment.conflict_domain else None,
+                if experiment.conflict_domain
+                else None,
                 conflict_policy=experiment.conflict_policy,
             ),
         )
@@ -144,7 +145,8 @@ class SqlExperimentsRepository(ExperimentsRepository):
                 if experiment.priority
                 else None,
                 conflict_domain=experiment.conflict_domain.value
-                if experiment.conflict_domain else None,
+                if experiment.conflict_domain
+                else None,
                 conflict_policy=experiment.conflict_policy,
             ),
         )

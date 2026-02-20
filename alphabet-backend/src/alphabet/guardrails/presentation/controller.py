@@ -1,20 +1,28 @@
 from collections.abc import Sequence
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, get, patch, post
-from msgspec import Struct, UnsetType, UNSET
+from msgspec import UNSET, Struct, UnsetType
 
 from alphabet.experiments.domain.experiment import ExperimentId
 from alphabet.guardrails.application.interactors import (
+    ArchiveRule,
     CreateRule,
-    CreateRuleDTO, ReadRulesForExperiment, UpdateRule, UpdateRuleDTO, ReadRule,
-    ArchiveRule, ReadAuditForGuardRule, ReadAuditForExperiment,
+    CreateRuleDTO,
+    ReadAuditForExperiment,
+    ReadAuditForGuardRule,
+    ReadRule,
+    ReadRulesForExperiment,
+    UpdateRule,
+    UpdateRuleDTO,
 )
 from alphabet.guardrails.domain import (
-    GuardRule, GuardAction, GuardRuleId,
     AuditRecord,
+    GuardAction,
+    GuardRule,
+    GuardRuleId,
 )
 from alphabet.metrics.domain.metrics import MetricKey
 from alphabet.shared.application.pagination import Pagination
@@ -152,13 +160,14 @@ class GuardRulesController(Controller):
         data: UpdateGuardRuleRequest,
     ) -> GuardRuleSchema:
         rule = await interactor(
-            GuardRuleId(rule_key), UpdateRuleDTO(
+            GuardRuleId(rule_key),
+            UpdateRuleDTO(
                 threshold=maybe_map(data.threshold),
                 watch_window=maybe_map(
-                    data.watch_window_s, lambda s: timedelta(seconds=s)
+                    data.watch_window_s, lambda s: timedelta(seconds=s),
                 ),
                 action=maybe_map(data.action),
-            )
+            ),
         )
         return GuardRuleSchema.from_rule(rule)
 
@@ -186,7 +195,7 @@ class GuardRulesController(Controller):
             **RESPONSE_NOT_AUTH_AND_FORBIDDEN,
             **RESPONSE_NOT_FOUND,
         },
-        status_code=200
+        status_code=200,
     )
     @inject
     async def archive_rule(
@@ -214,7 +223,7 @@ class GuardRulesController(Controller):
         offset: int = 0,
     ) -> list[AuditRecordSchema]:
         records = await interactor(
-            GuardRuleId(rule_id), Pagination(limit, offset)
+            GuardRuleId(rule_id), Pagination(limit, offset),
         )
         return list(map(AuditRecordSchema.from_record, records))
 
@@ -235,6 +244,6 @@ class GuardRulesController(Controller):
         offset: int = 0,
     ) -> list[AuditRecordSchema]:
         records = await interactor(
-            ExperimentId(exp_id), Pagination(limit, offset)
+            ExperimentId(exp_id), Pagination(limit, offset),
         )
         return list(map(AuditRecordSchema.from_record, records))

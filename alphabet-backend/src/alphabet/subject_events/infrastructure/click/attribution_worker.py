@@ -1,5 +1,5 @@
 import asyncio
-from typing import Final, final
+from typing import final
 
 import structlog
 from clickhouse_connect.driver import AsyncClient

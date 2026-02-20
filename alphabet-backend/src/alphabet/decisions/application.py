@@ -1,9 +1,10 @@
 from abc import abstractmethod
 from collections.abc import Collection
 from itertools import groupby
-from structlog import getLogger
 from operator import attrgetter
 from typing import Protocol, assert_never, final
+
+from structlog import getLogger
 
 from alphabet.decisions.domain import (
     CachedExperiment,
@@ -147,16 +148,15 @@ class MakeDecision:
             ):
                 logger.debug("defaulting no match %s", flag)
                 assigned[flag] = self._default_for(flag, subject_id)
+            elif in_cooldown:
+                logger.debug("defaulting due to cooldown %s", flag)
+                assigned[flag] = self._default_for(flag, subject_id)
             else:
-                if in_cooldown:
-                    logger.debug("defaulting due to cooldown %s", flag)
-                    assigned[flag] = self._default_for(flag, subject_id)
-                else:
-                    logger.debug("assigning %s", flag)
-                    assigned[flag] = self._make_decision(
-                        subject_id,
-                        experiment,
-                    )
+                logger.debug("assigning %s", flag)
+                assigned[flag] = self._make_decision(
+                    subject_id,
+                    experiment,
+                )
 
         unassigned.difference_update(assigned.keys())
         for left_flag in unassigned:

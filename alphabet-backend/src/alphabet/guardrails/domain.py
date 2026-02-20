@@ -1,6 +1,6 @@
-from datetime import timedelta, datetime
+from datetime import datetime, timedelta
 from enum import StrEnum
-from typing import final, NewType
+from typing import NewType, final
 
 from alphabet.experiments.domain.experiment import ExperimentId
 from alphabet.metrics.domain.metrics import MetricKey

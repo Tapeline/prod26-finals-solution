@@ -1,8 +1,8 @@
 from datetime import datetime
-from structlog import getLogger
 from typing import Any, Final, Literal, cast, final
 
 import jsonschema_rs
+from structlog import getLogger
 
 from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.pagination import Pagination
