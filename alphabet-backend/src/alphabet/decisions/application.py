@@ -233,8 +233,12 @@ class MakeDecision:
     ) -> tuple[list[CachedExperiment], list[ConflictResolution]]:
         resolutions: list[ConflictResolution] = []
         survivors: list[CachedExperiment] = []
+        def _domain_key(exp: CachedExperiment) -> tuple[int, str]:
+            d = exp.conflict_domain
+            return (0 if d is None else 1, d or "")
+
         for domain, group in groupby(
-            sorted(experiments, key=attrgetter("conflict_domain")),
+            sorted(experiments, key=_domain_key),
             attrgetter("conflict_domain"),
         ):
             if domain is None:

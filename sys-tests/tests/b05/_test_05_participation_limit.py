@@ -1,3 +1,9 @@
+"""B5-6: Participation limit — count-based cooldown (ADR002).
+
+Cooldown is triggered after `cooldown_experiment_threshold` new experiment
+assignments (config: 1). It lasts `cooldown_for_s` (config: 15s).
+"""
+
 import time
 
 from tests.config import app_url
@@ -8,43 +14,40 @@ from tests.helpers import (
 )
 
 
-def test_b5_6_limits_user_participation_in_new_experiments_after_time(
+def test_b5_6_immediate_block_after_first_assignment(
     create_default_experimenter_in_db,
     create_default_admin_in_db,
 ):
-    """B5-6: Система должна ограничивать постоянное участие пользователя в экспериментах."""
-    flag_key_1 = "flag_b5_6_1"
-    flag_key_2 = "flag_b5_6_2"
+    """B5-6: First assignment triggers cooldown; second experiment gets default immediately."""
+    flag_key_1 = "flag_b5_6_immediate_1"
+    flag_key_2 = "flag_b5_6_immediate_2"
 
-    subject_id = "user_b5_6"
+    subject_id = "user_b5_6_immediate"
     create_flag(key=flag_key_1, type="string", default="default")
     create_flag(key=flag_key_2, type="string", default="default")
     setup_active_experiment(flag_key=flag_key_1)
     setup_active_experiment(flag_key=flag_key_2)
 
-    # Participate in the first experiment
+    # First request: participate in exp1 → cooldown triggered (threshold=1)
     d1 = get_flag_decision(subject_id, flag_key_1)
     assert d1["value"] != "default"
     assert d1["experiment_id"] is not None
 
-    # Wait long enough for cooldown cycle to kick in (config: 15s)
-    time.sleep(20)
-
-    # Try to participate in the second experiment: must be blocked -> default
+    # Immediately request flag2: must get default (no sleep)
     d2 = get_flag_decision(subject_id, flag_key_2)
     assert d2["value"] == "default"
     assert d2["experiment_id"] is None
 
 
-def test_b5_6_sticky_default_when_blocked_from_new_experiment(
+def test_b5_6_after_cooldown_ttl_user_can_participate(
     create_default_experimenter_in_db,
     create_default_admin_in_db,
 ):
-    """B5-6: После окончания cooldown пользователь может участвовать в новом эксперименте."""
-    flag_key_1 = "flag_b5_6_1_sticky"
-    flag_key_2 = "flag_b5_6_2_sticky"
+    """B5-6: After cooldown TTL expires, user can participate in new experiments."""
+    flag_key_1 = "flag_b5_6_ttl_1"
+    flag_key_2 = "flag_b5_6_ttl_2"
 
-    subject_id = "user_b5_6_sticky"
+    subject_id = "user_b5_6_ttl"
     create_flag(key=flag_key_1, type="string", default="default")
     create_flag(key=flag_key_2, type="string", default="default")
     setup_active_experiment(flag_key=flag_key_1)
@@ -54,27 +57,27 @@ def test_b5_6_sticky_default_when_blocked_from_new_experiment(
     assert d1["value"] != "default"
     assert d1["experiment_id"] is not None
 
-    time.sleep(20)
+    # Second experiment blocked during cooldown
+    d2_blocked = get_flag_decision(subject_id, flag_key_2)
+    assert d2_blocked["value"] == "default"
+    assert d2_blocked["experiment_id"] is None
 
-    d2_during_cooldown = get_flag_decision(subject_id, flag_key_2)
-    assert d2_during_cooldown["value"] == "default"
-    assert d2_during_cooldown["experiment_id"] is None
+    # Wait for cooldown TTL to expire (config: 15s)
+    time.sleep(16)
 
-    # Wait for cooldown to end (config: 15s for cooldown, first call started it)
-    time.sleep(20)
-
-    d2_after_cooldown = get_flag_decision(subject_id, flag_key_2)
-    assert d2_after_cooldown["value"] != "default"
-    assert d2_after_cooldown["experiment_id"] is not None
+    # Now user can participate in exp2
+    d2_after = get_flag_decision(subject_id, flag_key_2)
+    assert d2_after["value"] != "default"
+    assert d2_after["experiment_id"] is not None
 
 
-def test_b5_6_assigned_values_stay_same_even_if_user_enters_cooldown(
+def test_b5_6_sticky_decisions_preserved_during_cooldown(
     create_default_experimenter_in_db,
     create_default_admin_in_db,
 ):
-    """B5-6: Уже выданные значения флагов должны оставаться неизменными во время cooldown."""
-    flag_key = "flag_b5_6_stable"
-    subject_id = "user_b5_6_stable"
+    """B5-6: Already assigned values stay the same during cooldown (stickiness)."""
+    flag_key = "flag_b5_6_sticky"
+    subject_id = "user_b5_6_sticky"
 
     create_flag(key=flag_key, type="string", default="default")
     setup_active_experiment(flag_key=flag_key)
@@ -83,8 +86,6 @@ def test_b5_6_assigned_values_stay_same_even_if_user_enters_cooldown(
     assert first["experiment_id"] is not None
     assert first["value"] != "default"
 
-    # Wait long enough so that the next request triggers cooldown.
-    time.sleep(20)
-
+    # Immediately request same flag again: same decision (cached), cooldown triggered
     second = get_flag_decision(subject_id, flag_key)
     assert second == first
