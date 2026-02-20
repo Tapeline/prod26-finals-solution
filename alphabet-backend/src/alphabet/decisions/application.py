@@ -365,4 +365,5 @@ def cached_experiment_from_experiment(
         conflict_policy=experiment.conflict_policy,
         priority=experiment.priority.value if experiment.priority else None,
         active_flag_key=experiment.flag_key.value,
+        experiment_audience=experiment.audience.value,
     )

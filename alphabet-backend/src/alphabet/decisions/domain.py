@@ -47,6 +47,8 @@ class CachedExperiment:
         conflict_policy: ConflictPolicy | None,
         priority: int | None,
         active_flag_key: str,
+        *,
+        experiment_audience: int,
     ) -> None:
         self.id = id
         self.variants = variants
@@ -55,7 +57,7 @@ class CachedExperiment:
         self.conflict_policy = conflict_policy
         self.priority = priority
         self.active_flag_key = active_flag_key
-        self.distribution = distribute_variants(variants)
+        self.distribution = distribute_variants(experiment_audience, variants)
 
 
 _MAX_HASH_VAL: Final = 2**32
@@ -63,15 +65,25 @@ _TOTAL_BUCKETS: Final = 100
 
 
 def distribute_variants(
+    experiment_audience: int,
     variants: list[Variant],
 ) -> list[tuple[str, str] | None]:
     axis: list[tuple[str, str] | None] = [None] * 100
+    in_exp_count = min(max(experiment_audience, 0), 100)
+    if in_exp_count <= 0:
+        return axis
     i = 0
-    for variant in variants:
+    for idx, variant in enumerate(variants):
+        if i >= in_exp_count:
+            break
+        if idx == len(variants) - 1:
+            count = in_exp_count - i
+        else:
+            count = in_exp_count * variant.audience.value // 100
         var_tuple = (variant.name, variant.value)
-        for j in range(i, i + variant.audience.value):
+        for j in range(i, min(i + count, in_exp_count)):
             axis[j] = var_tuple
-        i += variant.audience.value
+        i += count
     return axis
 
 

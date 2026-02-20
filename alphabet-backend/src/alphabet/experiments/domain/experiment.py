@@ -370,7 +370,7 @@ def _validate_audience_and_variants(
     variants: list[Variant],
 ) -> None:
     variant_audience_sum = sum(variant.audience.value for variant in variants)
-    if variant_audience_sum != audience.value:
+    if variant_audience_sum != 100:
         raise AudienceMismatch
     if sum(1 for variant in variants if variant.is_control) != 1:
         raise NotOneControlVariant

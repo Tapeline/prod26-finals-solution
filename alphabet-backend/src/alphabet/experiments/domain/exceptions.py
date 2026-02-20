@@ -55,7 +55,7 @@ class InvalidConflictConfig(AppException):
 
 @final
 class AudienceMismatch(AppException):
-    text = "Variant audiences must sum up to experiment audience"
+    text = "Variant audiences must sum to 100 (percent)"
 
 
 @final
