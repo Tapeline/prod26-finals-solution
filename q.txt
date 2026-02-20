@@ -11,6 +11,9 @@ Insights UI - Почему не графана?
 - стоит ли вообще хранить выданные варианты?
 - работает ли оно нормально под большой нагрузкой (в т.ч. конкурентно)?
 
+3. Если эксперимент остановлен по соображениям безопасности — возвращает контрольный вариант.
+^^^^^ не реализовано!
+
 TODO:
 
 - Guardrails
@@ -44,6 +47,7 @@ TODO:
     - Add business-metrics to prometheus
     - /health and /ready
     - Why does request id vanish from logs...
+    - Embed request id into response headers
 - Tests
     - Unit tests (idk how many and thorough)
     - Overall integration tests (idk how many and thorough)
