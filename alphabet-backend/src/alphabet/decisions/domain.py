@@ -26,6 +26,7 @@ class CachedExperiment:
         "conflict_policy",
         "distribution",
         "id",
+        "is_security_halted",
         "priority",
         "targeting",
         "variants",
@@ -37,6 +38,7 @@ class CachedExperiment:
     conflict_policy: ConflictPolicy | None
     priority: int | None
     active_flag_key: str
+    is_security_halted: bool
 
     def __init__(
         self,
@@ -49,6 +51,7 @@ class CachedExperiment:
         active_flag_key: str,
         *,
         experiment_audience: int,
+        is_security_halted: bool = False,
     ) -> None:
         self.id = id
         self.variants = variants
@@ -57,6 +60,7 @@ class CachedExperiment:
         self.conflict_policy = conflict_policy
         self.priority = priority
         self.active_flag_key = active_flag_key
+        self.is_security_halted = is_security_halted
         self.distribution = distribute_variants(experiment_audience, variants)
 
 

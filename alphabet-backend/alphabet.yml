@@ -18,7 +18,7 @@ clickhouse:
   database: default
 
 app:
-  cooldown_after_s: 15
+  cooldown_experiment_threshold: 1
   cooldown_for_s: 15
 
 workers:

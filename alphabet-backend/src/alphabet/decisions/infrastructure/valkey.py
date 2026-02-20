@@ -6,7 +6,6 @@ from redis.asyncio import Redis
 
 from alphabet.decisions.application import DecisionDataStore
 from alphabet.decisions.domain import Decision, DecisionId
-from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.commons import autoinit
 from alphabet.shared.config import AppConfig
 
@@ -15,28 +14,18 @@ from alphabet.shared.config import AppConfig
 @autoinit
 class ValkeyDecisionDataStore(DecisionDataStore):
     client: Redis
-    time: TimeProvider
     config: AppConfig
 
     def __post_init__(self) -> None:
-        # suggested by gemini, let's hope it's good :/
-        self._cooldown_script = self.client.register_script(
-            Path("src/cooldown.lua").read_text(),
+        src_dir = Path(__file__).resolve().parent.parent.parent.parent
+        self._record_script = self.client.register_script(
+            (src_dir / "cooldown.lua").read_text()
         )
-        # TODO: check: do i really modify redis' state?
 
     @override
-    async def is_in_cooldown_or_set_if_needed(self, subject_id: str) -> bool:
-        # suggested by gemini, let's hope it's good :/
-        result = await self._cooldown_script(
-            keys=[f"cooldown:{subject_id}", f"last-cycle:{subject_id}"],
-            args=[
-                int(self.time.now_unix_timestamp()),
-                self.config.cooldown_after_s,
-                self.config.cooldown_for_s,
-            ],
-        )
-        return bool(result)
+    async def is_in_cooldown(self, subject_id: str) -> bool:
+        key = f"cooldown:{subject_id}"
+        return bool(await self.client.exists(key))
 
     @override
     async def save_decisions(
@@ -58,6 +47,7 @@ class ValkeyDecisionDataStore(DecisionDataStore):
                 f"u:{subject_id}",
                 self.config.store_stickiness_for_s,
             )
+            await pipe.execute()
 
     @override
     async def load_existing_decisions(
@@ -73,10 +63,28 @@ class ValkeyDecisionDataStore(DecisionDataStore):
         decisions: dict[str, Decision] = {}
         for key, raw_decision in zip(flag_keys, raw_decisions, strict=True):
             if raw_decision:
-                decision = _load_decision(raw_decision)
+                decision = _load_decision(raw_decision.decode())
                 if decision.experiment_id in experiment_ids:
                     decisions[key] = decision
         return decisions
+
+    @override
+    async def record_experiment_assignments(
+        self,
+        subject_id: str,
+        count: int,
+    ) -> None:
+        # this method is written by cursor
+        if count <= 0:
+            return
+        await self._record_script(
+            keys=[f"exp_count:{subject_id}", f"cooldown:{subject_id}"],
+            args=[
+                count,
+                self.config.cooldown_experiment_threshold,
+                self.config.cooldown_for_s,
+            ],
+        )
 
 
 def _load_decision(decision_str: str) -> Decision:

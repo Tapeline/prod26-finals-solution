@@ -83,6 +83,11 @@ class ExperimentsRepository(Protocol):
     async def all_running(self) -> list[Experiment]:
         raise NotImplementedError
 
+    @abstractmethod
+    async def all_running_and_security_halted(self) -> list[Experiment]:
+        """For decide cache: STARTED + SECURITY_HALTED (usecase step 2)."""
+        raise NotImplementedError
+
 
 class ReviewRepository(Protocol):
     @abstractmethod
@@ -132,6 +137,13 @@ class ExperimentChangeNotifier(Protocol):
 
     @abstractmethod
     async def notify_experiment_deactivated(
+        self,
+        experiment: Experiment,
+    ) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def notify_experiment_halted(
         self,
         experiment: Experiment,
     ) -> None:

@@ -5,7 +5,10 @@ from typing import assert_never, cast, final
 
 from structlog import getLogger
 
-from alphabet.experiments.application.interfaces import ExperimentsRepository
+from alphabet.experiments.application.interfaces import (
+    ExperimentsRepository,
+    ExperimentChangeNotifier,
+)
 from alphabet.experiments.domain.experiment import (
     Experiment,
     ExperimentId,
@@ -213,6 +216,7 @@ class RegularCheck:
     evaluator: MetricEvaluator
     time: TimeProvider
     metrics: MetricRepository
+    notifier: ExperimentChangeNotifier
 
     async def __call__(self) -> None:
         # avoiding n+1, preloading everything in 3 queries
@@ -275,7 +279,7 @@ class RegularCheck:
             )
         ).get(metric.key)
         if result is None:
-            logger.info(
+            logger.warning(
                 "Received None instead of metric value",
                 experiment_id=exp.id,
                 rule_id=rule.id,
@@ -313,8 +317,14 @@ class RegularCheck:
             match rule.action:
                 case GuardAction.PAUSE:
                     fresh_experiment.state = ExperimentState.PAUSED
+                    await self.notifier.notify_experiment_deactivated(
+                        fresh_experiment
+                    )
                 case GuardAction.FORCE_CONTROL:
                     fresh_experiment.state = ExperimentState.SECURITY_HALTED
+                    await self.notifier.notify_experiment_halted(
+                        fresh_experiment
+                    )
                 case _:
                     assert_never(rule.action)
             record = AuditRecord(

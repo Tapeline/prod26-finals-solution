@@ -59,6 +59,14 @@ class InstantNotifier(
             )
 
     @override
+    async def notify_experiment_halted(self, experiment: Experiment) -> None:
+        async with self.container() as nested:
+            (await nested.get(SetRunningExperimentOnFlag))(
+                experiment.flag_key.value,
+                cached_experiment_from_experiment(experiment),
+            )
+
+    @override
     async def notify_flag_default_changed(
         self,
         flag_key: FlagKey,

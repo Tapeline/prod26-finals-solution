@@ -43,7 +43,7 @@ class ClickHouseConfig:
 
 @dto
 class AppConfig:
-    cooldown_after_s: int = 60 * 60 * 24
+    cooldown_experiment_threshold: int = 10
     cooldown_for_s: int = 60 * 60 * 24
     store_stickiness_for_s: int = 60 * 60 * 24 * 7 * 2
     event_deduplication_ttl_s: int = 60 * 60 * 24 * 7 + 1
@@ -58,7 +58,7 @@ class WorkersConfig:
 @dto
 class EventBufferConfig:
     size: int = 2000
-    force_flush_interval_s: int = 60
+    force_flush_interval_s: int = 5
 
 
 @dto

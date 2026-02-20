@@ -83,7 +83,7 @@ def test_b4_4_saves_exposure_with_decision_id(
         json={"events": [click_event]}
     ).raise_for_status()
 
-    time.sleep(5 + 1)  # wait for the attribution worker
+    time.sleep(8)  # wait for the attribution worker
 
     report_resp = httpx.post(
         f"{app_url}/api/v1/reports/create",

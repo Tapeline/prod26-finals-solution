@@ -182,6 +182,17 @@ class SqlExperimentsRepository(ExperimentsRepository):
         )
         return list(map(_row_to_experiment, result.all()))
 
+    @override
+    async def all_running_and_security_halted(self) -> list[Experiment]:
+        result = await self.session.execute(
+            select(experiments_latest).where(
+                experiments_latest.c.state.in_(
+                    (ExperimentState.STARTED, ExperimentState.SECURITY_HALTED),
+                ),
+            ),
+        )
+        return list(map(_row_to_experiment, result.all()))
+
 
 _retort = Retort(
     recipe=[

@@ -48,3 +48,11 @@ class DecisionsDIProvider(Provider):
         provides=ResolutionRepository,
         scope=Scope.REQUEST,
     )
+
+
+class DecisionsCacheSyncsDIProvider(DecisionsDIProvider):
+    interactors = provide_all(
+        SetFlagDefault,
+        SetRunningExperimentOnFlag,
+        scope=Scope.REQUEST
+    )
