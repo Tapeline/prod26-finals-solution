@@ -10,11 +10,13 @@ Insights UI - Почему не графана?
 - как сделать распределение более равномерным?
 - стоит ли вообще хранить выданные варианты?
 - работает ли оно нормально под большой нагрузкой (в т.ч. конкурентно)?
+вроде доделал
 
 3. Если эксперимент остановлен по соображениям безопасности — возвращает контрольный вариант.
 ^^^^^ не реализовано!
+вроде доделал
 
-TODO:
+
 
 - Guardrails
     - Audit querying
@@ -23,6 +25,10 @@ TODO:
     - Presentation
     - Worker entrypoint
     - Acceptance tests
+- Infra
+    - /health and /ready
+
+TODO:
 - Notifications
     - Domain
         - Entities
@@ -40,12 +46,14 @@ TODO:
     - Build charts
     - Connect frontend with IAP
     - Deploy frontend
+- Conflicts:
+    - Save conflict metrics
+    - Expose conflict metric query endpoints
 - Infra
     - Get rid of instant notifier so we can use faststream
     - Add pgbouncer and such
     - Revise logging (add many many logs)
     - Add business-metrics to prometheus
-    - /health and /ready
     - Why does request id vanish from logs...
     - Embed request id into response headers
 - Tests

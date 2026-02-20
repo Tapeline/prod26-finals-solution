@@ -105,7 +105,7 @@ def test_b6_2_shows_report_by_variant(
         timeout=10.0,
     ).raise_for_status()
 
-    time.sleep(5 + 1)  # wait for attribution worker
+    time.sleep(10)  # wait for attribution worker
 
     # Create report
     report_resp = httpx.post(

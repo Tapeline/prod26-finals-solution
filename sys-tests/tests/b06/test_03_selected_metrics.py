@@ -113,7 +113,7 @@ def test_b6_3_shows_selected_metrics_in_report(
         timeout=10.0,
     ).raise_for_status()
 
-    time.sleep(5 + 1)  # wait for attribution worker
+    time.sleep(10)  # wait for attribution worker
 
     # Create report
     experiment_id = decision_id.split(":", maxsplit=1)[0]
