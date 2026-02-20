@@ -11,7 +11,9 @@ from alphabet.shared.config import WorkersConfig
 @final
 class GuardrailWorker:
     def __init__(
-        self, container: AsyncContainer, config: WorkersConfig,
+        self,
+        container: AsyncContainer,
+        config: WorkersConfig,
     ) -> None:
         self.container = container
         self.is_running = False

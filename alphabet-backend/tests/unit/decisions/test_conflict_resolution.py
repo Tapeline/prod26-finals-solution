@@ -40,7 +40,9 @@ class TestConflictResolution:
             resolutions_repo=None,  # type: ignore
         )
         exps = [
-            _cached_exp("e1", "f1", domain="d1", policy=ConflictPolicy.ONE_OR_NONE),
+            _cached_exp(
+                "e1", "f1", domain="d1", policy=ConflictPolicy.ONE_OR_NONE
+            ),
         ]
         survivors, resolutions = make._resolve_conflicts(exps)
         assert len(survivors) == 1
@@ -54,8 +56,12 @@ class TestConflictResolution:
             resolutions_repo=None,  # type: ignore
         )
         exps = [
-            _cached_exp("e1", "f1", domain="d1", policy=ConflictPolicy.ONE_OR_NONE),
-            _cached_exp("e2", "f2", domain="d1", policy=ConflictPolicy.ONE_OR_NONE),
+            _cached_exp(
+                "e1", "f1", domain="d1", policy=ConflictPolicy.ONE_OR_NONE
+            ),
+            _cached_exp(
+                "e2", "f2", domain="d1", policy=ConflictPolicy.ONE_OR_NONE
+            ),
         ]
         survivors, resolutions = make._resolve_conflicts(exps)
         assert len(survivors) == 0
@@ -71,8 +77,20 @@ class TestConflictResolution:
             resolutions_repo=None,  # type: ignore
         )
         exps = [
-            _cached_exp("e1", "f1", domain="d1", policy=ConflictPolicy.HIGHER_PRIORITY, priority=10),
-            _cached_exp("e2", "f2", domain="d1", policy=ConflictPolicy.HIGHER_PRIORITY, priority=5),
+            _cached_exp(
+                "e1",
+                "f1",
+                domain="d1",
+                policy=ConflictPolicy.HIGHER_PRIORITY,
+                priority=10,
+            ),
+            _cached_exp(
+                "e2",
+                "f2",
+                domain="d1",
+                policy=ConflictPolicy.HIGHER_PRIORITY,
+                priority=5,
+            ),
         ]
         survivors, resolutions = make._resolve_conflicts(exps)
         assert len(survivors) == 1
@@ -87,8 +105,20 @@ class TestConflictResolution:
             resolutions_repo=None,  # type: ignore
         )
         exps = [
-            _cached_exp("e_a", "f1", domain="d1", policy=ConflictPolicy.HIGHER_PRIORITY, priority=1),
-            _cached_exp("e_b", "f2", domain="d1", policy=ConflictPolicy.HIGHER_PRIORITY, priority=1),
+            _cached_exp(
+                "e_a",
+                "f1",
+                domain="d1",
+                policy=ConflictPolicy.HIGHER_PRIORITY,
+                priority=1,
+            ),
+            _cached_exp(
+                "e_b",
+                "f2",
+                domain="d1",
+                policy=ConflictPolicy.HIGHER_PRIORITY,
+                priority=1,
+            ),
         ]
         survivors, _ = make._resolve_conflicts(exps)
         assert len(survivors) == 1

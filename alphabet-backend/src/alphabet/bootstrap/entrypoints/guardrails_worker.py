@@ -6,7 +6,6 @@ from dishka import AsyncContainer, make_async_container
 
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.decisions import (
-    DecisionsDIProvider,
     DecisionsCacheSyncsDIProvider,
 )
 from alphabet.bootstrap.di.experiments import (
@@ -21,8 +20,10 @@ from alphabet.bootstrap.di.metrics import (
 from alphabet.bootstrap.di.shared import (
     ClickHouseDIProvider,
     ConfigDIProvider,
+    MessageQueueErsatzDIProvider,
     SqlTransactionDIProvider,
-    TimeDIProvider, MessageQueueErsatzDIProvider, ValkeyDIProvider,
+    TimeDIProvider,
+    ValkeyDIProvider,
 )
 from alphabet.bootstrap.logging import configure_structlog
 from alphabet.guardrails.infrastructure.worker import GuardrailWorker

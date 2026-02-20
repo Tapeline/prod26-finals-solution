@@ -14,7 +14,10 @@ from alphabet.subject_events.domain.events import DiscardedEvent, Event
 @final
 class ClickHouseEventStore(EventStore):
     def __init__(
-        self, click: AsyncClient, time: TimeProvider, config: Config,
+        self,
+        click: AsyncClient,
+        time: TimeProvider,
+        config: Config,
     ) -> None:
         self._ok_buf: list[Event] = []
         self._err_buf: list[DiscardedEvent] = []

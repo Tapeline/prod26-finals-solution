@@ -6,8 +6,8 @@ from typing import assert_never, cast, final
 from structlog import getLogger
 
 from alphabet.experiments.application.interfaces import (
-    ExperimentsRepository,
     ExperimentChangeNotifier,
+    ExperimentsRepository,
 )
 from alphabet.experiments.domain.experiment import (
     Experiment,
@@ -65,7 +65,9 @@ class CreateRule:
     tx: TransactionManager
 
     async def __call__(
-        self, experiment_id: ExperimentId, dto: CreateRuleDTO,
+        self,
+        experiment_id: ExperimentId,
+        dto: CreateRuleDTO,
     ) -> GuardRule:
         async with self.tx:
             await require_user_with_role(self, {Role.ADMIN, Role.EXPERIMENTER})
@@ -99,7 +101,9 @@ class UpdateRule:
     tx: TransactionManager
 
     async def __call__(
-        self, target: GuardRuleId, dto: UpdateRuleDTO,
+        self,
+        target: GuardRuleId,
+        dto: UpdateRuleDTO,
     ) -> GuardRule:
         async with self.tx:
             await require_user_with_role(self, {Role.ADMIN, Role.EXPERIMENTER})
@@ -181,12 +185,15 @@ class ReadAuditForExperiment:
     tx: TransactionManager
 
     async def __call__(
-        self, experiment_id: ExperimentId, pagination: Pagination,
+        self,
+        experiment_id: ExperimentId,
+        pagination: Pagination,
     ) -> list[AuditRecord]:
         async with self.tx:
             await require_any_user(self)
             return await self.audit_log.query_for_experiment(
-                experiment_id, pagination,
+                experiment_id,
+                pagination,
             )
 
 
@@ -199,7 +206,9 @@ class ReadAuditForGuardRule:
     tx: TransactionManager
 
     async def __call__(
-        self, rule_id: GuardRuleId, pagination: Pagination,
+        self,
+        rule_id: GuardRuleId,
+        pagination: Pagination,
     ) -> list[AuditRecord]:
         async with self.tx:
             await require_any_user(self)
@@ -271,11 +280,18 @@ class RegularCheck:
         )
 
     async def _revise_rule(
-        self, exp: Experiment, rule: GuardRule, metric: Metric, now: datetime,
+        self,
+        exp: Experiment,
+        rule: GuardRule,
+        metric: Metric,
+        now: datetime,
     ) -> None:
         result = (
             await self.evaluator.evaluate_only_overall_for_experiment(
-                exp.id, [metric], now - rule.watch_window, now,
+                exp.id,
+                [metric],
+                now - rule.watch_window,
+                now,
             )
         ).get(metric.key)
         if result is None:
@@ -306,7 +322,8 @@ class RegularCheck:
         async with self.tx:
             # get again to prevent data loss
             fresh_experiment = await self.experiments.get_latest_by_id(
-                experiment_id, lock=True,
+                experiment_id,
+                lock=True,
             )
             if not fresh_experiment:
                 logger.error(
@@ -318,12 +335,12 @@ class RegularCheck:
                 case GuardAction.PAUSE:
                     fresh_experiment.state = ExperimentState.PAUSED
                     await self.notifier.notify_experiment_deactivated(
-                        fresh_experiment
+                        fresh_experiment,
                     )
                 case GuardAction.FORCE_CONTROL:
                     fresh_experiment.state = ExperimentState.SECURITY_HALTED
                     await self.notifier.notify_experiment_halted(
-                        fresh_experiment
+                        fresh_experiment,
                     )
                 case _:
                     assert_never(rule.action)

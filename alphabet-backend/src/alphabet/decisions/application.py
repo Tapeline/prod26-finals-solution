@@ -6,7 +6,7 @@ from abc import abstractmethod
 from collections.abc import Collection
 from itertools import groupby
 from operator import attrgetter
-from typing import Protocol, assert_never, final, cast
+from typing import Protocol, cast, final
 
 import mmh3
 from structlog import getLogger
@@ -125,7 +125,7 @@ class MakeDecision:
     experiments: ExperimentStorage
     resolutions_repo: ResolutionRepository
 
-    async def __call__(
+    async def __call__(  # noqa: C901
         self,
         subject_id: str,
         subject_attrs: dict[str, str],
@@ -150,9 +150,7 @@ class MakeDecision:
             return assigned
 
         resolved, resolutions = self._resolve_conflicts(experiments)
-        resolved_by_flag = {
-            exp.active_flag_key: exp for exp in resolved
-        }
+        resolved_by_flag = {exp.active_flag_key: exp for exp in resolved}
 
         new_decision_count = 0
         for flag in list(unassigned):
@@ -166,7 +164,9 @@ class MakeDecision:
                 unassigned.discard(flag)
                 continue
             decision = self._assign_variant(
-                subject_id, exp, flag,
+                subject_id,
+                exp,
+                flag,
             )
             if decision:
                 assigned[flag] = decision
@@ -177,8 +177,7 @@ class MakeDecision:
             assigned[flag] = self._default_for(flag, subject_id)
 
         new_decisions = [
-            d for d in assigned.values()
-            if d and d.experiment_id is not None
+            d for d in assigned.values() if d and d.experiment_id is not None
         ]
         if new_decisions:
             await self.decision_data.save_decisions(subject_id, new_decisions)
@@ -187,7 +186,8 @@ class MakeDecision:
 
         if new_decision_count > 0:
             await self.decision_data.record_experiment_assignments(
-                subject_id, new_decision_count,
+                subject_id,
+                new_decision_count,
             )
 
         return assigned
@@ -203,7 +203,7 @@ class MakeDecision:
             logger.warning(
                 "Requested unknown flag",
                 subject=subject_id,
-                flag=flag_key
+                flag=flag_key,
             )
             return None
         if experiment.is_security_halted:
@@ -233,6 +233,7 @@ class MakeDecision:
     ) -> tuple[list[CachedExperiment], list[ConflictResolution]]:
         resolutions: list[ConflictResolution] = []
         survivors: list[CachedExperiment] = []
+
         def _domain_key(exp: CachedExperiment) -> tuple[int, str]:
             d = exp.conflict_domain
             return (0 if d is None else 1, d or "")
@@ -249,7 +250,12 @@ class MakeDecision:
                 survivors.append(conflicts[0])
                 continue
             policy = self._choose_policy(conflicts)
-            selected = self._apply_policy(policy, domain, conflicts, resolutions)
+            selected = self._apply_policy(
+                policy,
+                domain,
+                conflicts,
+                resolutions,
+            )
             if selected:
                 survivors.append(selected)
         return survivors, resolutions
@@ -282,11 +288,10 @@ class MakeDecision:
             )
             return None
         # HIGHER_PRIORITY: наименьший приоритет = победитель (ADR007)
-        with_priority = [
-            exp for exp in conflicts if exp.priority is not None
-        ]
+        with_priority = [exp for exp in conflicts if exp.priority is not None]
         if not with_priority:
             return None
+
         # Tie-breaker: хэш от (domain, id), побеждает больший (ADR007)
         def sort_key(exp: CachedExperiment) -> tuple[int, int]:
             h = mmh3.hash(f"{domain}:{exp.id}", signed=False)
@@ -309,7 +314,8 @@ class MakeDecision:
         flag_keys: list[str],
     ) -> list[CachedExperiment]:
         return [
-            exp for exp in self.experiments.get_experiments(flag_keys)
+            exp
+            for exp in self.experiments.get_experiments(flag_keys)
             if exp is not None
         ]
 
@@ -327,6 +333,7 @@ class MakeDecision:
             value=value,
             experiment_id=None,
         )
+
 
 @final
 @interactor
@@ -395,5 +402,7 @@ def cached_experiment_from_experiment(
         priority=experiment.priority.value if experiment.priority else None,
         active_flag_key=experiment.flag_key.value,
         experiment_audience=experiment.audience.value,
-        is_security_halted=(experiment.state == ExperimentState.SECURITY_HALTED),
+        is_security_halted=(
+            experiment.state == ExperimentState.SECURITY_HALTED
+        ),
     )

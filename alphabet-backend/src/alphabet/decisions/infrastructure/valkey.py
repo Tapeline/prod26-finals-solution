@@ -19,7 +19,7 @@ class ValkeyDecisionDataStore(DecisionDataStore):
     def __post_init__(self) -> None:
         src_dir = Path(__file__).resolve().parent.parent.parent.parent
         self._record_script = self.client.register_script(
-            (src_dir / "cooldown.lua").read_text()
+            (src_dir / "cooldown.lua").read_text(),
         )
 
     @override

@@ -21,13 +21,15 @@ class GuardRuleRepository(Protocol):
 
     @abstractmethod
     async def for_experiment(
-        self, experiment_id: ExperimentId,
+        self,
+        experiment_id: ExperimentId,
     ) -> list[GuardRule]:
         raise NotImplementedError
 
     @abstractmethod
     async def for_experiments(
-        self, experiment_ids: list[ExperimentId],
+        self,
+        experiment_ids: list[ExperimentId],
     ) -> list[GuardRule]:
         raise NotImplementedError
 
@@ -39,12 +41,16 @@ class AuditLog(Protocol):
 
     @abstractmethod
     async def query_for_experiment(
-        self, exp_id: ExperimentId, pagination: Pagination,
+        self,
+        exp_id: ExperimentId,
+        pagination: Pagination,
     ) -> list[AuditRecord]:
         raise NotImplementedError
 
     @abstractmethod
     async def query_for_rule(
-        self, rule_id: GuardRuleId, pagination: Pagination,
+        self,
+        rule_id: GuardRuleId,
+        pagination: Pagination,
     ) -> list[AuditRecord]:
         raise NotImplementedError

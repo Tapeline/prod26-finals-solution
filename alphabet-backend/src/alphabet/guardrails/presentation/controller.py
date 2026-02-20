@@ -164,7 +164,8 @@ class GuardRulesController(Controller):
             UpdateRuleDTO(
                 threshold=maybe_map(data.threshold),
                 watch_window=maybe_map(
-                    data.watch_window_s, lambda s: timedelta(seconds=s),
+                    data.watch_window_s,
+                    lambda s: timedelta(seconds=s),
                 ),
                 action=maybe_map(data.action),
             ),
@@ -223,7 +224,8 @@ class GuardRulesController(Controller):
         offset: int = 0,
     ) -> list[AuditRecordSchema]:
         records = await interactor(
-            GuardRuleId(rule_id), Pagination(limit, offset),
+            GuardRuleId(rule_id),
+            Pagination(limit, offset),
         )
         return list(map(AuditRecordSchema.from_record, records))
 
@@ -244,6 +246,7 @@ class GuardRulesController(Controller):
         offset: int = 0,
     ) -> list[AuditRecordSchema]:
         records = await interactor(
-            ExperimentId(exp_id), Pagination(limit, offset),
+            ExperimentId(exp_id),
+            Pagination(limit, offset),
         )
         return list(map(AuditRecordSchema.from_record, records))

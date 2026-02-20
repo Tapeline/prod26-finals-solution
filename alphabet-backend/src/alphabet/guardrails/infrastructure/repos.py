@@ -43,7 +43,9 @@ class SqlAuditLog(AuditLog):
 
     @override
     async def query_for_experiment(
-        self, exp_id: ExperimentId, pagination: Pagination,
+        self,
+        exp_id: ExperimentId,
+        pagination: Pagination,
     ) -> list[AuditRecord]:
         result = await self.session.execute(
             select(audit_log)
@@ -55,7 +57,9 @@ class SqlAuditLog(AuditLog):
 
     @override
     async def query_for_rule(
-        self, rule_id: GuardRuleId, pagination: Pagination,
+        self,
+        rule_id: GuardRuleId,
+        pagination: Pagination,
     ) -> list[AuditRecord]:
         result = await self.session.execute(
             select(audit_log)
@@ -121,7 +125,8 @@ class SqlGuardRuleRepository(GuardRuleRepository):
 
     @override
     async def for_experiment(
-        self, experiment_id: ExperimentId,
+        self,
+        experiment_id: ExperimentId,
     ) -> list[GuardRule]:
         result = await self.session.execute(
             select(guard_rules).where(
@@ -133,7 +138,8 @@ class SqlGuardRuleRepository(GuardRuleRepository):
 
     @override
     async def for_experiments(
-        self, experiment_ids: list[ExperimentId],
+        self,
+        experiment_ids: list[ExperimentId],
     ) -> list[GuardRule]:
         result = await self.session.execute(
             select(guard_rules).where(

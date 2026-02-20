@@ -54,5 +54,5 @@ class DecisionsCacheSyncsDIProvider(DecisionsDIProvider):
     interactors = provide_all(
         SetFlagDefault,
         SetRunningExperimentOnFlag,
-        scope=Scope.REQUEST
+        scope=Scope.REQUEST,
     )

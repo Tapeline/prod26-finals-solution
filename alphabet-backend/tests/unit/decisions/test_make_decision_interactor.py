@@ -4,11 +4,16 @@ from typing import Collection
 import pytest
 
 from alphabet.decisions.application import (
-    MakeDecision, DecisionDataStore,
-    ExperimentStorage, FlagStorage, ResolutionRepository,
+    MakeDecision,
+    DecisionDataStore,
+    ExperimentStorage,
+    FlagStorage,
+    ResolutionRepository,
 )
 from alphabet.decisions.domain import (
-    CachedExperiment, Decision, DecisionId,
+    CachedExperiment,
+    Decision,
+    DecisionId,
     ConflictResolution,
 )
 from tests.unit.decisions.helper import variant
@@ -37,8 +42,9 @@ class FakeExperimentStorage(ExperimentStorage):
         self._experiments = experiments or {}
         self._is_ready = True
 
-    def get_experiments(self, flag_keys: list[str]) -> list[
-        CachedExperiment | None]:
+    def get_experiments(
+        self, flag_keys: list[str]
+    ) -> list[CachedExperiment | None]:
         return [self._experiments.get(k) for k in flag_keys]
 
     def set_on_flag(
@@ -143,12 +149,13 @@ async def test_in_cooldown_returns_defaults_for_unassigned():
 async def test_existing_decisions_honored_when_in_cooldown():
     store = FakeDecisionDataStore(cooldown_subjects={"user1"})
     store.seed_decision(
-        "user1", Decision(
+        "user1",
+        Decision(
             id=DecisionId("e1:f1:user1:control"),
             flag_key="f1",
             value="A",
             experiment_id="e1",
-        )
+        ),
     )
     flags = FakeFlagStorage(defaults={"f1": "def1", "f2": "def2"})
     exps = FakeExperimentStorage(
