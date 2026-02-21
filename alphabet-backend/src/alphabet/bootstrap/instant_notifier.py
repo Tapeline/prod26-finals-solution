@@ -16,8 +16,9 @@ from alphabet.experiments.domain.flags import FlagKey
 from alphabet.guardrails.application.interfaces import GuardrailNotifier
 from alphabet.guardrails.domain import AuditRecord
 from alphabet.notifications.application.interactors import (
+    ExperimentEvent,
+    GuardrailEvent,
     PublishNotification,
-    ExperimentEvent, GuardrailEvent,
 )
 from alphabet.shared.commons import autoinit
 from alphabet.subject_events.application.interfaces import (
@@ -92,14 +93,15 @@ class InstantNotifier(
 
     @override
     async def notify_experiment_state_changed(
-        self, experiment: Experiment
+        self,
+        experiment: Experiment,
     ) -> None:
         async with self.container() as nested:
-            publisher = (await nested.get(PublishNotification))
+            publisher = await nested.get(PublishNotification)
             await publisher(ExperimentEvent(experiment))
 
     @override
     async def notify_rule_triggered(self, outcome: AuditRecord) -> None:
         async with self.container() as nested:
-            publisher = (await nested.get(PublishNotification))
+            publisher = await nested.get(PublishNotification)
             await publisher(GuardrailEvent(outcome))

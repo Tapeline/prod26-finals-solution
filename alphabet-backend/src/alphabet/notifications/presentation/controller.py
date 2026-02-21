@@ -1,5 +1,5 @@
 from collections.abc import Sequence
-from typing import Any, assert_never
+from typing import assert_never
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
@@ -30,11 +30,9 @@ from alphabet.notifications.domain.notifications import (
 from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.commons import maybe_map
 from alphabet.shared.presentation.framework.openapi import (
-    RESPONSE_FORBIDDEN,
     RESPONSE_NOT_AUTH_AND_FORBIDDEN,
     RESPONSE_NOT_AUTHENTICATED,
     RESPONSE_NOT_FOUND,
-    error_spec,
     success_spec,
 )
 from alphabet.shared.presentation.openapi import security_defs
@@ -109,7 +107,7 @@ class NotificationRulesController(Controller):
                 connection=ConnectionString(data.connection_string),
                 template=data.template,
                 rate_limit=Ratelimit(data.rate_limit_s),
-            )
+            ),
         )
         return NotificationRuleSchema.from_domain(rule)
 

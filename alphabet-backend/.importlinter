@@ -89,6 +89,18 @@ layers=
     domain
 exhaustive = true
 
+[importlinter:contract:layers-notifications]
+name=Layered Notifications
+type=layers
+containers =
+    alphabet.notifications
+layers=
+    presentation
+    infrastructure
+    application
+    domain
+exhaustive = true
+
 [importlinter:contract:no-bootstrap-import]
 name = No bootstrap import
 type = forbidden

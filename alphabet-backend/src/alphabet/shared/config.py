@@ -87,6 +87,7 @@ class SmtpConfig:
     def is_set_up(self) -> bool:
         return not (not self.host or not self.port or not self.sender_email)
 
+
 @final
 @dto
 class TelegramConfig:

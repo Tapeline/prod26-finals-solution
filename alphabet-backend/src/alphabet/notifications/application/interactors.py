@@ -1,20 +1,33 @@
 import asyncio
 from collections import defaultdict
+from typing import assert_never, cast, final
 
 from structlog import getLogger
-from typing import final, cast, assert_never
 
 from alphabet.experiments.domain.experiment import Experiment
 from alphabet.guardrails.domain import AuditRecord
 from alphabet.notifications.application.exceptions import (
-    RuleNotFound,
     FailedToSend,
+    RuleNotFound,
 )
-from alphabet.notifications.application.interfaces import \
-    (
-    NotificationRuleRepository, PreparedNotificationQueue,
-    NotificationCooldownStore, NotificationChannelFactory,
+from alphabet.notifications.application.interfaces import (
     GroupedNotificationBuilder,
+    NotificationChannelFactory,
+    NotificationCooldownStore,
+    NotificationRuleRepository,
+    PreparedNotificationQueue,
+)
+from alphabet.notifications.domain.notifications import (
+    AnyExperimentTrigger,
+    ConnectionString,
+    ExperimentTrigger,
+    Fingerprint,
+    GuardrailTrigger,
+    NotificationRule,
+    NotificationRuleId,
+    PreparedNotification,
+    Ratelimit,
+    Trigger,
 )
 from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.pagination import Pagination
@@ -22,15 +35,10 @@ from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import (
     UserReader,
-    require_user_with_role, require_any_user,
+    require_any_user,
+    require_user_with_role,
 )
-from alphabet.notifications.domain.notifications import (
-    Trigger,
-    ConnectionString, Ratelimit, NotificationRule, NotificationRuleId,
-    ExperimentTrigger, PreparedNotification, Fingerprint,
-    GuardrailTrigger, AnyExperimentTrigger,
-)
-from alphabet.shared.commons import interactor, dto, Maybe, MISSING
+from alphabet.shared.commons import MISSING, Maybe, dto, interactor
 from alphabet.shared.domain.user import Role
 from alphabet.shared.uuid import generate_id
 
@@ -55,7 +63,8 @@ class CreateNotificationRule:
     async def __call__(self, dto: CreateRuleDTO) -> NotificationRule:
         async with self.tx:
             await require_user_with_role(
-                self, {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER}
+                self,
+                {Role.ADMIN, Role.EXPERIMENTER, Role.APPROVER},
             )
             rule = NotificationRule(
                 id=generate_id(NotificationRuleId),
@@ -86,7 +95,9 @@ class UpdateNotificationRule:
     tx: TransactionManager
 
     async def __call__(
-        self, target: NotificationRuleId, dto: UpdateRuleDTO
+        self,
+        target: NotificationRuleId,
+        dto: UpdateRuleDTO,
     ) -> NotificationRule:
         async with self.tx:
             await require_user_with_role(
@@ -195,7 +206,8 @@ class PublishNotification:
                     assert_never(event)
 
     async def _maybe_publish_experiment_event(
-        self, experiment: Experiment
+        self,
+        experiment: Experiment,
     ) -> None:
         rules = await self.rules.all_of_trigger_type("experiment_lifecycle")
         selected = []
@@ -216,18 +228,19 @@ class PublishNotification:
             [
                 PreparedNotification(
                     fingerprint=Fingerprint(
-                        f"{rule.id}:{experiment.id}:{experiment.state}"
+                        f"{rule.id}:{experiment.id}:{experiment.state}",
                     ),
                     rule_id=rule.id,
                     meta=meta,
-                    issued_at=now
+                    issued_at=now,
                 )
                 for rule in selected
-            ]
+            ],
         )
 
     async def _maybe_publish_guardrail_event(
-        self, record: AuditRecord
+        self,
+        record: AuditRecord,
     ) -> None:
         rules = await self.rules.all_of_trigger_type("guardrail")
         selected = []
@@ -252,10 +265,10 @@ class PublishNotification:
                     fingerprint=Fingerprint(f"{rule.id}:{record.rule_id}"),
                     rule_id=rule.id,
                     meta=meta,
-                    issued_at=now
+                    issued_at=now,
                 )
                 for rule in selected
-            ]
+            ],
         )
 
 
@@ -275,14 +288,14 @@ class SelectAndSend:
             notifications = self._group_by_rule_id(await self.queue.all())
             logger.info("Selected pending", total=len(notifications))
             exclude = await self.limiter.filter_in_cooldown(
-                notifications.keys()
+                notifications.keys(),
             )
             for rule_id in exclude:
                 notifications.pop(rule_id)
             logger.info(
                 "Excluded those in cooldown",
                 excluded=len(exclude),
-                remaining=len(notifications)
+                remaining=len(notifications),
             )
             rule_ids = list(notifications.keys())
             rules = await self.rules.get_by_ids(rule_ids)
@@ -290,7 +303,7 @@ class SelectAndSend:
                 *(
                     self._send_group(rule, notifications[rule.id])
                     for rule in rules
-                )
+                ),
             )
             ack_fingerprints = []
             for sent_group in successfully_sent:
@@ -302,13 +315,12 @@ class SelectAndSend:
             )
             await self.queue.pop_all(ack_fingerprints)
             await self.limiter.place_cooldowns(
-                {
-                    rule.id: rule.rate_limit.seconds for rule in rules
-                }
+                {rule.id: rule.rate_limit.seconds for rule in rules},
             )
 
     def _group_by_rule_id(
-        self, notifications: list[PreparedNotification]
+        self,
+        notifications: list[PreparedNotification],
     ) -> dict[NotificationRuleId, list[PreparedNotification]]:
         grouped = defaultdict(list)
         for notification in notifications:
@@ -316,17 +328,20 @@ class SelectAndSend:
         return grouped
 
     async def _send_group(
-        self, rule: NotificationRule, notifications: list[PreparedNotification]
+        self,
+        rule: NotificationRule,
+        notifications: list[PreparedNotification],
     ) -> list[Fingerprint]:
         """Send and return list of successfully sent fingerprints."""
         logger.info(
             "Sending batch",
             sink=rule.connection,
-            total=len(notifications)
+            total=len(notifications),
         )
         channel = self.channel_factory.create(rule.connection)
         message = self.builder.render_merge(
-            rule.message_template, notifications
+            rule.message_template,
+            notifications,
         )
         try:
             await channel.send(message)
@@ -334,7 +349,7 @@ class SelectAndSend:
             logger.exception(
                 "Failed to send notification group for rule",
                 rule=rule,
-                exc=exc
+                exc=exc,
             )
             return []
         else:

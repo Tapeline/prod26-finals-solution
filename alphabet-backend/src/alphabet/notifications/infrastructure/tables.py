@@ -1,10 +1,6 @@
 from sqlalchemy import (
-    Boolean,
     Column,
     DateTime,
-    Double,
-    Enum,
-    ForeignKey,
     Integer,
     String,
     Table,

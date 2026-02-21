@@ -351,9 +351,7 @@ class ApproveDraft:
                 raise NotAllowed
             await self.experiments.save(experiment)
             if decision:
-                await self.notifier.notify_experiment_state_changed(
-                    experiment
-                )
+                await self.notifier.notify_experiment_state_changed(experiment)
             return decision
 
     async def _accept(

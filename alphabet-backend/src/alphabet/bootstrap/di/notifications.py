@@ -1,30 +1,36 @@
-from typing import AsyncIterable
+from collections.abc import AsyncIterable
 
 from dishka import Provider, Scope, provide, provide_all
 
 from alphabet.notifications.application.interactors import (
     CreateNotificationRule,
     DeleteNotificationRule,
+    PublishNotification,
     ReadAllNotificationRule,
     ReadNotificationRule,
-    UpdateNotificationRule, SelectAndSend, PublishNotification,
+    SelectAndSend,
+    UpdateNotificationRule,
 )
-from alphabet.notifications.application.interfaces import \
-    (
-    NotificationRuleRepository, PreparedNotificationQueue,
-    NotificationCooldownStore, NotificationChannelFactory,
+from alphabet.notifications.application.interfaces import (
     GroupedNotificationBuilder,
+    NotificationChannelFactory,
+    NotificationCooldownStore,
+    NotificationRuleRepository,
+    PreparedNotificationQueue,
 )
-from alphabet.notifications.infrastructure.channels.factory import \
-    DefaultNotificationChannelFactory
-from alphabet.notifications.infrastructure.repo import \
-    (
-    SqlNotificationRuleRepository, SqlPreparedNotificationQueue,
+from alphabet.notifications.infrastructure.channels.factory import (
+    DefaultNotificationChannelFactory,
 )
-from alphabet.notifications.infrastructure.templating import \
-    JinjaGroupedNotificationBuilder
-from alphabet.notifications.infrastructure.valkey import \
-    ValkeyNotificationCooldownStore
+from alphabet.notifications.infrastructure.repo import (
+    SqlNotificationRuleRepository,
+    SqlPreparedNotificationQueue,
+)
+from alphabet.notifications.infrastructure.templating import (
+    JinjaGroupedNotificationBuilder,
+)
+from alphabet.notifications.infrastructure.valkey import (
+    ValkeyNotificationCooldownStore,
+)
 from alphabet.shared.config import Config
 
 
@@ -63,12 +69,13 @@ class NotificationsWorkerDIProvider(Provider):
     jinja_templater = provide(
         JinjaGroupedNotificationBuilder,
         provides=GroupedNotificationBuilder,
-        scope=Scope.APP
+        scope=Scope.APP,
     )
 
     @provide(scope=Scope.APP)
     async def provide_factory(
-        self, config: Config
+        self,
+        config: Config,
     ) -> AsyncIterable[NotificationChannelFactory]:
         factory = DefaultNotificationChannelFactory(config)
         yield factory

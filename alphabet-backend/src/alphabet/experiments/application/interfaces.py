@@ -151,6 +151,7 @@ class ExperimentChangeNotifier(Protocol):
 
     @abstractmethod
     async def notify_experiment_state_changed(
-        self, experiment: Experiment,
+        self,
+        experiment: Experiment,
     ) -> None:
         raise NotImplementedError

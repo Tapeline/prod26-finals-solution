@@ -1,4 +1,4 @@
-from typing import Any, cast, override, assert_never
+from typing import Any, assert_never, cast, override
 
 from sqlalchemy import (
     delete,
@@ -6,13 +6,14 @@ from sqlalchemy import (
     select,
     update,
 )
-from sqlalchemy.engine import Row
 from sqlalchemy.dialects.postgresql import insert as pg_insert
+from sqlalchemy.engine import Row
 
 from alphabet.experiments.domain.experiment import ExperimentId
 from alphabet.guardrails.domain import GuardRuleId
 from alphabet.notifications.application.interfaces import (
-    NotificationRuleRepository, PreparedNotificationQueue,
+    NotificationRuleRepository,
+    PreparedNotificationQueue,
 )
 from alphabet.notifications.domain.notifications import (
     AnyExperimentTrigger,
@@ -52,7 +53,7 @@ class SqlNotificationRuleRepository(NotificationRuleRepository):
                 ),
                 message_template=rule.message_template,
                 rate_limit_s=rule.rate_limit.seconds,
-            )
+            ),
         )
 
     @override
@@ -70,16 +71,18 @@ class SqlNotificationRuleRepository(NotificationRuleRepository):
                 ),
                 message_template=rule.message_template,
                 rate_limit_s=rule.rate_limit.seconds,
-            )
+            ),
         )
 
     @override
     async def get_by_id(
-        self, rule_id: NotificationRuleId
+        self,
+        rule_id: NotificationRuleId,
     ) -> NotificationRule | None:
         result = await self.session.execute(
-            select(notification_rules)
-            .where(notification_rules.c.id == rule_id)
+            select(notification_rules).where(
+                notification_rules.c.id == rule_id,
+            ),
         )
         row = result.first()
         if not row:
@@ -88,19 +91,20 @@ class SqlNotificationRuleRepository(NotificationRuleRepository):
 
     @override
     async def get_by_ids(
-        self, ids: list[NotificationRuleId]
+        self,
+        ids: list[NotificationRuleId],
     ) -> list[NotificationRule]:
         if not ids:
             return []
         result = await self.session.execute(
-            select(notification_rules)
-            .where(notification_rules.c.id.in_(ids))
+            select(notification_rules).where(notification_rules.c.id.in_(ids)),
         )
         return list(map(_row_to_rule, result.all()))
 
     @override
     async def all(
-        self, pagination: Pagination | None
+        self,
+        pagination: Pagination | None,
     ) -> list[NotificationRule]:
         query = select(notification_rules)
         if pagination:
@@ -110,11 +114,13 @@ class SqlNotificationRuleRepository(NotificationRuleRepository):
 
     @override
     async def all_of_trigger_type(
-        self, trigger_type: str
+        self,
+        trigger_type: str,
     ) -> list[NotificationRule]:
         result = await self.session.execute(
-            select(notification_rules)
-            .where(notification_rules.c.trigger_type == trigger_type)
+            select(notification_rules).where(
+                notification_rules.c.trigger_type == trigger_type,
+            ),
         )
         return list(map(_row_to_rule, result.all()))
 
@@ -122,8 +128,8 @@ class SqlNotificationRuleRepository(NotificationRuleRepository):
     async def delete(self, rule_id: NotificationRuleId) -> None:
         await self.session.execute(
             delete(notification_rules).where(
-                notification_rules.c.id == rule_id
-            )
+                notification_rules.c.id == rule_id,
+            ),
         )
 
 
@@ -151,7 +157,7 @@ def _row_to_rule(row: Row[Any]) -> NotificationRule:
         case _:
             raise ValueError(
                 f"Unknown trigger stored "
-                f"{row.trigger_type}:{row.trigger_resource}"
+                f"{row.trigger_type}:{row.trigger_resource}",
             )
     return NotificationRule(
         id=NotificationRuleId(row.id),
@@ -168,7 +174,8 @@ class SqlPreparedNotificationQueue(PreparedNotificationQueue):
 
     @override
     async def push_all(
-        self, notifications: list[PreparedNotification]
+        self,
+        notifications: list[PreparedNotification],
     ) -> None:
         if not notifications:
             return
@@ -181,13 +188,13 @@ class SqlPreparedNotificationQueue(PreparedNotificationQueue):
                     "issued_at": notification.issued_at,
                 }
                 for notification in notifications
-            ]
+            ],
         )
         await self.session.execute(
             stmt.on_conflict_do_update(
                 index_elements=["fingerprint"],
                 set_={"issued_at": stmt.excluded.issued_at},
-            )
+            ),
         )
 
     @override
@@ -200,8 +207,9 @@ class SqlPreparedNotificationQueue(PreparedNotificationQueue):
         if not fingerprints:
             return
         await self.session.execute(
-            delete(prepared_notifications)
-            .where(prepared_notifications.c.fingerprint.in_(fingerprints))
+            delete(prepared_notifications).where(
+                prepared_notifications.c.fingerprint.in_(fingerprints),
+            ),
         )
 
 

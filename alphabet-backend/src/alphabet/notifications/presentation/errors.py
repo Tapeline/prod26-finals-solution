@@ -2,12 +2,13 @@ from types import MappingProxyType
 from typing import Final
 
 from alphabet.notifications.application.exceptions import (
-    RuleNotFound,
     FailedToSend,
+    RuleNotFound,
 )
 from alphabet.notifications.domain.exceptions import (
     InvalidConnectionString,
-    InvalidTrigger, InvalidRatelimit,
+    InvalidRatelimit,
+    InvalidTrigger,
 )
 from alphabet.shared.presentation.framework.errors import infer_code
 
@@ -18,5 +19,5 @@ notification_err_handlers: Final = MappingProxyType(
         InvalidConnectionString: (400, infer_code),
         InvalidRatelimit: (400, infer_code),
         InvalidTrigger: (400, infer_code),
-    }
+    },
 )

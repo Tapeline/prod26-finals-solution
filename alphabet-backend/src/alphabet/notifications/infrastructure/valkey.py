@@ -1,9 +1,11 @@
-from typing import final, override, Collection
+from collections.abc import Collection
+from typing import final, override
 
 from redis.asyncio import Redis
 
-from alphabet.notifications.application.interfaces import \
-    NotificationCooldownStore
+from alphabet.notifications.application.interfaces import (
+    NotificationCooldownStore,
+)
 from alphabet.notifications.domain.notifications import NotificationRuleId
 from alphabet.shared.commons import autoinit
 
@@ -15,7 +17,8 @@ class ValkeyNotificationCooldownStore(NotificationCooldownStore):
 
     @override
     async def filter_in_cooldown(
-        self, rule_ids: Collection[NotificationRuleId]
+        self,
+        rule_ids: Collection[NotificationRuleId],
     ) -> set[NotificationRuleId]:
         if not rule_ids:
             return set()
@@ -26,13 +29,14 @@ class ValkeyNotificationCooldownStore(NotificationCooldownStore):
             results = await pipe.execute()
         return {
             rule_id
-            for rule_id, exists in zip(rule_ids, results)
+            for rule_id, exists in zip(rule_ids, results, strict=True)
             if exists
         }
 
     @override
     async def place_cooldowns(
-        self, cooldowns_s: dict[NotificationRuleId, int]
+        self,
+        cooldowns_s: dict[NotificationRuleId, int],
     ) -> None:
         if not cooldowns_s:
             return

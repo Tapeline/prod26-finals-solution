@@ -17,7 +17,8 @@ from alphabet.experiments.domain.experiment import (
 from alphabet.guardrails.application.exceptions import GuardRuleNotFound
 from alphabet.guardrails.application.interfaces import (
     AuditLog,
-    GuardRuleRepository, GuardrailNotifier,
+    GuardrailNotifier,
+    GuardRuleRepository,
 )
 from alphabet.guardrails.domain import (
     AuditRecord,

@@ -3,15 +3,17 @@ from typing import final, override
 from aiogram import Bot
 from structlog import getLogger
 
-from alphabet.notifications.application.interfaces import \
-    (
-    NotificationChannelFactory, NotificationChannel,
+from alphabet.notifications.application.interfaces import (
+    NotificationChannel,
+    NotificationChannelFactory,
 )
 from alphabet.notifications.domain.notifications import ConnectionString
-from alphabet.notifications.infrastructure.channels.smtp import \
-    EmailNotificationChannel
-from alphabet.notifications.infrastructure.channels.telegram import \
-    TelegramNotificationChannel
+from alphabet.notifications.infrastructure.channels.smtp import (
+    EmailNotificationChannel,
+)
+from alphabet.notifications.infrastructure.channels.telegram import (
+    TelegramNotificationChannel,
+)
 from alphabet.shared.commons import autoinit
 from alphabet.shared.config import Config
 
@@ -35,9 +37,7 @@ class DefaultNotificationChannelFactory(NotificationChannelFactory):
             await self.bot.session.close()
 
     @override
-    def create(
-        self, connection: ConnectionString
-    ) -> NotificationChannel:
+    def create(self, connection: ConnectionString) -> NotificationChannel:
         match connection.integration:
             case "email":
                 if not self.config.notifications.smtp.is_set_up:
@@ -48,7 +48,7 @@ class DefaultNotificationChannelFactory(NotificationChannelFactory):
                     return FallbackNotificationChannel()
                 return EmailNotificationChannel(
                     recipient_email=connection.resource,
-                    config=self.config.notifications.smtp
+                    config=self.config.notifications.smtp,
                 )
             case "tg":
                 if not self.bot:
@@ -59,7 +59,7 @@ class DefaultNotificationChannelFactory(NotificationChannelFactory):
                     return FallbackNotificationChannel()
                 return TelegramNotificationChannel(
                     chat_id=connection.resource,
-                    bot=self.bot
+                    bot=self.bot,
                 )
             case _:
                 logger.error(
@@ -75,5 +75,5 @@ class FallbackNotificationChannel(NotificationChannel):
     async def send(self, message: str) -> None:
         logger.warning(
             "Notification lost due to fallback",
-            message_preview=message[:100]
+            message_preview=message[:100],
         )

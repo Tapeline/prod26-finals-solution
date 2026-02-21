@@ -1,12 +1,13 @@
 from abc import abstractmethod
 from collections.abc import Collection
-from datetime import datetime
 from typing import Protocol
 
 from alphabet.notifications.domain.notifications import (
+    ConnectionString,
+    Fingerprint,
     NotificationRule,
-    NotificationRuleId, PreparedNotification, Fingerprint, ConnectionString,
-    Ratelimit,
+    NotificationRuleId,
+    PreparedNotification,
 )
 from alphabet.shared.application.pagination import Pagination
 
@@ -22,20 +23,23 @@ class NotificationRuleRepository(Protocol):
 
     @abstractmethod
     async def get_by_id(
-        self, rule_id: NotificationRuleId
+        self,
+        rule_id: NotificationRuleId,
     ) -> NotificationRule | None:
         raise NotImplementedError
 
     @abstractmethod
     async def all(
-        self, pagination: Pagination | None
+        self,
+        pagination: Pagination | None,
     ) -> list[NotificationRule]:
         raise NotImplementedError
 
     # questionable, but needed for performance
     @abstractmethod
     async def all_of_trigger_type(
-        self, trigger_type: str
+        self,
+        trigger_type: str,
     ) -> list[NotificationRule]:
         raise NotImplementedError
 
@@ -45,7 +49,8 @@ class NotificationRuleRepository(Protocol):
 
     @abstractmethod
     async def get_by_ids(
-        self, ids: list[NotificationRuleId]
+        self,
+        ids: list[NotificationRuleId],
     ) -> list[NotificationRule]:
         raise NotImplementedError
 
@@ -53,7 +58,8 @@ class NotificationRuleRepository(Protocol):
 class PreparedNotificationQueue(Protocol):
     @abstractmethod
     async def push_all(
-        self, notifications: list[PreparedNotification]
+        self,
+        notifications: list[PreparedNotification],
     ) -> None:
         raise NotImplementedError
 
@@ -74,16 +80,16 @@ class NotificationChannel(Protocol):
 
 class NotificationChannelFactory(Protocol):
     @abstractmethod
-    def create(
-        self, connection: ConnectionString
-    ) -> NotificationChannel:
+    def create(self, connection: ConnectionString) -> NotificationChannel:
         raise NotImplementedError
 
 
 class GroupedNotificationBuilder(Protocol):
     @abstractmethod
     def render_merge(
-        self, template: str, notifications: list[PreparedNotification]
+        self,
+        template: str,
+        notifications: list[PreparedNotification],
     ) -> str:
         raise NotImplementedError
 
@@ -91,12 +97,14 @@ class GroupedNotificationBuilder(Protocol):
 class NotificationCooldownStore(Protocol):
     @abstractmethod
     async def filter_in_cooldown(
-        self, rule_ids: Collection[NotificationRuleId]
+        self,
+        rule_ids: Collection[NotificationRuleId],
     ) -> set[NotificationRuleId]:
         raise NotImplementedError
 
     @abstractmethod
     async def place_cooldowns(
-        self, cooldowns_s: dict[NotificationRuleId, int]
+        self,
+        cooldowns_s: dict[NotificationRuleId, int],
     ) -> None:
         raise NotImplementedError

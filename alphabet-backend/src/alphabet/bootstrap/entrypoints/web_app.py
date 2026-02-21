@@ -56,10 +56,12 @@ from alphabet.guardrails.presentation.errors import guardrail_err_handlers
 from alphabet.metrics.presentation.errors import metrics_err_handlers
 from alphabet.metrics.presentation.metrics import MetricsController
 from alphabet.metrics.presentation.reports import ReportsController
-from alphabet.notifications.presentation.controller import \
-    NotificationRulesController
-from alphabet.notifications.presentation.errors import \
-    notification_err_handlers
+from alphabet.notifications.presentation.controller import (
+    NotificationRulesController,
+)
+from alphabet.notifications.presentation.errors import (
+    notification_err_handlers,
+)
 from alphabet.shared.config import Config
 from alphabet.shared.domain.exceptions import NotAuthenticated
 from alphabet.shared.presentation.framework.errors import (

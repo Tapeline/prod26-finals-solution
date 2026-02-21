@@ -27,7 +27,6 @@ from alphabet.bootstrap.di.shared import (
     ValkeyDIProvider,
 )
 from alphabet.bootstrap.logging import configure_structlog
-from alphabet.guardrails.infrastructure.worker import GuardrailWorker
 from alphabet.notifications.infrastructure.worker import NotificationWorker
 from alphabet.shared.config import Config
 

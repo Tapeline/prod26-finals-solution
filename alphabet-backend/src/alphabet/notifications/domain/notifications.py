@@ -1,12 +1,13 @@
 import re
 from datetime import datetime
-from typing import final, NewType, Final, override
+from typing import Final, NewType, final, override
 
 from alphabet.experiments.domain.experiment import ExperimentId
 from alphabet.guardrails.domain import GuardRuleId
 from alphabet.notifications.domain.exceptions import (
     InvalidConnectionString,
-    InvalidRatelimit, InvalidTrigger,
+    InvalidRatelimit,
+    InvalidTrigger,
 )
 from alphabet.shared.commons import entity, value_object
 
@@ -47,6 +48,7 @@ def construct_trigger(dsl: str) -> Trigger:
 
 
 _CONN_STRING_RE: Final = re.compile("[A-Za-z0-9_-]+://.*")
+
 
 @final
 class ConnectionString:
@@ -96,4 +98,3 @@ class PreparedNotification:
     rule_id: NotificationRuleId
     meta: dict[str, str]
     issued_at: datetime
-
