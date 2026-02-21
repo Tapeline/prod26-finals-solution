@@ -2,20 +2,22 @@ from collections.abc import Sequence
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
-from litestar import Controller, post, get
+from litestar import Controller, get, post
 from msgspec import Struct
 
 from alphabet.decisions.application import (
     MakeDecision,
-    ReadConflictsByExperiment, ReadConflictsByDomain,
+    ReadConflictsByDomain,
+    ReadConflictsByExperiment,
 )
 from alphabet.experiments.domain.experiment import (
+    ConflictDomain,
     ConflictPolicy,
-    ExperimentId, ConflictDomain,
+    ExperimentId,
 )
 from alphabet.shared.presentation.framework.openapi import (
-    success_spec,
     RESPONSE_NOT_AUTHENTICATED,
+    success_spec,
 )
 from alphabet.shared.presentation.openapi import security_defs
 
@@ -84,11 +86,12 @@ class DecisionsController(Controller):
             200: success_spec("Retrieved.", ConflictsByExperimentResponse),
             **RESPONSE_NOT_AUTHENTICATED,
         },
-        security=security_defs
+        security=security_defs,
     )
     @inject
     async def get_conflicts_by_experiment(
-        self, exp_id: str,
+        self,
+        exp_id: str,
         interactor: FromDishka[ReadConflictsByExperiment],
     ) -> ConflictsByExperimentResponse:
         dto = await interactor(ExperimentId(exp_id))
@@ -103,15 +106,16 @@ class DecisionsController(Controller):
             200: success_spec("Retrieved.", ConflictsByDomainResponse),
             **RESPONSE_NOT_AUTHENTICATED,
         },
-        security=security_defs
+        security=security_defs,
     )
     @inject
     async def get_conflicts_by_domain(
-        self, domain: str,
-        interactor: FromDishka[ReadConflictsByDomain]
+        self,
+        domain: str,
+        interactor: FromDishka[ReadConflictsByDomain],
     ) -> ConflictsByDomainResponse:
         per_experiment = await interactor(ConflictDomain(domain))
         return ConflictsByDomainResponse(
             total=sum(per_experiment.values()),
-            per_experiment=per_experiment
+            per_experiment=per_experiment,
         )

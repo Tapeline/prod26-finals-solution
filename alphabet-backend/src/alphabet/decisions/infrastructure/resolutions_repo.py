@@ -1,5 +1,5 @@
 import asyncio
-from typing import override, final
+from typing import final, override
 
 from clickhouse_connect.driver import AsyncClient
 from structlog import getLogger
@@ -7,7 +7,9 @@ from structlog import getLogger
 from alphabet.decisions.application import ResolutionRepository
 from alphabet.decisions.domain import ConflictResolution
 from alphabet.experiments.domain.experiment import (
-    ConflictPolicy, ExperimentId, ConflictDomain,
+    ConflictDomain,
+    ConflictPolicy,
+    ExperimentId,
 )
 from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.config import Config
@@ -49,12 +51,13 @@ class ClickHouseResolutionRepository(ResolutionRepository):
 
     @override
     async def count_conflicts_by_domain(
-        self, domain: ConflictDomain
+        self,
+        domain: ConflictDomain,
     ) -> dict[ExperimentId, int]:
         rows = await self.click.query(
             """
-            SELECT 
-                experiment_id, 
+            SELECT
+                experiment_id,
                 count() as cnt
             FROM conflict_resolutions
             WHERE domain = %(domain)s
@@ -63,13 +66,13 @@ class ClickHouseResolutionRepository(ResolutionRepository):
             parameters={"domain": domain.value},
         )
         return {
-            ExperimentId(exp_id): count
-            for exp_id, count in rows.result_rows
+            ExperimentId(exp_id): count for exp_id, count in rows.result_rows
         }
 
     @override
     async def count_conflicts_by_experiment(
-        self, experiment_id: str
+        self,
+        experiment_id: str,
     ) -> tuple[dict[ConflictPolicy, int], dict[ConflictPolicy, int]]:
         rows = await self.click.query(
             """
@@ -81,7 +84,7 @@ class ClickHouseResolutionRepository(ResolutionRepository):
             WHERE experiment_id = %(exp_id)s
             GROUP BY policy, was_applied
             """,
-            parameters={"exp_id": experiment_id}
+            parameters={"exp_id": experiment_id},
         )
         wins: dict[ConflictPolicy, int] = {}
         losses: dict[ConflictPolicy, int] = {}
@@ -89,7 +92,7 @@ class ClickHouseResolutionRepository(ResolutionRepository):
             try:
                 policy = ConflictPolicy(policy_str)
             except ValueError:
-                self.logger.warning(f"Unknown policy in DB: {policy_str}")
+                self.logger.warning("Unknown policy in DB", policy=policy_str)
                 continue
             if was_applied == 1:
                 wins[policy] = count
@@ -121,7 +124,7 @@ class ClickHouseResolutionRepository(ResolutionRepository):
                     resolution.domain,
                     resolution.experiment_id,
                     resolution.policy.value,
-                    1 if resolution.experiment_applied else 0
+                    1 if resolution.experiment_applied else 0,
                 ]
                 for resolution in self._buf
             ],
@@ -130,8 +133,8 @@ class ClickHouseResolutionRepository(ResolutionRepository):
                 "domain",
                 "experiment_id",
                 "policy",
-                "was_applied"
-            ]
+                "was_applied",
+            ],
         )
         self._buf.clear()
         self._last_flush = now

@@ -52,8 +52,8 @@ class EventTypeResponse(Struct):
     requires_attribution: str | None
     is_archived: bool
 
-    @staticmethod
-    def from_event_type(event_type: EventType) -> "EventTypeResponse":
+    @classmethod
+    def from_event_type(cls, event_type: EventType) -> "EventTypeResponse":
         return EventTypeResponse(
             id=event_type.id.value,
             name=event_type.name,
@@ -82,8 +82,11 @@ class ReceiveEventsResponse(Struct):
     duplicate_count: int
     errors: dict[int, str]
 
-    @staticmethod
-    def from_result(result: IncomingEventsResult) -> "ReceiveEventsResponse":
+    @classmethod
+    def from_result(
+        cls,
+        result: IncomingEventsResult,
+    ) -> "ReceiveEventsResponse":
         return ReceiveEventsResponse(
             ok_count=result.ok_count,
             duplicate_count=result.duplicate_count,
