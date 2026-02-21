@@ -13,6 +13,12 @@ from alphabet.experiments.application.interfaces import (
 )
 from alphabet.experiments.domain.experiment import Experiment
 from alphabet.experiments.domain.flags import FlagKey
+from alphabet.guardrails.application.interfaces import GuardrailNotifier
+from alphabet.guardrails.domain import AuditRecord
+from alphabet.notifications.application.interactors import (
+    PublishNotification,
+    ExperimentEvent, GuardrailEvent,
+)
 from alphabet.shared.commons import autoinit
 from alphabet.subject_events.application.interfaces import (
     EventTypeCache,
@@ -27,6 +33,7 @@ class InstantNotifier(
     ExperimentChangeNotifier,
     FlagChangeNotifier,
     EventTypeChangeNotifier,
+    GuardrailNotifier,
 ):
     """
     A harsh MQ mock for now that interconnects modules.
@@ -82,3 +89,17 @@ class InstantNotifier(
     async def notify_event_type_created(self, event_type: EventType) -> None:
         async with self.container() as nested:
             (await nested.get(EventTypeCache)).place_event_types([event_type])
+
+    @override
+    async def notify_experiment_state_changed(
+        self, experiment: Experiment
+    ) -> None:
+        async with self.container() as nested:
+            publisher = (await nested.get(PublishNotification))
+            await publisher(ExperimentEvent(experiment))
+
+    @override
+    async def notify_rule_triggered(self, outcome: AuditRecord) -> None:
+        async with self.container() as nested:
+            publisher = (await nested.get(PublishNotification))
+            await publisher(GuardrailEvent(outcome))

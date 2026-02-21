@@ -2,37 +2,35 @@
 
 ## Спецификация языка подключений к каналам связи
 
-```ebnf
+=== "EBNF"
 
-connection-string ::= 
-    integration-type "://" 
-    [ auth-string "@" ] 
-    resource-string 
-    [ param-list ]
+    ```ebnf
+    
+    connection-string ::= 
+        integration-type "://" 
+        resource-string
+    
+    integration-type ::= regex [A-Za-z-_]+
+    
+    resource-string ::= regex .*
+    
+    ```
 
-integration-type ::= regex [A-Za-z-_]+
+=== "Примеры"
 
-auth-string ::= urlencoded string
+    - Отослать в телеграм чат команды:
+        
+        `tg://-10003942345`
 
-resource-string ::= urlencoded string
+    - Уведомить заинтересованное лицо по почте:
 
-param-list ::=
-    "?" param-name "=" param-value { "&" param-name "=" param-value }
-
-param-name ::= urlencoded string
-
-param-value ::= urlencoded string
-
-```
+        `email://external-reviewer@myconsulting.com`
+    
 
 В рамках MVP поддерживаются `integration-type`:
 
 - `tg` — Телеграм
 - `email` — Email через SMTP
-
-!!! note
-    `auth-string`, `resource-string`, `param-name`, `param-value` могут содержать
-    любой текст. Интерпретация возложена на реализацию конкретной интеграции.
 
 ## Спецификация языка триггеров
 
@@ -57,3 +55,27 @@ experiment-id ::=
 !!! see-also
     [Метаязык DSL](metalang.md)
 
+## Спецификация шаблонов сообщений
+
+Шаблоны сообщений используют язык Jinja.
+
+Доступные параметры контекста:
+
+== "experiment_lifecycle"
+    
+    - `state` — новое состояние эксперимента
+    - `id` — ID эксперимента
+
+== "guardrail"
+
+    - `audit_id` — ID записи аудита
+    - `rule_id` — ID сработавшего правила
+    - `fired_at` — время срабатывания
+    - `experiment_id` — ID эксперимента
+    - `metric_key` — ID записи аудита
+    - `metric_value` — ID записи аудита
+    - `taken_action` — действие guardrail на эксперимент (`pause`, `force_control`)
+
+== "Для всех"
+
+    - `iat` — время выпуска уведомления в формате ISO

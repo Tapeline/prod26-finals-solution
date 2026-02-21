@@ -205,6 +205,7 @@ class SendToReview:
     tx: TransactionManager
     experiments: ExperimentsRepository
     reviews: ReviewRepository
+    notifier: ExperimentChangeNotifier
 
     async def __call__(self, exp_id: ExperimentId) -> Experiment:
         async with self.tx:
@@ -218,6 +219,7 @@ class SendToReview:
             experiment.state = ExperimentState.IN_REVIEW
             await self.reviews.revoke_all_approvals(experiment.id)
             await self.experiments.save(experiment)
+            await self.notifier.notify_experiment_state_changed(experiment)
             return experiment
 
 
@@ -229,6 +231,7 @@ class RestoreFromRejected:
     time_provider: TimeProvider
     tx: TransactionManager
     experiments: ExperimentsRepository
+    notifier: ExperimentChangeNotifier
 
     async def __call__(self, exp_id: ExperimentId) -> Experiment:
         async with self.tx:
@@ -241,6 +244,7 @@ class RestoreFromRejected:
                 raise NoSuchExperiment
             experiment.state = ExperimentState.DRAFT
             await self.experiments.save(experiment)
+            await self.notifier.notify_experiment_state_changed(experiment)
             return experiment
 
 
@@ -254,6 +258,7 @@ class RejectDraft:
     tx: TransactionManager
     experiments: ExperimentsRepository
     reviews: ReviewRepository
+    notifier: ExperimentChangeNotifier
 
     async def __call__(
         self,
@@ -291,7 +296,7 @@ class RejectDraft:
             )
             await self.reviews.save_decision(decision)
             await self.experiments.save(experiment)
-            # send a notification
+            await self.notifier.notify_experiment_state_changed(experiment)
             return decision
 
 
@@ -305,6 +310,7 @@ class ApproveDraft:
     tx: TransactionManager
     experiments: ExperimentsRepository
     reviews: ReviewRepository
+    notifier: ExperimentChangeNotifier
 
     async def __call__(
         self,
@@ -344,6 +350,10 @@ class ApproveDraft:
             else:
                 raise NotAllowed
             await self.experiments.save(experiment)
+            if decision:
+                await self.notifier.notify_experiment_state_changed(
+                    experiment
+                )
             return decision
 
     async def _accept(
@@ -387,6 +397,7 @@ class StartExperiment:
             experiment.updated_at = self.time_provider.now()
             await self.experiments.save(experiment)
         await self.notifier.notify_experiment_activated(experiment)
+        await self.notifier.notify_experiment_state_changed(experiment)
         return experiment
 
 
@@ -417,6 +428,7 @@ class ManageRunningExperiment:
             await self.notifier.notify_experiment_activated(experiment)
         else:
             await self.notifier.notify_experiment_deactivated(experiment)
+        await self.notifier.notify_experiment_state_changed(experiment)
         return experiment
 
 
@@ -428,6 +440,7 @@ class ArchiveExperiment:
     tx: TransactionManager
     experiments: ExperimentsRepository
     time_provider: TimeProvider
+    notifier: ExperimentChangeNotifier
 
     async def __call__(
         self,
@@ -442,6 +455,7 @@ class ArchiveExperiment:
             experiment.updated_at = self.time_provider.now()
             experiment.archive(result)
             await self.experiments.save(experiment)
+            await self.notifier.notify_experiment_state_changed(experiment)
             return experiment
 
 

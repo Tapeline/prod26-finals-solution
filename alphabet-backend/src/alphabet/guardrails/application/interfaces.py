@@ -54,3 +54,9 @@ class AuditLog(Protocol):
         pagination: Pagination,
     ) -> list[AuditRecord]:
         raise NotImplementedError
+
+
+class GuardrailNotifier(Protocol):
+    @abstractmethod
+    async def notify_rule_triggered(self, outcome: AuditRecord) -> None:
+        raise NotImplementedError

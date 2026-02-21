@@ -50,12 +50,14 @@ TODO:
     - Save conflict metrics
     - Expose conflict metric query endpoints
 - Infra
+    - optimise DI (it's so messy now)
     - Get rid of instant notifier so we can use faststream
     - Add pgbouncer and such
     - Revise logging (add many many logs)
     - Add business-metrics to prometheus
     - Why does request id vanish from logs...
     - Embed request id into response headers
+    - Create internal endpoint instead of cli tool
 - Tests
     - Unit tests (idk how many and thorough)
     - Overall integration tests (idk how many and thorough)

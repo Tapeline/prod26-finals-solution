@@ -29,6 +29,10 @@ from alphabet.bootstrap.di.events import EventsDIProvider
 from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
 from alphabet.bootstrap.di.guardrails import GuardrailsDIProvider
 from alphabet.bootstrap.di.metrics import MetricsDIProvider
+from alphabet.bootstrap.di.notifications import (
+    NotificationsDIProvider,
+    NotificationsWorkerDIProvider,
+)
 from alphabet.bootstrap.di.shared import (
     ClickHouseDIProvider,
     ConfigDIProvider,
@@ -52,6 +56,10 @@ from alphabet.guardrails.presentation.errors import guardrail_err_handlers
 from alphabet.metrics.presentation.errors import metrics_err_handlers
 from alphabet.metrics.presentation.metrics import MetricsController
 from alphabet.metrics.presentation.reports import ReportsController
+from alphabet.notifications.presentation.controller import \
+    NotificationRulesController
+from alphabet.notifications.presentation.errors import \
+    notification_err_handlers
 from alphabet.shared.config import Config
 from alphabet.shared.domain.exceptions import NotAuthenticated
 from alphabet.shared.presentation.framework.errors import (
@@ -90,6 +98,8 @@ def _create_container(config: Config) -> AsyncContainer:
         DecisionsDIProvider(),
         EventsDIProvider(),
         GuardrailsDIProvider(),
+        NotificationsDIProvider(),
+        NotificationsWorkerDIProvider(),
         context={
             Config: config,
         },
@@ -122,6 +132,7 @@ def create_app() -> Litestar:
             MetricsController,
             ReportsController,
             GuardRulesController,
+            NotificationRulesController,
             LivenessReadinessController,
             CustomPrometheusController,
         ],
@@ -136,6 +147,7 @@ def create_app() -> Litestar:
                 **subject_events_err_handlers,  # type: ignore[dict-item]
                 **metrics_err_handlers,
                 **guardrail_err_handlers,  # type: ignore[dict-item]
+                **notification_err_handlers,  # type: ignore[dict-item]
                 NotAuthenticated: (401, infer_code),
             },
         ),

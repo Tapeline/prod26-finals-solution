@@ -17,7 +17,7 @@ from alphabet.experiments.domain.experiment import (
 from alphabet.guardrails.application.exceptions import GuardRuleNotFound
 from alphabet.guardrails.application.interfaces import (
     AuditLog,
-    GuardRuleRepository,
+    GuardRuleRepository, GuardrailNotifier,
 )
 from alphabet.guardrails.domain import (
     AuditRecord,
@@ -225,7 +225,8 @@ class RegularCheck:
     evaluator: MetricEvaluator
     time: TimeProvider
     metrics: MetricRepository
-    notifier: ExperimentChangeNotifier
+    exp_notifier: ExperimentChangeNotifier
+    guard_notifier: GuardrailNotifier
 
     async def __call__(self) -> None:
         # avoiding n+1, preloading everything in 3 queries
@@ -334,12 +335,12 @@ class RegularCheck:
             match rule.action:
                 case GuardAction.PAUSE:
                     fresh_experiment.state = ExperimentState.PAUSED
-                    await self.notifier.notify_experiment_deactivated(
+                    await self.exp_notifier.notify_experiment_deactivated(
                         fresh_experiment,
                     )
                 case GuardAction.FORCE_CONTROL:
                     fresh_experiment.state = ExperimentState.SECURITY_HALTED
-                    await self.notifier.notify_experiment_halted(
+                    await self.exp_notifier.notify_experiment_halted(
                         fresh_experiment,
                     )
                 case _:
@@ -361,4 +362,5 @@ class RegularCheck:
                 action=rule.action,
             )
             await self.audit_log.write(record)
+            await self.guard_notifier.notify_rule_triggered(record)
             await self.experiments.save(fresh_experiment)

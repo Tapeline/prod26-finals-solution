@@ -20,6 +20,7 @@ from alphabet.experiments.application.interfaces import (
     ExperimentChangeNotifier,
     FlagChangeNotifier,
 )
+from alphabet.guardrails.application.interfaces import GuardrailNotifier
 from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.config import AppConfig, Config
@@ -85,6 +86,7 @@ class MessageQueueErsatzDIProvider(Provider):
         ExperimentChangeNotifier,
         FlagChangeNotifier,
         EventTypeChangeNotifier,
+        GuardrailNotifier,
         InstantNotifier,
     ]:
         return InstantNotifier(container)

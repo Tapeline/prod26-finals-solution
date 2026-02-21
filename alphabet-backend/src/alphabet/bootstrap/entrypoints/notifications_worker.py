@@ -17,7 +17,7 @@ from alphabet.bootstrap.di.guardrails import (
 from alphabet.bootstrap.di.metrics import (
     OnlyMetircsDataDIProvider,
 )
-from alphabet.bootstrap.di.notifications import NotificationPublisherDIProvider
+from alphabet.bootstrap.di.notifications import NotificationsWorkerDIProvider
 from alphabet.bootstrap.di.shared import (
     ClickHouseDIProvider,
     ConfigDIProvider,
@@ -28,6 +28,7 @@ from alphabet.bootstrap.di.shared import (
 )
 from alphabet.bootstrap.logging import configure_structlog
 from alphabet.guardrails.infrastructure.worker import GuardrailWorker
+from alphabet.notifications.infrastructure.worker import NotificationWorker
 from alphabet.shared.config import Config
 
 
@@ -43,7 +44,7 @@ def _create_container(config: Config) -> AsyncContainer:
         OnlyExperimentRepoDIProvider(),
         OnlyMetircsDataDIProvider(),
         GuardrailWorkerDIProvider(),
-        NotificationPublisherDIProvider(),
+        NotificationsWorkerDIProvider(),
         context={
             Config: config,
         },
@@ -54,7 +55,7 @@ async def run_worker() -> None:
     config = service_config_loader.load()
     container = _create_container(config)
     configure_structlog(use_json=config.logging.use_json)
-    worker = GuardrailWorker(container, config.workers)
+    worker = NotificationWorker(container, config.workers)
 
     # thanks cursor for this suggestion
     shutdown_event = asyncio.Event()

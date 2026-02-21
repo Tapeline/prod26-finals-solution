@@ -6,6 +6,8 @@ readme = "README.md"
 requires-python = ">=3.13,<3.14"
 dependencies = [
     "adaptix>=3.0.0b11",
+    "aiogram>=3.25.0",
+    "aiosmtplib>=5.1.0",
     "alembic>=1.18.4",
     "click>=8.3.1",
     "clickhouse-connect[async]==0.12.0rc1",

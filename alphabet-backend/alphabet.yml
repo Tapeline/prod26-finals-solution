@@ -17,8 +17,19 @@ clickhouse:
   password: chpass
   database: default
 
+notifications:
+  smtp:
+    host: localhost
+    port: 1025
+    username: ""
+    password: ""
+    sender_email: "no-reply@alphabet.local"
+    use_tls: false
+  telegram:
+    token: "8495606136:AAEgJIWTnQ08sLiY8rNoXXCnOoDGgwgJshQ"
+
 app:
-  cooldown_experiment_threshold: 10
+  cooldown_experiment_threshold: 1
   cooldown_for_s: 15
 
 workers:

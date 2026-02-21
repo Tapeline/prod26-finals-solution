@@ -6,8 +6,9 @@ from tests import config
 import httpx
 from redis import Redis
 from clickhouse_connect import get_client
+from tenacity import retry, stop_after_delay, wait_fixed
 
-from tests.config import app_url, redis_args, click_args
+from tests.config import app_url, redis_args, click_args, mailpit_url
 
 
 @pytest.fixture(scope="session")
@@ -34,6 +35,8 @@ def clickhouse_client():
 @pytest.fixture(autouse=True)
 def clean_db(db_engine, redis_client, clickhouse_client):
     with db_engine.connect() as conn:
+        conn.execute(text("DELETE FROM prepared_notifications"))
+        conn.execute(text("DELETE FROM notification_rules"))
         conn.execute(text("DELETE FROM audit_log"))
         conn.execute(text("DELETE FROM guard_rules"))
         conn.execute(text("DELETE FROM reports"))
@@ -100,7 +103,6 @@ DEFAULT_ADMIN_LOGIN = {
     "X-User-Email": "admin@t.ru",
 }
 
-
 DEFAULT_EXPERIMENTER_LOGIN = {
     "X-User-Id": "exp",
     "X-User-Email": "exp@t.ru",
@@ -137,6 +139,7 @@ def get_user_from_db(db_engine):
             if result:
                 return result._mapping
             return None
+
     return _get
 
 
@@ -148,4 +151,46 @@ def get_user_by_email():
             params={"email": email},
             headers=headers
         )
+
     return _get
+
+
+class MailpitClient:
+    def __init__(self):
+        self.api_url = f"{mailpit_url}/api/v1"
+
+    def delete_all_messages(self):
+        httpx.delete(f"{self.api_url}/messages")
+
+    @retry(stop=stop_after_delay(5), wait=wait_fixed(0.5))
+    def assert_email_received(self, to_address: str, subject_contains: str):
+        # poll until receive
+        response = httpx.get(f"{self.api_url}/messages")
+        response.raise_for_status()
+        messages = response.json()["messages"]
+
+        for msg in messages:
+            recipients = [r["Address"] for r in msg["To"]]
+            if to_address in recipients and subject_contains in msg["Subject"]:
+                return msg
+
+        raise AssertionError(
+            f"Email to {to_address} with subject '{subject_contains}' not found."
+        )
+
+    def get_email_count(self) -> int:
+        response = httpx.get(f"{self.api_url}/messages").raise_for_status()
+        return response.json()["total"]
+
+    def get_message_body(self, message_id: str) -> str:
+        res = httpx.get(
+            f"{self.api_url}/message/{message_id}"
+        ).raise_for_status()
+        return res.json().get("Text", "")
+
+
+@pytest.fixture
+def mailpit():
+    client = MailpitClient()
+    client.delete_all_messages()
+    return client

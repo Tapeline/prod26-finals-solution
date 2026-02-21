@@ -1,6 +1,9 @@
+from typing import final
+
 from alphabet.shared.commons import dto
 
 
+@final
 @dto
 class PostgresPoolConfig:
     size: int = 25
@@ -8,6 +11,7 @@ class PostgresPoolConfig:
     timeout_s: int = 5
 
 
+@final
 @dto
 class PostgresConfig:
     username: str
@@ -18,11 +22,13 @@ class PostgresConfig:
     database: str = "alphabet"
 
 
+@final
 @dto
 class LoggingConfig:
     use_json: bool = False
 
 
+@final
 @dto
 class ValkeyConfig:
     host: str
@@ -32,6 +38,7 @@ class ValkeyConfig:
     database_id: int | None = None
 
 
+@final
 @dto
 class ClickHouseConfig:
     host: str
@@ -41,6 +48,7 @@ class ClickHouseConfig:
     database: str = "default"
 
 
+@final
 @dto
 class AppConfig:
     cooldown_experiment_threshold: int = 10
@@ -49,16 +57,51 @@ class AppConfig:
     event_deduplication_ttl_s: int = 60 * 60 * 24 * 7 + 1
 
 
+@final
 @dto
 class WorkersConfig:
     attribution_interval_s: int = 60
     guardrail_interval_s: int = 60
+    notification_interval_s: int = 15
 
 
+@final
 @dto
 class EventBufferConfig:
     size: int = 2000
     force_flush_interval_s: int = 5
+
+
+@final
+@dto
+class SmtpConfig:
+    host: str = ""
+    port: int = 0
+    username: str = ""
+    password: str = ""
+    sender_email: str = ""
+    subject: str = "Alphabet Platform Notification"
+    use_tls: bool = True
+
+    @property
+    def is_set_up(self) -> bool:
+        return not (not self.host or not self.port or not self.sender_email)
+
+@final
+@dto
+class TelegramConfig:
+    token: str = ""
+
+    @property
+    def is_set_up(self) -> bool:
+        return self.token != ""
+
+
+@final
+@dto
+class NotificationChannelsConfig:
+    smtp: SmtpConfig
+    telegram: TelegramConfig
 
 
 @dto
@@ -70,4 +113,5 @@ class Config:
     app: AppConfig
     workers: WorkersConfig
     event_buffer: EventBufferConfig
+    notifications: NotificationChannelsConfig
     is_debug: bool = True
