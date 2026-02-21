@@ -39,6 +39,13 @@ services:
       AB_VALKEY__HOST: valkey
       AB_CLICKHOUSE__HOST: clickhouse
       AB_LOGGING__USE_JSON: true
+    depends_on:
+      valkey:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+      clickhouse:
+        condition: service_healthy
 
   valkey:
     image: valkey/valkey:8.0
