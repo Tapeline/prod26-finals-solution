@@ -26,9 +26,12 @@ from alphabet.experiments.domain.dsl.dsl import compile_dsl
 from alphabet.experiments.domain.experiment import (
     ConflictPolicy,
     Experiment,
-    ExperimentState,
+    ExperimentState, ConflictDomain, ExperimentId,
 )
-from alphabet.shared.commons import interactor
+from alphabet.shared.application.idp import UserIdProvider
+from alphabet.shared.application.transaction import TransactionManager
+from alphabet.shared.application.user import UserReader, require_any_user
+from alphabet.shared.commons import interactor, dto
 from alphabet.shared.uuid import generate_uuid
 
 logger = getLogger(__name__)
@@ -114,6 +117,23 @@ class ResolutionRepository(Protocol):
         self,
         resolutions: list[ConflictResolution],
     ) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def count_conflicts_by_domain(
+        self, domain: ConflictDomain
+    ) -> dict[ExperimentId, int]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def count_conflicts_by_experiment(
+        self, experiment_id: ExperimentId
+    ) -> tuple[dict[ConflictPolicy, int], dict[ConflictPolicy, int]]:
+        """Returns wins/losses in conflicts."""
+        raise NotImplementedError
+
+    @abstractmethod
+    async def periodic_flush_routine(self) -> None:
         raise NotImplementedError
 
 
@@ -284,7 +304,7 @@ class MakeDecision:
                     experiment_applied=False,
                     policy=ConflictPolicy.ONE_OR_NONE,
                 )
-                for exp in conflicts
+                    for exp in conflicts
             )
             return None
         # HIGHER_PRIORITY: наименьший приоритет = победитель (ADR007)
@@ -305,7 +325,7 @@ class MakeDecision:
                 experiment_applied=(exp is winner),
                 policy=ConflictPolicy.HIGHER_PRIORITY,
             )
-            for exp in conflicts
+                for exp in conflicts
         )
         return winner
 
@@ -406,3 +426,44 @@ def cached_experiment_from_experiment(
             experiment.state == ExperimentState.SECURITY_HALTED
         ),
     )
+
+
+@final
+@interactor
+class ReadConflictsByDomain:
+    idp: UserIdProvider
+    user_reader: UserReader
+    resolutions: ResolutionRepository
+
+    async def __call__(
+        self, domain: ConflictDomain
+    ) -> dict[ExperimentId, int]:
+        await require_any_user(self)
+        return await self.resolutions.count_conflicts_by_domain(domain)
+
+
+@final
+@dto
+class ExperimentConflictsDTO:
+    wins: dict[ConflictPolicy, int]
+    losses: dict[ConflictPolicy, int]
+
+
+@final
+@interactor
+class ReadConflictsByExperiment:
+    idp: UserIdProvider
+    user_reader: UserReader
+    resolutions: ResolutionRepository
+
+    async def __call__(
+        self, experiment_id: ExperimentId
+    ) -> ExperimentConflictsDTO:
+        await require_any_user(self)
+        wins, losses = await self.resolutions.count_conflicts_by_experiment(
+            experiment_id
+        )
+        return ExperimentConflictsDTO(
+            wins=wins,
+            losses=losses,
+        )

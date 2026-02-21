@@ -54,6 +54,7 @@ def clean_db(db_engine, redis_client, clickhouse_client):
     clickhouse_client.command("TRUNCATE TABLE events")
     clickhouse_client.command("TRUNCATE TABLE discarded_events")
     clickhouse_client.command("TRUNCATE TABLE duplicate_events")
+    clickhouse_client.command("TRUNCATE TABLE conflict_resolutions")
 
 
 @pytest.fixture

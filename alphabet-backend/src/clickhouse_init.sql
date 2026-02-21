@@ -43,3 +43,14 @@ CREATE TABLE IF NOT EXISTS duplicate_events (
     wants_event_type Nullable(String)
 ) ENGINE = MergeTree()
 ORDER BY (event_type, decision_id, id);
+
+CREATE TABLE IF NOT EXISTS conflict_resolutions (
+    timestamp DateTime CODEC(Delta, ZSTD(1)),
+    domain String CODEC(ZSTD(1)),
+    experiment_id String CODEC(ZSTD(1)),
+    policy String CODEC(ZSTD(1)),
+    was_applied UInt8
+)
+ENGINE = MergeTree()
+PARTITION BY toYYYYMM(timestamp)
+ORDER BY (domain, experiment_id, timestamp);

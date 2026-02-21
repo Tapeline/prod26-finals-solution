@@ -8,7 +8,7 @@ from alphabet.decisions.application import (
     ResolutionRepository,
     SetFlagDefault,
     SetRunningExperimentOnFlag,
-    WarmUpStorages,
+    WarmUpStorages, ReadConflictsByExperiment, ReadConflictsByDomain,
 )
 from alphabet.decisions.infrastructure.resolutions_repo import (
     ClickHouseResolutionRepository,
@@ -26,6 +26,8 @@ class DecisionsDIProvider(Provider):
         SetFlagDefault,
         SetRunningExperimentOnFlag,
         WarmUpStorages,
+        ReadConflictsByExperiment,
+        ReadConflictsByDomain,
         scope=Scope.REQUEST,
     )
     flag_store = provide(
@@ -46,7 +48,7 @@ class DecisionsDIProvider(Provider):
     resolutions_repo = provide(
         ClickHouseResolutionRepository,
         provides=ResolutionRepository,
-        scope=Scope.REQUEST,
+        scope=Scope.APP,
     )
 
 

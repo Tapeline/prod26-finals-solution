@@ -40,3 +40,7 @@ workers:
 event_buffer:
   size: 2000
   force_flush_interval_s: 5
+
+conflict_buffer:
+  size: 2000
+  force_flush_interval_s: 5

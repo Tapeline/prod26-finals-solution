@@ -44,7 +44,7 @@ from alphabet.bootstrap.di.shared import (
 )
 from alphabet.bootstrap.live_ready import LivenessReadinessController
 from alphabet.bootstrap.logging import get_structlog_plugin_def
-from alphabet.decisions.application import WarmUpStorages
+from alphabet.decisions.application import WarmUpStorages, ResolutionRepository
 from alphabet.decisions.presentation import DecisionsController
 from alphabet.experiments.presentation.errors import (
     flags_experiments_err_handlers,
@@ -176,6 +176,7 @@ def create_app() -> Litestar:
             warmup_decision_caches(container),
             warmup_event_types(container),
             start_event_store_periodic_flush(container),
+            start_resolution_repo_periodic_flush(container)
         ],
     )
     litestar_setup_dishka(container, litestar_app)
@@ -211,6 +212,17 @@ def start_event_store_periodic_flush(
     async def start() -> None:
         async with container() as nested:
             store = await nested.get(EventStore)
+            tasks.append(asyncio.create_task(store.periodic_flush_routine()))
+
+    return start
+
+
+def start_resolution_repo_periodic_flush(
+    container: AsyncContainer,
+) -> Callable[[], Coroutine[Any, Any, None]]:
+    async def start() -> None:
+        async with container() as nested:
+            store = await nested.get(ResolutionRepository)
             tasks.append(asyncio.create_task(store.periodic_flush_routine()))
 
     return start

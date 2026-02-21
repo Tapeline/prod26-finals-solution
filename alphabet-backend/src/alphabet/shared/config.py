@@ -105,6 +105,13 @@ class NotificationChannelsConfig:
     telegram: TelegramConfig
 
 
+@final
+@dto
+class ConflictBufferConfig:
+    size: int = 2000
+    force_flush_interval_s: int = 5
+
+
 @dto
 class Config:
     postgres: PostgresConfig
@@ -115,4 +122,5 @@ class Config:
     workers: WorkersConfig
     event_buffer: EventBufferConfig
     notifications: NotificationChannelsConfig
+    conflict_buffer: ConflictBufferConfig
     is_debug: bool = True
