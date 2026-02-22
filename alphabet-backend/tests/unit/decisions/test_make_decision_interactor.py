@@ -9,7 +9,8 @@ from alphabet.decisions.application import (
     DecisionDataStore,
     ExperimentStorage,
     FlagStorage,
-    ResolutionRepository, AssignmentStore,
+    ResolutionRepository,
+    AssignmentStore,
 )
 from alphabet.decisions.domain import (
     CachedExperiment,
@@ -171,8 +172,12 @@ async def test_in_cooldown_returns_defaults_for_unassigned():
         }
     )
     make = MakeDecision(
-        store, flags, exps, FakeResolutionsRepo(), FakeAssignmentStore(),
-        DefaultTimeProvider()
+        store,
+        flags,
+        exps,
+        FakeResolutionsRepo(),
+        FakeAssignmentStore(),
+        DefaultTimeProvider(),
     )
 
     result = await make("user1", {}, ["f1", "f2"])
@@ -204,8 +209,12 @@ async def test_existing_decisions_honored_when_in_cooldown():
         }
     )
     make = MakeDecision(
-        store, flags, exps, FakeResolutionsRepo(), FakeAssignmentStore(),
-        DefaultTimeProvider()
+        store,
+        flags,
+        exps,
+        FakeResolutionsRepo(),
+        FakeAssignmentStore(),
+        DefaultTimeProvider(),
     )
 
     result = await make("user1", {}, ["f1", "f2"])
@@ -227,8 +236,12 @@ async def test_security_halted_returns_control():
         }
     )
     make = MakeDecision(
-        store, flags, exps, FakeResolutionsRepo(), FakeAssignmentStore(),
-        DefaultTimeProvider()
+        store,
+        flags,
+        exps,
+        FakeResolutionsRepo(),
+        FakeAssignmentStore(),
+        DefaultTimeProvider(),
     )
 
     result = await make("user1", {}, ["f1"])

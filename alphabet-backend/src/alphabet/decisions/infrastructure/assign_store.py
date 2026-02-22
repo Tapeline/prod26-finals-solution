@@ -63,8 +63,7 @@ class ClickHouseAssignmentStore(AssignmentStore):
             """,
             parameters={"exp_id": experiment_id},
         )
-        return {variant: count for variant, count in
-            rows.result_rows}  # noqa: C416
+        return {variant: count for variant, count in rows.result_rows}  # noqa: C416
 
     @override
     async def periodic_flush_routine(self) -> None:
@@ -80,7 +79,7 @@ class ClickHouseAssignmentStore(AssignmentStore):
                     await self._flush_no_lock()
             except Exception as exc:
                 self.logger.exception(
-                    "Exception while flushing assignments", exc=exc
+                    "Exception while flushing assignments", exc=exc,
                 )
 
     async def _flush_no_lock(self) -> None:

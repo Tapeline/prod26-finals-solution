@@ -66,8 +66,7 @@ class ClickHouseEventStore(EventStore):
                     await self._flush_no_lock()
             except Exception as exc:
                 self.logger.exception(
-                    "Exception while flushing events",
-                    exc=exc
+                    "Exception while flushing events", exc=exc,
                 )
 
     async def _flush_no_lock(self) -> None:
