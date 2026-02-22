@@ -32,6 +32,7 @@ def test_distribution_query(
     for i in range(total_users):
         subj_id = f"user_dist_{i}_{uuid.uuid4()}"
         resp = get_flags(subject_id=subj_id, flag_keys=[flag_key])
+        print(resp)
         results.append(resp[flag_key]["value"])
 
     counts = Counter(results)
@@ -48,5 +49,5 @@ def test_distribution_query(
 
     assert response.status_code == 200
     distribution = response.json()
-    assert distribution["A"] == count_a, distribution
-    assert distribution["B"] == count_b, distribution
+    assert distribution.get("A") == count_a, distribution
+    assert distribution.get("B") == count_b, distribution

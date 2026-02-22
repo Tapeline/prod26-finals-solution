@@ -1,4 +1,5 @@
 from collections import defaultdict
+from datetime import datetime
 from typing import Collection
 
 import pytest
@@ -8,7 +9,7 @@ from alphabet.decisions.application import (
     DecisionDataStore,
     ExperimentStorage,
     FlagStorage,
-    ResolutionRepository,
+    ResolutionRepository, AssignmentStore,
 )
 from alphabet.decisions.domain import (
     CachedExperiment,
@@ -21,6 +22,7 @@ from alphabet.experiments.domain.experiment import (
     ConflictPolicy,
     ConflictDomain,
 )
+from alphabet.shared.infrastructure.time import DefaultTimeProvider
 from tests.unit.decisions.helper import variant
 
 
@@ -121,6 +123,21 @@ class FakeResolutionsRepo(ResolutionRepository):
         pass
 
 
+class FakeAssignmentStore(AssignmentStore):
+    async def get_variant_distribution(
+        self, experiment_id: str
+    ) -> dict[str, int]:
+        return {}
+
+    async def periodic_flush_routine(self) -> None:
+        pass
+
+    async def save_assignments(
+        self, decisions: list[Decision], decided_at: datetime, subject_id: str
+    ) -> None:
+        pass
+
+
 def _cached_exp(
     exp_id: str,
     flag_key: str,
@@ -153,7 +170,10 @@ async def test_in_cooldown_returns_defaults_for_unassigned():
             "f2": _cached_exp("e2", "f2"),
         }
     )
-    make = MakeDecision(store, flags, exps, FakeResolutionsRepo())
+    make = MakeDecision(
+        store, flags, exps, FakeResolutionsRepo(), FakeAssignmentStore(),
+        DefaultTimeProvider()
+    )
 
     result = await make("user1", {}, ["f1", "f2"])
 
@@ -183,7 +203,10 @@ async def test_existing_decisions_honored_when_in_cooldown():
             "f2": _cached_exp("e2", "f2"),
         }
     )
-    make = MakeDecision(store, flags, exps, FakeResolutionsRepo())
+    make = MakeDecision(
+        store, flags, exps, FakeResolutionsRepo(), FakeAssignmentStore(),
+        DefaultTimeProvider()
+    )
 
     result = await make("user1", {}, ["f1", "f2"])
 
@@ -203,7 +226,10 @@ async def test_security_halted_returns_control():
             "f1": _cached_exp("e1", "f1", is_security_halted=True),
         }
     )
-    make = MakeDecision(store, flags, exps, FakeResolutionsRepo())
+    make = MakeDecision(
+        store, flags, exps, FakeResolutionsRepo(), FakeAssignmentStore(),
+        DefaultTimeProvider()
+    )
 
     result = await make("user1", {}, ["f1"])
 

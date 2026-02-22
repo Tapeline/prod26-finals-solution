@@ -61,8 +61,14 @@ class ClickHouseEventStore(EventStore):
                 err=len(self._err_buf),
                 dup=len(self._dup_buf),
             )
-            async with self._write_lock:
-                await self._flush_no_lock()
+            try:
+                async with self._write_lock:
+                    await self._flush_no_lock()
+            except Exception as exc:
+                self.logger.exception(
+                    "Exception while flushing events",
+                    exc=exc
+                )
 
     async def _flush_no_lock(self) -> None:
         # TODO: clean this mess

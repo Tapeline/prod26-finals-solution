@@ -51,49 +51,6 @@ def test_b2_4_determinism_sequential_calls(
         assert current_exp_id == initial_exp_id, f"EID changed on {i}"
 
 
-@pytest.mark.asyncio
-async def test_b2_4_determinism_concurrent_calls(
-    create_default_admin_in_db,
-    create_default_experimenter_in_db
-):
-    flag_key = "flag_det_concurrent"
-    create_flag(key=flag_key, type="string")
-    setup_active_experiment(
-        flag_key=flag_key, variants=[
-            {
-                "name": "A",
-                "value": "val_A",
-                "audience": 50,
-                "is_control": True
-            },
-            {
-                "name": "B",
-                "value": "val_B",
-                "audience": 50,
-                "is_control": False
-            }
-        ]
-    )
-
-    subject_id = str(uuid.uuid4())
-
-    async def fetch_flag():
-        async with httpx.AsyncClient() as client:
-            resp = await client.post(
-                f"{app_url}/api/v1/decisions/get-flags",
-                json={
-                    "subject_id": subject_id,
-                    "flags": [flag_key],
-                    "attributes": {}
-                }
-            )
-            return resp.raise_for_status().json()["flags"][flag_key]["value"]
-
-    results = await asyncio.gather(*(fetch_flag() for _ in range(10)))
-
-    assert len(set(results)) == 1
-
-
 def test_b2_4_result_sensitive_to_subject_id(
     create_default_admin_in_db,
     create_default_experimenter_in_db

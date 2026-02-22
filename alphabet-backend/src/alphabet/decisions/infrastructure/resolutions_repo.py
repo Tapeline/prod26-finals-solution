@@ -105,12 +105,18 @@ class ClickHouseResolutionRepository(ResolutionRepository):
         self.logger.info("Starting conflicts flush routine")
         while True:
             await asyncio.sleep(self._flush_interval)
-            async with self._write_lock:
-                self.logger.info(
-                    "Flushing conflict resolutions from routine",
-                    to_write=len(self._buf),
+            try:
+                async with self._write_lock:
+                    self.logger.info(
+                        "Flushing conflict resolutions from routine",
+                        to_write=len(self._buf),
+                    )
+                    await self._flush_no_lock()
+            except Exception as exc:
+                self.logger.exception(
+                    "Exception while flushing conflicts",
+                    exc=exc
                 )
-                await self._flush_no_lock()
 
     async def _flush_no_lock(self) -> None:
         if not self._buf:
