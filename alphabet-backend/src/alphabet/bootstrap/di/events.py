@@ -12,6 +12,7 @@ from alphabet.subject_events.application.interactors import (
 from alphabet.subject_events.application.interfaces import (
     EventDeduplicator,
     EventStore,
+    EventTelemetry,
     EventTypeCache,
     EventTypeRepository,
 )
@@ -23,6 +24,9 @@ from alphabet.subject_events.infrastructure.in_memory import (
 )
 from alphabet.subject_events.infrastructure.postgres.event_types_repo import (
     SqlEventTypeRepository,
+)
+from alphabet.subject_events.infrastructure.prometheus import (
+    PrometheusEventTelemetry,
 )
 from alphabet.subject_events.infrastructure.valkey import (
     ValkeyEventDeduplicator,
@@ -63,4 +67,9 @@ class EventsDIProvider(Provider):
         ValkeyEventDeduplicator,
         provides=EventDeduplicator,
         scope=Scope.REQUEST,
+    )
+    telemetry = provide(
+        PrometheusEventTelemetry,
+        provides=EventTelemetry,
+        scope=Scope.APP,
     )

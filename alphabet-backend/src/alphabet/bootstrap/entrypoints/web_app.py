@@ -1,9 +1,12 @@
 import asyncio
+import logging
 from asyncio import Task
 from collections.abc import Callable, Coroutine
 from pathlib import Path
 from typing import Any
 
+import uvicorn
+from asgi_monitor.logging.uvicorn import build_uvicorn_log_config
 from dishka import AsyncContainer, make_async_container
 from dishka.integrations.litestar import LitestarProvider
 from dishka.integrations.litestar import setup_dishka as litestar_setup_dishka
@@ -18,13 +21,16 @@ from litestar.openapi.plugins import (
     SwaggerRenderPlugin,
     YamlRenderPlugin,
 )
-from litestar.openapi.spec import Components
-from litestar.plugins.prometheus import PrometheusConfig, PrometheusController
+from litestar.openapi.spec import Components, ExternalDocumentation
+from litestar.plugins.prometheus import PrometheusConfig
 from litestar.static_files.config import StaticFilesConfig
 from litestar.template import TemplateConfig
 from structlog import getLogger
 
-from alphabet.access.presentation.controller import AccessController
+from alphabet.access.presentation.controller import (
+    AccessController,
+    internal_create_new_user,
+)
 from alphabet.access.presentation.errors import access_err_handlers
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.access import AccessDIProvider
@@ -44,9 +50,12 @@ from alphabet.bootstrap.di.shared import (
     TimeDIProvider,
     ValkeyDIProvider,
 )
-from alphabet.bootstrap.html_server import serve_frontend
-from alphabet.bootstrap.live_ready import LivenessReadinessController
 from alphabet.bootstrap.logging import get_structlog_plugin_def
+from alphabet.bootstrap.service_endpoints import (
+    CustomPrometheusController,
+    LivenessReadinessController,
+    serve_frontend,
+)
 from alphabet.decisions.application import (
     AssignmentStore,
     ResolutionRepository,
@@ -116,13 +125,8 @@ def _create_container(config: Config) -> AsyncContainer:
     )
 
 
-class CustomPrometheusController(PrometheusController):
-    path = "/_internal/metrics"
-
-
-def create_app() -> Litestar:
+def create_app(config: Config) -> Litestar:
     """Bootstrap the app."""
-    config = service_config_loader.load()
     logger.info("Bootstrapping the application")
     container = _create_container(config)
 
@@ -146,6 +150,7 @@ def create_app() -> Litestar:
             InsightsController,
             LivenessReadinessController,
             CustomPrometheusController,
+            internal_create_new_user,
             serve_frontend,
         ],
         middleware=[
@@ -176,6 +181,10 @@ def create_app() -> Litestar:
             path="/docs",
             components=Components(
                 security_schemes=security_components,  # type: ignore[arg-type]
+            ),
+            external_docs=ExternalDocumentation(
+                url="https://yt-redstone-mail-e7ec37.pages.prodcontest.com/",
+                description="Developer's documentation",
             ),
         ),
         cors_config=CORSConfig(allow_origins=["*"]),
@@ -259,3 +268,26 @@ def start_assignment_repo_periodic_flush(
             tasks.append(asyncio.create_task(store.periodic_flush_routine()))
 
     return start
+
+
+def main() -> None:
+    config = service_config_loader.load()
+    if config.logging.use_json:
+        log_config = build_uvicorn_log_config(
+            level=logging.INFO,
+            json_format=True,
+            include_trace=False,
+        )
+    else:
+        log_config = uvicorn.config.LOGGING_CONFIG
+    app = create_app(config)
+    uvicorn.run(
+        app=app,
+        host=config.server.host,
+        port=config.server.port,
+        log_config=log_config,
+    )
+
+
+if __name__ == "__main__":
+    main()

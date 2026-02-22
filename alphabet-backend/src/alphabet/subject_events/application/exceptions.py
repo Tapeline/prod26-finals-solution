@@ -7,3 +7,7 @@ class EventTypeNotFound(AppException):
 
 class EventTypeAlreadyExists(AppException):
     text = "Event type already exists"
+
+
+class MalformedDecisionId(AppException):
+    text = "Malformed decision id"

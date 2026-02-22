@@ -13,7 +13,8 @@ from alphabet.bootstrap.di.experiments import (
     ExperimentRepoDIProvider,
 )
 from alphabet.bootstrap.di.guardrails import (
-    GuardrailWorkerDIProvider, GuardrailsStorageDIProvider,
+    GuardrailsStorageDIProvider,
+    GuardrailWorkerDIProvider,
 )
 from alphabet.bootstrap.di.metrics import (
     MetricsStorageDIProvider,

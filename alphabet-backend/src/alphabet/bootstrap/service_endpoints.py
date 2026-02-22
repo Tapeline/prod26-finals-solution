@@ -1,13 +1,31 @@
+from collections.abc import Sequence
+
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, MediaType, Response, get
+from litestar.plugins.prometheus import PrometheusController
+from litestar.response import Template
 
 from alphabet.decisions.application import ExperimentStorage, FlagStorage
 from alphabet.subject_events.application.interfaces import EventTypeCache
 
 
+@get("/", include_in_schema=False)
+async def serve_frontend() -> Template:
+    """Serves the frontend!"""
+    return Template(
+        template_name="index.html",
+    )
+
+
+class CustomPrometheusController(PrometheusController):
+    path = "/_internal/metrics"
+    tags: Sequence[str] | None = ("Internal service",)
+
+
 class LivenessReadinessController(Controller):
     path = ""
+    tags: Sequence[str] | None = ("Internal service",)
 
     @get("/ready", media_type=MediaType.TEXT)
     @inject

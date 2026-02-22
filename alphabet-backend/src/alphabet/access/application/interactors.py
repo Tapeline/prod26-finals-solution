@@ -116,8 +116,10 @@ class UpdateUser:
                 user.email = dto.new_email
             if dto.new_role:
                 logger.info(
-                    "Changed role of user", user_id=user.id,
-                    old_role=user.role, new_role=dto.new_role
+                    "Changed role of user",
+                    user_id=user.id,
+                    old_role=user.role,
+                    new_role=dto.new_role,
                 )
                 user.role = dto.new_role
             await self.users.save(user)

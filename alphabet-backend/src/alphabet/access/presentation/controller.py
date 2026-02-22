@@ -1,9 +1,11 @@
 from collections.abc import Sequence
+from textwrap import dedent
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, get, patch, post, put
 from msgspec import Struct
+from structlog import getLogger
 
 from alphabet.access.application.interactors import (
     ActivateUser,
@@ -18,7 +20,9 @@ from alphabet.access.application.interactors import (
     UpdateUser,
     UpdateUserDTO,
 )
+from alphabet.access.application.interfaces import UserRepository
 from alphabet.access.domain import ApproverGroup
+from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.domain.user import Role, User, UserId
 from alphabet.shared.presentation.framework.openapi import (
     RESPONSE_BAD_REQUEST,
@@ -28,6 +32,9 @@ from alphabet.shared.presentation.framework.openapi import (
     success_spec,
 )
 from alphabet.shared.presentation.openapi import security_defs
+from alphabet.shared.uuid import generate_id
+
+logger = getLogger(__name__)
 
 
 class CreateUserRequest(Struct):
@@ -215,4 +222,38 @@ class AccessController(Controller):
     @inject
     async def get_me(self, interactor: FromDishka[ReadMe]) -> UserResponse:
         user = await interactor()
+        return UserResponse.from_user(user)
+
+
+@post(
+    "/_internal/new-user",
+    tags=("Internal service",),
+    responses={
+        200: success_spec("User created.", UserResponse),
+        409: error_spec("Already exists."),
+    },
+    description=dedent("""
+        Create a new user bypassing logging yourself in.
+
+        !!! FOR INTERNAL AND INITIAL USAGE ONLY !!!
+
+        This serves as a way to initially create the first admin,
+        all following usages are questionable.
+    """),
+)
+@inject
+async def internal_create_new_user(
+    data: CreateUserRequest,
+    tx: FromDishka[TransactionManager],
+    user_repo: FromDishka[UserRepository],
+) -> UserResponse:
+    logger.warning("Creating new user from an internal endpoint")
+    async with tx:
+        user = User(
+            id=generate_id(UserId),
+            iap_id=None,
+            email=data.email,
+            role=data.role,
+        )
+        await user_repo.create(user)
         return UserResponse.from_user(user)

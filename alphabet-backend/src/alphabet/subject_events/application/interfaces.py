@@ -79,3 +79,9 @@ class EventStore(Protocol):
     @abstractmethod
     async def periodic_flush_routine(self) -> None:
         raise NotImplementedError
+
+
+class EventTelemetry(Protocol):
+    @abstractmethod
+    def inc_processed_events(self, delta: int) -> None:
+        raise NotImplementedError

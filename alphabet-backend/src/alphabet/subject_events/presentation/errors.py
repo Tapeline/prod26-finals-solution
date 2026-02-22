@@ -5,6 +5,7 @@ from alphabet.shared.presentation.framework.errors import infer_code
 from alphabet.subject_events.application.exceptions import (
     EventTypeAlreadyExists,
     EventTypeNotFound,
+    MalformedDecisionId,
 )
 from alphabet.subject_events.domain.exceptions import (
     InvalidEventTypeId,
@@ -17,5 +18,6 @@ subject_events_err_handlers: Final = MappingProxyType(
         EventTypeAlreadyExists: (409, infer_code),
         InvalidEventTypeId: (400, infer_code),
         InvalidJsonSchema: (400, infer_code),
+        MalformedDecisionId: (400, infer_code),
     },
 )

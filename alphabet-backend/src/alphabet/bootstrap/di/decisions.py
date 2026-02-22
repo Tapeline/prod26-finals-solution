@@ -3,6 +3,7 @@ from dishka import Provider, Scope, provide, provide_all
 from alphabet.decisions.application import (
     AssignmentStore,
     DecisionDataStore,
+    DecisionTelemetry,
     ExperimentStorage,
     FlagStorage,
     MakeDecision,
@@ -16,6 +17,9 @@ from alphabet.decisions.application import (
 )
 from alphabet.decisions.infrastructure.assign_store import (
     ClickHouseAssignmentStore,
+)
+from alphabet.decisions.infrastructure.prometheus import (
+    PrometheusDecisionTelemetry,
 )
 from alphabet.decisions.infrastructure.resolutions_repo import (
     ClickHouseResolutionRepository,
@@ -61,6 +65,11 @@ class DecisionsDIProvider(Provider):
     assignment_store = provide(
         ClickHouseAssignmentStore,
         provides=AssignmentStore,
+        scope=Scope.APP,
+    )
+    telemetry = provide(
+        PrometheusDecisionTelemetry,
+        provides=DecisionTelemetry,
         scope=Scope.APP,
     )
 

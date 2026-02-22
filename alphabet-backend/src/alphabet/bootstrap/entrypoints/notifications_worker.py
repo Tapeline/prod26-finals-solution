@@ -7,8 +7,8 @@ from structlog import getLogger
 
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.notifications import (
-    NotificationsWorkerDIProvider,
     NotificationPublisherDIProvider,
+    NotificationsWorkerDIProvider,
 )
 from alphabet.bootstrap.di.shared import (
     ConfigDIProvider,

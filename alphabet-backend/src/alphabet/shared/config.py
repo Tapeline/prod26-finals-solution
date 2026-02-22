@@ -119,6 +119,13 @@ class AssignmentBufferConfig:
     force_flush_interval_s: int = 5
 
 
+@final
+@dto
+class ServerConfig:
+    host: str = "0.0.0.0"  # noqa: S104
+    port: int = 8000
+
+
 @dto
 class Config:
     postgres: PostgresConfig
@@ -131,4 +138,5 @@ class Config:
     notifications: NotificationChannelsConfig
     conflict_buffer: ConflictBufferConfig
     assignment_buffer: AssignmentBufferConfig
+    server: ServerConfig
     is_debug: bool = True

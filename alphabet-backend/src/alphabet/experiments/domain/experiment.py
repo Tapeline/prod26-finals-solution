@@ -267,7 +267,7 @@ class Experiment:
         if new_state == ExperimentState.ARCHIVED:
             # a workaround, alas this is a bad design.
             # archiving implies setting an outcome
-            # use .archive()
+            # use archive method
             raise CannotTransition(self._state, ExperimentState.ARCHIVED)
         self._state = new_state
 

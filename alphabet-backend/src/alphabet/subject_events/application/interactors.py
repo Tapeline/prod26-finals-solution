@@ -11,10 +11,14 @@ from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import UserReader, require_user_with_role
 from alphabet.shared.commons import dto, interactor
 from alphabet.shared.domain.user import Role
-from alphabet.subject_events.application.exceptions import EventTypeNotFound
+from alphabet.subject_events.application.exceptions import (
+    EventTypeNotFound,
+    MalformedDecisionId,
+)
 from alphabet.subject_events.application.interfaces import (
     EventDeduplicator,
     EventStore,
+    EventTelemetry,
     EventTypeCache,
     EventTypeChangeNotifier,
     EventTypeRepository,
@@ -150,6 +154,10 @@ class IncomingEventDTO:
     payload: dict[str, Any]
     issued_at: datetime
 
+    def __post_init__(self) -> None:
+        if self.decision_id.count(":") != 3:
+            raise MalformedDecisionId
+
     @property
     def variant_id(self) -> str:
         return self.decision_id.split(":", maxsplit=3)[3]
@@ -187,6 +195,7 @@ class ReceiveEvents:
     event_type_cache: EventTypeCache
     event_deduplicator: EventDeduplicator
     time: TimeProvider
+    telemetry: EventTelemetry
 
     async def __call__(
         self,
@@ -225,8 +234,9 @@ class ReceiveEvents:
             "Buffering received",
             ok=len(ok),
             duplicates=len(duplicates),
-            errors=len(erroneous)
+            errors=len(erroneous),
         )
+        self.telemetry.inc_processed_events(len(events))
         return IncomingEventsResult(
             ok_count=len(ok),
             duplicate_count=len(duplicates),

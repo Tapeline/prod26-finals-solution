@@ -51,3 +51,7 @@ conflict_buffer:
 assignment_buffer:
   size: 2000
   force_flush_interval_s: 5
+
+server:
+  host: "0.0.0.0"
+  port: 8000

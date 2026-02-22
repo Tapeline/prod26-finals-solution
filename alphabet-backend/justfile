@@ -33,3 +33,7 @@ __check_wps:
 
 __check_types:
   uv run mypy src
+
+
+gen-uvicorn-log-config:
+	uv run asgi-monitor uvicorn-log-config --path uvicorn-log-config.json --level info --json-format

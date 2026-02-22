@@ -160,6 +160,12 @@ class AssignmentStore(Protocol):
         raise NotImplementedError
 
 
+class DecisionTelemetry(Protocol):
+    @abstractmethod
+    def inc_made_decisions(self, delta: int) -> None:
+        raise NotImplementedError
+
+
 @final
 @interactor
 class MakeDecision:
@@ -169,6 +175,7 @@ class MakeDecision:
     resolutions_repo: ResolutionRepository
     assignment_store: AssignmentStore
     time: TimeProvider
+    telemetry: DecisionTelemetry
 
     async def __call__(  # noqa: C901
         self,
@@ -232,13 +239,12 @@ class MakeDecision:
             )
         if resolutions:
             await self.resolutions_repo.save_resolutions(resolutions)
-
         if new_decision_count > 0:
             await self.decision_data.record_experiment_assignments(
                 subject_id,
                 new_decision_count,
             )
-
+            self.telemetry.inc_made_decisions(new_decision_count)
         return assigned
 
     def _assign_variant(

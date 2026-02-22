@@ -1,5 +1,3 @@
-from typing import Final
-
 from dishka import Provider, Scope, provide, provide_all
 
 from alphabet.experiments.application.interactors.experiments import (
