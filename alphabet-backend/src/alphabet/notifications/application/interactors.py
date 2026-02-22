@@ -292,7 +292,7 @@ class SelectAndSend:
             )
             for rule_id in exclude:
                 notifications.pop(rule_id)
-            logger.info(
+            logger.debug(
                 "Excluded those in cooldown",
                 excluded=len(exclude),
                 remaining=len(notifications),
@@ -312,6 +312,7 @@ class SelectAndSend:
                 "Sent notifications",
                 ok=len(ack_fingerprints),
                 total=sum(map(len, notifications.values())),
+                cooldown_excluded=len(exclude),
             )
             await self.queue.pop_all(ack_fingerprints)
             await self.limiter.place_cooldowns(

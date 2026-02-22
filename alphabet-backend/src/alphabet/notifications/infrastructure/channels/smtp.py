@@ -2,9 +2,12 @@ from email.message import EmailMessage
 from typing import final, override
 
 import aiosmtplib
+from structlog import getLogger
 
 from alphabet.notifications.application.interfaces import NotificationChannel
 from alphabet.shared.config import SmtpConfig
+
+logger = getLogger(__name__)
 
 
 @final
@@ -24,6 +27,7 @@ class EmailNotificationChannel(NotificationChannel):
         if self.config.username and self.config.password:
             auth_kwargs["username"] = self.config.username
             auth_kwargs["password"] = self.config.password
+        logger.info("Sending email", to=self.recipient)
         await aiosmtplib.send(
             msg,
             hostname=self.config.host,

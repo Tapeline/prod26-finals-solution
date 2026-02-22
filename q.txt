@@ -41,18 +41,19 @@ Insights UI - Почему не графана?
 - Conflicts:
     - Save conflict metrics
     - Expose conflict metric query endpoints
-TODO:
-
 - Insights UI
     - Querying
     - Build charts
     - Connect frontend with IAP
     - Deploy frontend
-- Infra
+- Infra:
     - optimise DI (it's so messy now)
-    - Get rid of instant notifier so we can use faststream
-    - Add pgbouncer and such
     - Revise logging (add many many logs)
+
+TODO:
+
+- Infra
+    - Get rid of instant notifier so we can use faststream
     - Add business-metrics to prometheus
     - Why does request id vanish from logs...
     - Embed request id into response headers

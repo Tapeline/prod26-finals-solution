@@ -24,7 +24,7 @@ from alphabet.metrics.infrastructure.repos import (
 )
 
 
-class MetricsDIProvider(Provider):
+class MetricsInteractorsDIProvider(Provider):
     interactors = provide_all(
         CreateMetric,
         ListMetrics,
@@ -37,6 +37,8 @@ class MetricsDIProvider(Provider):
         scope=Scope.REQUEST,
     )
 
+
+class MetricsStorageDIProvider(Provider):
     metrics_repo = provide(
         SqlMetricRepository,
         provides=MetricRepository,
@@ -59,24 +61,8 @@ class MetricsDIProvider(Provider):
     )
 
 
-class OnlyMetircsDataDIProvider(Provider):
-    metrics_repo = provide(
-        SqlMetricRepository,
-        provides=MetricRepository,
-        scope=Scope.REQUEST,
-    )
-    reports_repo = provide(
-        SqlReportRepository,
-        provides=ReportRepository,
-        scope=Scope.REQUEST,
-    )
-    evaluator = provide(
-        ClickHouseMetricEvaluator,
-        provides=MetricEvaluator,
-        scope=Scope.REQUEST,
-    )
-    ch_compiler = provide(
-        ClickHouseDSLCompiler,
-        provides=DSLCompiler,
-        scope=Scope.APP,
-    )
+def get_metrics_providers() -> list[Provider]:
+    return [
+        MetricsInteractorsDIProvider(),
+        MetricsStorageDIProvider(),
+    ]

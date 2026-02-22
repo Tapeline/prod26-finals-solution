@@ -28,16 +28,13 @@ from alphabet.access.presentation.controller import AccessController
 from alphabet.access.presentation.errors import access_err_handlers
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.access import AccessDIProvider
-from alphabet.bootstrap.di.decisions import DecisionsDIProvider
+from alphabet.bootstrap.di.decisions import get_decisions_providers
 from alphabet.bootstrap.di.events import EventsDIProvider
-from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
-from alphabet.bootstrap.di.guardrails import GuardrailsDIProvider
+from alphabet.bootstrap.di.experiments import get_experiments_providers
+from alphabet.bootstrap.di.guardrails import get_guardrails_providers
 from alphabet.bootstrap.di.insights import InsightsDIProvider
-from alphabet.bootstrap.di.metrics import MetricsDIProvider
-from alphabet.bootstrap.di.notifications import (
-    NotificationsDIProvider,
-    NotificationsWorkerDIProvider,
-)
+from alphabet.bootstrap.di.metrics import get_metrics_providers
+from alphabet.bootstrap.di.notifications import get_notifications_providers
 from alphabet.bootstrap.di.shared import (
     ClickHouseDIProvider,
     ConfigDIProvider,
@@ -106,14 +103,13 @@ def _create_container(config: Config) -> AsyncContainer:
         ValkeyDIProvider(),
         ClickHouseDIProvider(),
         AccessDIProvider(),
-        FlagsExperimentsDIProvider(),
-        MetricsDIProvider(),
-        DecisionsDIProvider(),
+        *get_decisions_providers(),
         EventsDIProvider(),
-        GuardrailsDIProvider(),
-        NotificationsDIProvider(),
-        NotificationsWorkerDIProvider(),
+        *get_experiments_providers(),
+        *get_guardrails_providers(),
         InsightsDIProvider(),
+        *get_metrics_providers(),
+        *get_notifications_providers(),
         context={
             Config: config,
         },

@@ -71,3 +71,10 @@ class DecisionsCacheSyncsDIProvider(DecisionsDIProvider):
         SetRunningExperimentOnFlag,
         scope=Scope.REQUEST,
     )
+
+
+def get_decisions_providers() -> list[Provider]:
+    return [
+        DecisionsDIProvider(),
+        DecisionsCacheSyncsDIProvider(),
+    ]

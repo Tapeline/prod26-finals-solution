@@ -34,7 +34,7 @@ from alphabet.notifications.infrastructure.valkey import (
 from alphabet.shared.config import Config
 
 
-class NotificationsDIProvider(Provider):
+class NotificationsInteractorsDIProvider(Provider):
     interactors = provide_all(
         CreateNotificationRule,
         DeleteNotificationRule,
@@ -49,16 +49,6 @@ class NotificationsDIProvider(Provider):
 class NotificationsWorkerDIProvider(Provider):
     interactors = provide_all(
         SelectAndSend,
-        scope=Scope.REQUEST,
-    )
-    rule_repo = provide(
-        SqlNotificationRuleRepository,
-        provides=NotificationRuleRepository,
-        scope=Scope.REQUEST,
-    )
-    notif_buffer = provide(
-        SqlPreparedNotificationQueue,
-        provides=PreparedNotificationQueue,
         scope=Scope.REQUEST,
     )
     valkey_cooldowns = provide(
@@ -97,3 +87,11 @@ class NotificationPublisherDIProvider(Provider):
         provides=PreparedNotificationQueue,
         scope=Scope.REQUEST,
     )
+
+
+def get_notifications_providers() -> list[Provider]:
+    return [
+        NotificationsInteractorsDIProvider(),
+        NotificationsWorkerDIProvider(),
+        NotificationPublisherDIProvider(),
+    ]

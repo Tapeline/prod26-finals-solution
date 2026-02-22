@@ -3,6 +3,7 @@ import signal
 import sys
 
 from clickhouse_connect import get_async_client
+from structlog import getLogger
 
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.logging import configure_structlog
@@ -15,6 +16,9 @@ async def run_worker() -> None:
     config = service_config_loader.load()
 
     configure_structlog(use_json=config.logging.use_json)
+
+    logger = getLogger(__name__)
+    logger.info("Starting attribution worker process")
 
     clickhouse_client = await get_async_client(
         host=config.clickhouse.host,
@@ -48,6 +52,7 @@ async def run_worker() -> None:
         except asyncio.CancelledError:
             pass
     finally:
+        logger.info("Cleaning up")
         await clickhouse_client.close()
 
 

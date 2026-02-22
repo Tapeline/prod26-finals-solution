@@ -20,7 +20,7 @@ from alphabet.guardrails.infrastructure.repos import (
 )
 
 
-class GuardrailsDIProvider(Provider):
+class GuardrailsInteractorsDIProvider(Provider):
     interactors = provide_all(
         CreateRule,
         ReadRulesForExperiment,
@@ -32,23 +32,15 @@ class GuardrailsDIProvider(Provider):
         scope=Scope.REQUEST,
     )
 
-    guard_repo = provide(
-        SqlGuardRuleRepository,
-        provides=GuardRuleRepository,
-        scope=Scope.REQUEST,
-    )
-    audit_log = provide(
-        SqlAuditLog,
-        provides=AuditLog,
-        scope=Scope.REQUEST,
-    )
-
 
 class GuardrailWorkerDIProvider(Provider):
     interactors = provide_all(
         RegularCheck,
         scope=Scope.REQUEST,
     )
+
+
+class GuardrailsStorageDIProvider(Provider):
     guard_repo = provide(
         SqlGuardRuleRepository,
         provides=GuardRuleRepository,
@@ -59,3 +51,11 @@ class GuardrailWorkerDIProvider(Provider):
         provides=AuditLog,
         scope=Scope.REQUEST,
     )
+
+
+def get_guardrails_providers() -> list[Provider]:
+    return [
+        GuardrailsInteractorsDIProvider(),
+        GuardrailsStorageDIProvider(),
+        GuardrailWorkerDIProvider(),
+    ]

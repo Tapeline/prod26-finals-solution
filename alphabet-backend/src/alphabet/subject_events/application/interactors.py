@@ -192,6 +192,7 @@ class ReceiveEvents:
         self,
         events: list[IncomingEventDTO],
     ) -> IncomingEventsResult:
+        logger.info("Processing events", n=len(events))
         errors: dict[int, str] = {}
         duplicates: list[Event] = []
         erroneous: list[DiscardedEvent] = []
@@ -203,6 +204,7 @@ class ReceiveEvents:
                 [event.event_id for event in events],
             )
         )
+        logger.info("Deduplicated", duplicates=len(processed_earlier))
         for i, event_dto in enumerate(events):
             result, event = self._process_event(
                 event_dto,
@@ -219,6 +221,12 @@ class ReceiveEvents:
             processed.append(event.id)
         await self.event_store.save_batches(ok, duplicates, erroneous)
         await self.event_deduplicator.mark_processed(processed)
+        logger.info(
+            "Buffering received",
+            ok=len(ok),
+            duplicates=len(duplicates),
+            errors=len(erroneous)
+        )
         return IncomingEventsResult(
             ok_count=len(ok),
             duplicate_count=len(duplicates),
@@ -306,7 +314,7 @@ class WarmUpEventTypes:
         self.event_type_cache.place_event_types(event_types)
         self.event_type_cache.mark_ready()
         logger.info(
-            "Event types cache warmed up for %s entries",
-            len(event_types),
+            "Event types cache warmed up",
+            entries=len(event_types),
         )
         logger.info("Event types cache is ready")

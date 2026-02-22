@@ -214,25 +214,22 @@ class GetReportResult:
             report = await self.reports.get_by_id(report_id)
             if not report:
                 raise NoSuchReport
-
             experiment = await self.experiments.get_latest_by_id(
                 report.experiment_id,
             )
             if not experiment:
                 raise ExperimentForReportNotFound
-
             requested_keys = [
                 MetricKey(experiment.metrics.primary),
-                *[MetricKey(k) for k in experiment.metrics.secondary],
-                *[MetricKey(k) for k in experiment.metrics.guarding],
+                *[MetricKey(key) for key in experiment.metrics.secondary],
+                *[MetricKey(key) for key in experiment.metrics.guarding],
             ]
-
             metric_models: list[Metric] = []
             for key in requested_keys:
                 metric = await self.metrics.get_by_key(key)
                 if metric:
                     metric_models.append(metric)
-
+            # no need to do anything with rdbms after, so finishing tx
         eval_results = await self.evaluator.evaluate_for_experiment(
             experiment.id,
             {variant.name: variant.name for variant in experiment.variants},
@@ -240,7 +237,6 @@ class GetReportResult:
             report.window.start_at,
             report.window.end_at,
         )
-
         points: list[MetricPointDTO] = []
         for key in requested_keys:
             metric = next((m for m in metric_models if m.key == key), None)
@@ -261,7 +257,6 @@ class GetReportResult:
                     per_variant=res.per_variant,
                 ),
             )
-
         return ReportResultDTO(
             report_id=report.id,
             experiment_id=report.experiment_id,

@@ -264,6 +264,11 @@ class Experiment:
     def state(self, new_state: ExperimentState) -> None:
         if new_state not in _VALID_TRANSITIONS[self._state]:
             raise CannotTransition(self._state, new_state)
+        if new_state == ExperimentState.ARCHIVED:
+            # a workaround, alas this is a bad design.
+            # archiving implies setting an outcome
+            # use .archive()
+            raise CannotTransition(self._state, ExperimentState.ARCHIVED)
         self._state = new_state
 
     @property

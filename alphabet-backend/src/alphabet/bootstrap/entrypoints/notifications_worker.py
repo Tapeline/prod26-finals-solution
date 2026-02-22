@@ -3,25 +3,15 @@ import signal
 import sys
 
 from dishka import AsyncContainer, make_async_container
+from structlog import getLogger
 
 from alphabet.bootstrap.config import service_config_loader
-from alphabet.bootstrap.di.decisions import (
-    DecisionsCacheSyncsDIProvider,
+from alphabet.bootstrap.di.notifications import (
+    NotificationsWorkerDIProvider,
+    NotificationPublisherDIProvider,
 )
-from alphabet.bootstrap.di.experiments import (
-    OnlyExperimentRepoDIProvider,
-)
-from alphabet.bootstrap.di.guardrails import (
-    GuardrailWorkerDIProvider,
-)
-from alphabet.bootstrap.di.metrics import (
-    OnlyMetircsDataDIProvider,
-)
-from alphabet.bootstrap.di.notifications import NotificationsWorkerDIProvider
 from alphabet.bootstrap.di.shared import (
-    ClickHouseDIProvider,
     ConfigDIProvider,
-    MessageQueueErsatzDIProvider,
     SqlTransactionDIProvider,
     TimeDIProvider,
     ValkeyDIProvider,
@@ -33,16 +23,11 @@ from alphabet.shared.config import Config
 
 def _create_container(config: Config) -> AsyncContainer:
     return make_async_container(
-        MessageQueueErsatzDIProvider(),
-        DecisionsCacheSyncsDIProvider(),
         ConfigDIProvider(),
         SqlTransactionDIProvider(),
-        ClickHouseDIProvider(),
         TimeDIProvider(),
         ValkeyDIProvider(),
-        OnlyExperimentRepoDIProvider(),
-        OnlyMetircsDataDIProvider(),
-        GuardrailWorkerDIProvider(),
+        NotificationPublisherDIProvider(),
         NotificationsWorkerDIProvider(),
         context={
             Config: config,
@@ -54,6 +39,10 @@ async def run_worker() -> None:
     config = service_config_loader.load()
     container = _create_container(config)
     configure_structlog(use_json=config.logging.use_json)
+
+    logger = getLogger(__name__)
+    logger.info("Starting notifications worker process")
+
     worker = NotificationWorker(container, config.workers)
 
     # thanks cursor for this suggestion
@@ -78,6 +67,7 @@ async def run_worker() -> None:
         except asyncio.CancelledError:
             pass
     finally:
+        logger.info("Cleaning up")
         await container.close()
 
 

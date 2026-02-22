@@ -1,5 +1,7 @@
 from typing import final
 
+from structlog import getLogger
+
 from alphabet.access.application.exceptions import (
     AlreadyActivated,
     CannotSetReviewRulesForNonExperimenter,
@@ -22,6 +24,8 @@ from alphabet.shared.commons import dto, interactor
 from alphabet.shared.domain.user import Role, User, UserId
 from alphabet.shared.uuid import generate_id
 
+logger = getLogger(__name__)
+
 
 @final
 @interactor
@@ -40,7 +44,21 @@ class ActivateUser:
             if not user:
                 raise EmailNotRegistered
             if user.is_active:
+                logger.info(
+                    "Tried to activate existing user",
+                    user_role=user.role,
+                    user_id=user.id,
+                    old_iap=user.iap_id,
+                    new_iap=identity.iap_id,
+                )
                 raise AlreadyActivated
+            logger.info(
+                "Activated user",
+                user_role=user.role,
+                user_id=user.id,
+                user_email=user.email,
+                user_iap=identity.iap_id,
+            )
             user.iap_id = identity.iap_id
             await self.users.save(user)
             return user
@@ -97,6 +115,10 @@ class UpdateUser:
             if dto.new_email:
                 user.email = dto.new_email
             if dto.new_role:
+                logger.info(
+                    "Changed role of user", user_id=user.id,
+                    old_role=user.role, new_role=dto.new_role
+                )
                 user.role = dto.new_role
             await self.users.save(user)
             return user

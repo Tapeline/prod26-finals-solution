@@ -1,3 +1,5 @@
+from typing import Final
+
 from dishka import Provider, Scope, provide, provide_all
 
 from alphabet.experiments.application.interactors.experiments import (
@@ -62,11 +64,6 @@ class FlagsExperimentsDIProvider(Provider):
         provides=FlagRepository,
         scope=Scope.REQUEST,
     )
-    experiments_repo = provide(
-        SqlExperimentsRepository,
-        provides=ExperimentsRepository,
-        scope=Scope.REQUEST,
-    )
     reviews_repo = provide(
         SqlReviewRepository,
         provides=ReviewRepository,
@@ -74,9 +71,16 @@ class FlagsExperimentsDIProvider(Provider):
     )
 
 
-class OnlyExperimentRepoDIProvider(Provider):
+class ExperimentRepoDIProvider(Provider):
     experiments_repo = provide(
         SqlExperimentsRepository,
         provides=ExperimentsRepository,
         scope=Scope.REQUEST,
     )
+
+
+def get_experiments_providers() -> list[Provider]:
+    return [
+        FlagsExperimentsDIProvider(),
+        ExperimentRepoDIProvider(),
+    ]

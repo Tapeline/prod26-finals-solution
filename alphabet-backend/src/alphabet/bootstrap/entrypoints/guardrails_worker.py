@@ -3,19 +3,20 @@ import signal
 import sys
 
 from dishka import AsyncContainer, make_async_container
+from structlog import getLogger
 
 from alphabet.bootstrap.config import service_config_loader
 from alphabet.bootstrap.di.decisions import (
     DecisionsCacheSyncsDIProvider,
 )
 from alphabet.bootstrap.di.experiments import (
-    OnlyExperimentRepoDIProvider,
+    ExperimentRepoDIProvider,
 )
 from alphabet.bootstrap.di.guardrails import (
-    GuardrailWorkerDIProvider,
+    GuardrailWorkerDIProvider, GuardrailsStorageDIProvider,
 )
 from alphabet.bootstrap.di.metrics import (
-    OnlyMetircsDataDIProvider,
+    MetricsStorageDIProvider,
 )
 from alphabet.bootstrap.di.notifications import NotificationPublisherDIProvider
 from alphabet.bootstrap.di.shared import (
@@ -40,8 +41,9 @@ def _create_container(config: Config) -> AsyncContainer:
         ClickHouseDIProvider(),
         TimeDIProvider(),
         ValkeyDIProvider(),
-        OnlyExperimentRepoDIProvider(),
-        OnlyMetircsDataDIProvider(),
+        ExperimentRepoDIProvider(),
+        MetricsStorageDIProvider(),
+        GuardrailsStorageDIProvider(),
         GuardrailWorkerDIProvider(),
         NotificationPublisherDIProvider(),
         context={
@@ -54,6 +56,10 @@ async def run_worker() -> None:
     config = service_config_loader.load()
     container = _create_container(config)
     configure_structlog(use_json=config.logging.use_json)
+
+    logger = getLogger(__name__)
+    logger.info("Starting guardrails worker process")
+
     worker = GuardrailWorker(container, config.workers)
 
     # thanks cursor for this suggestion
@@ -78,6 +84,7 @@ async def run_worker() -> None:
         except asyncio.CancelledError:
             pass
     finally:
+        logger.info("Cleaning up")
         await container.close()
 
 

@@ -186,7 +186,6 @@ class MakeDecision:
             {exp.id for exp in experiments},
         )
         unassigned = set(flag_keys) - set(assigned.keys())
-        logger.debug("decided already for %s", list(assigned.keys()))
 
         in_cooldown = await self.decision_data.is_in_cooldown(subject_id)
         if in_cooldown:
@@ -422,7 +421,7 @@ class WarmUpStorages:
         flags = await self.flags.all_defaults()
         for key, default in flags:
             self.flags_cache.set_flag_default(key, default)
-        logger.info("Flag cache warmed up for %s entries", len(flags))
+        logger.info("Flag cache warmed up", entries=len(flags))
         experiments = await self.experiments.all_running_and_security_halted()
         for experiment in experiments:
             self.experiments_cache.set_on_flag(
@@ -430,8 +429,8 @@ class WarmUpStorages:
                 cached_experiment_from_experiment(experiment),
             )
         logger.info(
-            "Experiment cache warmed up for %s entries",
-            len(experiments),
+            "Experiment cache warmed up",
+            entries=len(experiments),
         )
         self.experiments_cache.mark_ready()
         self.flags_cache.mark_ready()
