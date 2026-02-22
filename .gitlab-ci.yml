@@ -41,7 +41,7 @@ run-unit-tests:
   script:
     - cd alphabet-backend
     - uv sync --group test
-    - uv run pytest tests/unit --junit-xml=junit-report.xml
+    - uv run pytest tests/unit -vvv --junit-xml=junit-report.xml
   artifacts:
     when: always
     paths:
@@ -70,7 +70,7 @@ run-integration-tests:
     - docker compose up -d clickhouse
     - cd alphabet-backend
     - uv sync --group test
-    - uv run pytest tests/integration --junit-xml=junit-report.xml
+    - uv run pytest tests/integration -vvv --junit-xml=junit-report.xml
   artifacts:
     when: always
     paths:
@@ -100,7 +100,7 @@ run-acceptance-tests:
     - cd sys-tests
     - uv sync
     - sleep 15
-    - APP_URL=http://docker:8000 uv run pytest tests --junit-xml=junit-report.xml
+    - APP_URL=http://docker:8000 uv run pytest tests -vvv --junit-xml=junit-report.xml
   artifacts:
     when: always
     paths:
