@@ -101,6 +101,16 @@ layers=
     domain
 exhaustive = true
 
+[importlinter:contract:layers-insights]
+name=Layered Insights
+type=layers
+containers =
+    alphabet.insights
+layers=
+    presentation
+    application
+exhaustive = true
+
 [importlinter:contract:no-bootstrap-import]
 name = No bootstrap import
 type = forbidden

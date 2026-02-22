@@ -112,6 +112,13 @@ class ConflictBufferConfig:
     force_flush_interval_s: int = 5
 
 
+@final
+@dto
+class AssignmentBufferConfig:
+    size: int = 2000
+    force_flush_interval_s: int = 5
+
+
 @dto
 class Config:
     postgres: PostgresConfig
@@ -123,4 +130,5 @@ class Config:
     event_buffer: EventBufferConfig
     notifications: NotificationChannelsConfig
     conflict_buffer: ConflictBufferConfig
+    assignment_buffer: AssignmentBufferConfig
     is_debug: bool = True

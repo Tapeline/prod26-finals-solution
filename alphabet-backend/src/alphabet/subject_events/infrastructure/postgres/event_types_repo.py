@@ -74,7 +74,7 @@ class SqlEventTypeRepository(EventTypeRepository):
             result = await self.session.execute(select(event_types))
         else:
             result = await self.session.execute(
-                select(flags)
+                select(event_types)
                 .limit(pagination.limit)
                 .offset(pagination.offset),
             )

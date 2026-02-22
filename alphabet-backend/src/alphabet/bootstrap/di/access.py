@@ -7,7 +7,7 @@ from alphabet.access.application.interactors import (
     ReadUserByEmail,
     ReadUserById,
     SetReviewRules,
-    UpdateUser,
+    UpdateUser, ReadMe,
 )
 from alphabet.access.application.interfaces import UserRepository
 from alphabet.access.infrastructure.repos import SqlUserRepository
@@ -24,6 +24,7 @@ class AccessDIProvider(Provider):
         ReadReviewRules,
         ReadUserById,
         ReadUserByEmail,
+        ReadMe,
         scope=Scope.REQUEST,
     )
 

@@ -1,9 +1,6 @@
-"""
-Runtime Decide — реализация по Usecase 03-decision-making и ADR 002, 007.
-"""
-
 from abc import abstractmethod
 from collections.abc import Collection
+from datetime import datetime
 from itertools import groupby
 from operator import attrgetter
 from typing import Protocol, cast, final
@@ -31,6 +28,7 @@ from alphabet.experiments.domain.experiment import (
     ExperimentState,
 )
 from alphabet.shared.application.idp import UserIdProvider
+from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.application.user import UserReader, require_any_user
 from alphabet.shared.commons import dto, interactor
 from alphabet.shared.uuid import generate_uuid
@@ -140,6 +138,28 @@ class ResolutionRepository(Protocol):
         raise NotImplementedError
 
 
+class AssignmentStore(Protocol):
+    @abstractmethod
+    async def get_variant_distribution(
+        self,
+        experiment_id: str
+    ) -> dict[str, int]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def periodic_flush_routine(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def save_assignments(
+        self,
+        decisions: list[Decision],
+        decided_at: datetime,
+        subject_id: str,
+    ) -> None:
+        raise NotImplementedError
+
+
 @final
 @interactor
 class MakeDecision:
@@ -147,6 +167,8 @@ class MakeDecision:
     flags: FlagStorage
     experiments: ExperimentStorage
     resolutions_repo: ResolutionRepository
+    assignment_store: AssignmentStore
+    time: TimeProvider
 
     async def __call__(  # noqa: C901
         self,
@@ -204,6 +226,9 @@ class MakeDecision:
         ]
         if new_decisions:
             await self.decision_data.save_decisions(subject_id, new_decisions)
+            await self.assignment_store.save_assignments(
+                new_decisions, self.time.now(), subject_id
+            )
         if resolutions:
             await self.resolutions_repo.save_resolutions(resolutions)
 
@@ -239,6 +264,7 @@ class MakeDecision:
                     f"{experiment.id}:{flag_key}:{subject_id}:{control.name}",
                 ),
                 flag_key=flag_key,
+                variant_id=control.name,
                 value=control.value,
                 experiment_id=experiment.id,
             )
@@ -307,20 +333,20 @@ class MakeDecision:
                     experiment_applied=False,
                     policy=ConflictPolicy.ONE_OR_NONE,
                 )
-                for exp in conflicts
+                    for exp in conflicts
             )
             return None
-        # HIGHER_PRIORITY: наименьший приоритет = победитель (ADR007)
         with_priority = [exp for exp in conflicts if exp.priority is not None]
         if not with_priority:
             return None
 
-        # Tie-breaker: хэш от (domain, id), побеждает больший (ADR007)
-        def sort_key(exp: CachedExperiment) -> tuple[int, int]:
-            h = mmh3.hash(f"{domain}:{exp.id}", signed=False)
-            return cast(int, exp.priority), -h
-
-        winner = min(with_priority, key=sort_key)
+        winner = min(
+            with_priority,
+            key=lambda exp: (
+                exp.priority,
+                -mmh3.hash(f"{domain}:{exp.id}", signed=False)  # tie-breaker
+            )
+        )
         out.extend(
             ConflictResolution(
                 domain=domain,
@@ -328,7 +354,7 @@ class MakeDecision:
                 experiment_applied=(exp is winner),
                 policy=ConflictPolicy.HIGHER_PRIORITY,
             )
-            for exp in conflicts
+                for exp in conflicts
         )
         return winner
 
@@ -355,6 +381,7 @@ class MakeDecision:
             flag_key=flag_key,
             value=value,
             experiment_id=None,
+            variant_id="!default",
         )
 
 
@@ -472,3 +499,15 @@ class ReadConflictsByExperiment:
             wins=wins,
             losses=losses,
         )
+
+
+@final
+@interactor
+class ReadDistributionOnExperiment:
+    idp: UserIdProvider
+    user_reader: UserReader
+    assignments: AssignmentStore
+
+    async def __call__(self, experiment_id: ExperimentId) -> dict[str, int]:
+        await require_any_user(self)
+        return await self.assignments.get_variant_distribution(experiment_id)

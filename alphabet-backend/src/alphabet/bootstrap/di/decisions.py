@@ -10,8 +10,10 @@ from alphabet.decisions.application import (
     ResolutionRepository,
     SetFlagDefault,
     SetRunningExperimentOnFlag,
-    WarmUpStorages,
+    WarmUpStorages, ReadDistributionOnExperiment, AssignmentStore,
 )
+from alphabet.decisions.infrastructure.assign_store import \
+    ClickHouseAssignmentStore
 from alphabet.decisions.infrastructure.resolutions_repo import (
     ClickHouseResolutionRepository,
 )
@@ -30,6 +32,7 @@ class DecisionsDIProvider(Provider):
         WarmUpStorages,
         ReadConflictsByExperiment,
         ReadConflictsByDomain,
+        ReadDistributionOnExperiment,
         scope=Scope.REQUEST,
     )
     flag_store = provide(
@@ -50,6 +53,11 @@ class DecisionsDIProvider(Provider):
     resolutions_repo = provide(
         ClickHouseResolutionRepository,
         provides=ResolutionRepository,
+        scope=Scope.APP,
+    )
+    assignment_store = provide(
+        ClickHouseAssignmentStore,
+        provides=AssignmentStore,
         scope=Scope.APP,
     )
 

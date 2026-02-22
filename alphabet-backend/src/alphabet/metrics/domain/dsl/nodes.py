@@ -115,7 +115,6 @@ class SystemValueNode(Node):
     kind: SystemValueKind
 
 
-# Component references value (user or system) and filters
 @final
 @value_object
 class ComponentNode(Node):

@@ -37,6 +37,7 @@ from alphabet.experiments.domain.experiment import (
 from alphabet.experiments.domain.flags import FlagKey
 from alphabet.experiments.domain.target_rule import TargetRuleString
 from alphabet.shared.application.idp import UserIdProvider
+from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import (
@@ -528,3 +529,17 @@ class ReadExperimentAudit:
             approvals = await self.reviews.all_approvals(exp_id)
             decision = await self.reviews.get_decision(exp_id)
             return ExperimentAuditDTO(approvals, decision)
+
+
+@final
+@interactor
+class ReadAllCurrentExperiments:
+    idp: UserIdProvider
+    user_reader: UserReader
+    tx: TransactionManager
+    experiments: ExperimentsRepository
+
+    async def __call__(self, pagination: Pagination) -> list[Experiment]:
+        async with self.tx:
+            await require_any_user(self)
+            return await self.experiments.all(pagination)

@@ -65,6 +65,18 @@ class MetricEvaluationResult:
     per_variant: dict[str, float | None]
 
 
+@dto
+@final
+class EventInsights:
+    event_statuses: dict[str, int]
+    event_types: dict[str, int]
+    rejection_reasons: dict[str, int]
+    attribution_fullness_percentage: float
+    delivery_latency_p95_ms: float
+    delivery_latency_p75_ms: float
+    delivery_latency_p50_ms: float
+
+
 class MetricEvaluator(Protocol):
     @abstractmethod
     async def evaluate_for_experiment(
@@ -85,6 +97,12 @@ class MetricEvaluator(Protocol):
         start_at: datetime,
         end_at: datetime,
     ) -> dict[MetricKey, float | None]:
+        raise NotImplementedError
+
+    @abstractmethod
+    async def query_insights(
+        self, experiment_id: str, filters: dict[str, str]
+    ) -> EventInsights:
         raise NotImplementedError
 
 

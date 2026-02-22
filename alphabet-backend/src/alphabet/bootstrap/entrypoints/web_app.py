@@ -1,6 +1,7 @@
 import asyncio
 from asyncio import Task
 from collections.abc import Callable, Coroutine
+from pathlib import Path
 from typing import Any
 
 from dishka import AsyncContainer, make_async_container
@@ -17,6 +18,9 @@ from litestar.openapi.plugins import (
     YamlRenderPlugin,
 )
 from litestar.openapi.spec import Components
+from litestar.template import TemplateConfig
+from litestar.contrib.jinja import JinjaTemplateEngine
+from litestar.static_files.config import StaticFilesConfig
 from litestar.plugins.prometheus import PrometheusConfig, PrometheusController
 from structlog import getLogger
 
@@ -28,6 +32,7 @@ from alphabet.bootstrap.di.decisions import DecisionsDIProvider
 from alphabet.bootstrap.di.events import EventsDIProvider
 from alphabet.bootstrap.di.experiments import FlagsExperimentsDIProvider
 from alphabet.bootstrap.di.guardrails import GuardrailsDIProvider
+from alphabet.bootstrap.di.insights import InsightsDIProvider
 from alphabet.bootstrap.di.metrics import MetricsDIProvider
 from alphabet.bootstrap.di.notifications import (
     NotificationsDIProvider,
@@ -42,9 +47,13 @@ from alphabet.bootstrap.di.shared import (
     TimeDIProvider,
     ValkeyDIProvider,
 )
+from alphabet.bootstrap.html_server import serve_frontend
 from alphabet.bootstrap.live_ready import LivenessReadinessController
 from alphabet.bootstrap.logging import get_structlog_plugin_def
-from alphabet.decisions.application import ResolutionRepository, WarmUpStorages
+from alphabet.decisions.application import (
+    ResolutionRepository,
+    WarmUpStorages, AssignmentStore,
+)
 from alphabet.decisions.presentation import DecisionsController
 from alphabet.experiments.presentation.errors import (
     flags_experiments_err_handlers,
@@ -53,6 +62,7 @@ from alphabet.experiments.presentation.experiments import ExperimentsController
 from alphabet.experiments.presentation.flags import FlagsController
 from alphabet.guardrails.presentation.controller import GuardRulesController
 from alphabet.guardrails.presentation.errors import guardrail_err_handlers
+from alphabet.insights.presentation import InsightsController
 from alphabet.metrics.presentation.errors import metrics_err_handlers
 from alphabet.metrics.presentation.metrics import MetricsController
 from alphabet.metrics.presentation.reports import ReportsController
@@ -102,6 +112,7 @@ def _create_container(config: Config) -> AsyncContainer:
         GuardrailsDIProvider(),
         NotificationsDIProvider(),
         NotificationsWorkerDIProvider(),
+        InsightsDIProvider(),
         context={
             Config: config,
         },
@@ -135,8 +146,10 @@ def create_app() -> Litestar:
             ReportsController,
             GuardRulesController,
             NotificationRulesController,
+            InsightsController,
             LivenessReadinessController,
             CustomPrometheusController,
+            serve_frontend,
         ],
         middleware=[
             prometheus_config.middleware,
@@ -177,7 +190,15 @@ def create_app() -> Litestar:
             warmup_event_types(container),
             start_event_store_periodic_flush(container),
             start_resolution_repo_periodic_flush(container),
+            start_assignment_repo_periodic_flush(container),
         ],
+        template_config=TemplateConfig(
+            directory=Path("templates"),
+            engine=JinjaTemplateEngine,
+        ),
+        static_files_config=[StaticFilesConfig(
+            directories=["static"], path="/_static", name="static"
+        )]
     )
     litestar_setup_dishka(container, litestar_app)
     logger.info("All good to go")
@@ -223,6 +244,17 @@ def start_resolution_repo_periodic_flush(
     async def start() -> None:
         async with container() as nested:
             store = await nested.get(ResolutionRepository)
+            tasks.append(asyncio.create_task(store.periodic_flush_routine()))
+
+    return start
+
+
+def start_assignment_repo_periodic_flush(
+    container: AsyncContainer,
+) -> Callable[[], Coroutine[Any, Any, None]]:
+    async def start() -> None:
+        async with container() as nested:
+            store = await nested.get(AssignmentStore)
             tasks.append(asyncio.create_task(store.periodic_flush_routine()))
 
     return start

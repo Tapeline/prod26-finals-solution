@@ -1,0 +1,2069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Alphabet A/B Platform</title>
+
+  <!-- Material Design Lite CSS -->
+  <link rel="stylesheet" href="{{ url_for_static_asset("static", "mdl.css") }}">
+  <!-- Material Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+  <!-- MDL JavaScript -->
+  <script defer src="{{ url_for_static_asset("static", "mdl.js") }}"></script>
+  <script src="https://cdn.jsdelivr.net/npm/echarts@5.5.0/dist/echarts.min.js"></script>
+  <style>
+      /* Layout Tweaks */
+      .page-content {
+          padding: 20px;
+          max-width: 1200px;
+          margin: 0 auto;
+      }
+
+      .mdl-card {
+          width: 100%;
+          min-height: auto;
+          margin-bottom: 20px;
+      }
+
+      .fab-bottom-right {
+          position: fixed;
+          right: 30px;
+          bottom: 30px;
+          z-index: 10;
+      }
+
+      .cursor-pointer {
+          cursor: pointer;
+      }
+
+      /* Header Links */
+      .header-link {
+          color: white;
+          text-decoration: none;
+          font-weight: 500;
+          display: flex;
+          align-items: center;
+      }
+
+      .header-link:hover {
+          text-decoration: underline;
+      }
+
+      /* Custom Tabs */
+      .custom-tab-bar {
+          display: flex;
+          border-bottom: 1px solid #e0e0e0;
+          margin-bottom: 20px;
+          overflow-x: auto;
+      }
+
+      .custom-tab {
+          padding: 0 24px;
+          height: 48px;
+          line-height: 48px;
+          cursor: pointer;
+          color: rgba(0, 0, 0, .54);
+          text-transform: uppercase;
+          font-weight: 500;
+          font-size: 14px;
+          white-space: nowrap;
+      }
+
+      .custom-tab.active {
+          color: #673ab7;
+          border-bottom: 2px solid #673ab7;
+      }
+
+      .custom-tab:hover {
+          background-color: rgba(0, 0, 0, 0.04);
+      }
+
+      /* Modal Overlay */
+      .modal-overlay {
+          position: fixed;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 50;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+      }
+
+      .modal-card {
+          width: 600px;
+          max-width: 95%;
+          background: white;
+          padding: 0;
+          box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+          border-radius: 2px;
+          max-height: 90vh;
+          overflow-y: auto;
+      }
+
+      .modal-content {
+          padding: 20px;
+      }
+
+      /* Form Utilities */
+      .form-group {
+          margin-bottom: 15px;
+      }
+
+      .full-width {
+          width: 100%;
+      }
+
+      .full-height {
+          height: 100%;
+      }
+
+      [x-cloak] {
+          display: none !important;
+      }
+  </style>
+</head>
+
+<body x-data="app()" x-init="initApp()">
+
+<!-- Main Layout -->
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
+
+  <!-- Header -->
+  <header class="mdl-layout__header">
+    <div class="mdl-layout__header-row">
+      <span class="mdl-layout-title" x-text="pageTitle"></span>
+      <div class="mdl-layout-spacer"></div>
+      <!-- User Info -->
+      <nav class="mdl-navigation">
+        <a href="/_iap/me" class="header-link" x-show="user">
+          <i class="material-icons" style="margin-right: 8px;">account_circle</i>
+          <span x-text="user?.email"></span>
+          <span style="opacity: 0.7; margin-left: 5px; font-size: 0.8em;">(<span x-text="user?.role"></span>)</span>
+        </a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Drawer (Sidebar) -->
+  <div class="mdl-layout__drawer">
+    <span class="mdl-layout-title">Alphabet</span>
+    <nav class="mdl-navigation">
+      <a class="mdl-navigation__link" href="#experiments"
+         :class="route === 'experiments' ? 'mdl-color--deep-purple-50' : ''" @click="navigate('experiments')">
+        <i class="material-icons" style="margin-right: 10px;">science</i> Experiments
+      </a>
+      <a class="mdl-navigation__link" href="#flags" :class="route === 'flags' ? 'mdl-color--deep-purple-50' : ''"
+         @click="navigate('flags')">
+        <i class="material-icons" style="margin-right: 10px;">flag</i> Flags
+      </a>
+      <a class="mdl-navigation__link" href="#events"
+         :class="route === 'events' ? 'mdl-color--deep-purple-50' : ''"
+         @click="navigate('events')">
+        <i class="material-icons" style="margin-right: 10px;">event</i> Event Library
+      </a>
+      <a class="mdl-navigation__link" href="#metrics"
+         :class="route === 'metrics' ? 'mdl-color--deep-purple-50' : ''"
+         @click="navigate('metrics')">
+        <i class="material-icons" style="margin-right: 10px;">show_chart</i> Metric Library
+      </a>
+      <a class="mdl-navigation__link" href="#notifications"
+         :class="route === 'notifications' ? 'mdl-color--deep-purple-50' : ''" @click="navigate('notifications')">
+        <i class="material-icons" style="margin-right: 10px;">notifications</i> Notifications
+      </a>
+
+      <!-- Admin Only Link -->
+      <template x-if="permissions.canManageUsers">
+        <a class="mdl-navigation__link" href="#users"
+           :class="route === 'users' ? 'mdl-color--deep-purple-50' : ''"
+           @click="navigate('users')">
+          <i class="material-icons" style="margin-right: 10px;">people</i> Users
+        </a>
+      </template>
+    </nav>
+  </div>
+
+  <!-- Main Content -->
+  <main class="mdl-layout__content">
+    <div class="page-content">
+
+      <!-- Loader -->
+      <div x-show="loading" class="mdl-progress mdl-js-progress mdl-progress__indeterminate full-width"></div>
+
+      <!-- =========================== -->
+      <!-- PAGE: EXPERIMENTS LIST      -->
+      <!-- =========================== -->
+      <div x-show="route === 'experiments'" x-cloak>
+        <div class="mdl-grid">
+          <template x-for="exp in data.experiments" :key="exp.id">
+            <div class="mdl-cell mdl-cell--4-col">
+              <div class="mdl-card mdl-shadow--2dp">
+                <div class="mdl-card__title mdl-card--expand mdl-color--deep-purple-500 mdl-color-text--white">
+                  <h2 class="mdl-card__title-text" x-text="exp.name"></h2>
+                </div>
+                <div class="mdl-card__supporting-text">
+                  <div style="margin-bottom: 5px;"><strong>Flag:</strong> <span
+                      x-text="exp.flag_key"></span></div>
+                  <div class="mdl-chip mdl-chip--contact">
+                                        <span class="mdl-chip__contact mdl-color--teal mdl-color-text--white"
+                                              x-text="exp.state ? exp.state[0].toUpperCase() : '?'"></span>
+                    <span class="mdl-chip__text" x-text="exp.state"></span>
+                  </div>
+                </div>
+                <div class="mdl-card__actions mdl-card--border">
+                  <a class="mdl-button mdl-button--colored mdl-js-button mdl-js-ripple-effect"
+                     @click.prevent="openExperiment(exp.id)">
+                    Manage
+                  </a>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+
+        <button x-show="permissions.canCreate"
+                @click="openCreateExperiment()"
+                class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored fab-bottom-right">
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+
+      <!-- =========================== -->
+      <!-- PAGE: EXPERIMENT DETAIL     -->
+      <!-- =========================== -->
+      <div x-show="route === 'experiment-detail'" x-cloak>
+        <div style="display:flex; align-items:center; margin-bottom: 20px;">
+          <button class="mdl-button mdl-js-button mdl-button--icon" @click="navigate('experiments')">
+            <i class="material-icons">arrow_back</i>
+          </button>
+          <h2 style="margin: 0 0 0 10px; font-size: 24px;" x-text="currentExperiment?.name"></h2>
+        </div>
+
+        <!-- Custom Tabs -->
+        <div class="custom-tab-bar">
+          <div class="custom-tab" :class="activeTab === 'overview' ? 'active' : ''"
+               @click="activeTab = 'overview'">Overview
+          </div>
+          <div class="custom-tab" :class="activeTab === 'review' ? 'active' : ''"
+               @click="activeTab = 'review'">Review
+          </div>
+          <div class="custom-tab" :class="activeTab === 'reports' ? 'active' : ''"
+               @click="activeTab = 'reports'; setTimeout(() => renderReportCharts(), 50)">Reports
+          </div>
+          <div class="custom-tab" :class="activeTab === 'guardrails' ? 'active' : ''"
+               @click="activeTab = 'guardrails'">Guardrails
+          </div>
+          <div class="custom-tab" :class="activeTab === 'history' ? 'active' : ''" @click="loadHistory()">
+            History
+          </div>
+          <div class="custom-tab" :class="activeTab === 'insights' ? 'active' : ''"
+               @click="activeTab = 'insights'; loadInsights()">Insights
+          </div>
+        </div>
+
+        <!-- Tab: Overview -->
+        <div x-show="activeTab === 'overview'">
+          <div class="mdl-grid">
+            <div class="mdl-cell mdl-cell--8-col">
+              <!-- Details Table -->
+              <h5 style="margin-top:0">Configuration</h5>
+              <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width"
+                     style="margin-bottom: 20px;">
+                <tbody>
+                <tr>
+                  <td class="mdl-data-table__cell--non-numeric"><strong>ID</strong></td>
+                  <td class="mdl-data-table__cell--non-numeric" x-text="currentExperiment?.id"></td>
+                </tr>
+                <tr>
+                  <td class="mdl-data-table__cell--non-numeric"><strong>Status</strong></td>
+                  <td class="mdl-data-table__cell--non-numeric"><strong
+                      x-text="currentExperiment?.state"></strong></td>
+                </tr>
+                <tr>
+                  <td class="mdl-data-table__cell--non-numeric"><strong>Flag Key</strong></td>
+                  <td class="mdl-data-table__cell--non-numeric"
+                      x-text="currentExperiment?.flag_key"></td>
+                </tr>
+                <tr>
+                  <td class="mdl-data-table__cell--non-numeric"><strong>Traffic</strong></td>
+                  <td class="mdl-data-table__cell--non-numeric"
+                      x-text="currentExperiment?.audience + '%'"></td>
+                </tr>
+                <tr>
+                  <td class="mdl-data-table__cell--non-numeric"><strong>Conflict Policy</strong></td>
+                  <td class="mdl-data-table__cell--non-numeric"
+                      x-text="currentExperiment?.conflict_policy || 'None'"></td>
+                </tr>
+                <tr>
+                  <td class="mdl-data-table__cell--non-numeric"><strong>Priority</strong></td>
+                  <td class="mdl-data-table__cell--non-numeric"
+                      x-text="currentExperiment?.priority || '0'"></td>
+                </tr>
+                <tr>
+                  <td class="mdl-data-table__cell--non-numeric"><strong>Targeting</strong></td>
+                  <td class="mdl-data-table__cell--non-numeric"><code
+                      x-text="currentExperiment?.targeting || 'All Users'"></code></td>
+                </tr>
+                </tbody>
+              </table>
+
+              <!-- Metrics -->
+              <h5>Metrics</h5>
+              <div class="mdl-card mdl-shadow--2dp mdl-card__supporting-text"
+                   style="min-height:auto; margin-bottom:20px;">
+                <p><strong>Primary:</strong> <span x-text="currentExperiment?.metrics?.primary"></span>
+                </p>
+                <p><strong>Secondary:</strong> <span
+                    x-text="currentExperiment?.metrics?.secondary?.join(', ') || 'None'"></span></p>
+                <p><strong>Guarding:</strong> <span
+                    x-text="currentExperiment?.metrics?.guarding?.join(', ') || 'None'"></span></p>
+              </div>
+
+              <!-- Variants Table -->
+              <h5>Variants</h5>
+              <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width">
+                <thead>
+                <tr>
+                  <th class="mdl-data-table__cell--non-numeric">Name</th>
+                  <th class="mdl-data-table__cell--non-numeric">Value</th>
+                  <th class="mdl-data-table__cell--non-numeric">Is Control</th>
+                  <th>Audience Split</th>
+                </tr>
+                </thead>
+                <tbody>
+                <template x-for="variant in currentExperiment?.variants || []">
+                  <tr>
+                    <td class="mdl-data-table__cell--non-numeric" x-text="variant.name"></td>
+                    <td class="mdl-data-table__cell--non-numeric"><code
+                        x-text="variant.value"></code></td>
+                    <td class="mdl-data-table__cell--non-numeric">
+                      <i class="material-icons" x-show="variant.is_control"
+                         style="font-size:16px">check</i>
+                    </td>
+                    <td x-text="variant.audience + '%'"></td>
+                  </tr>
+                </template>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Actions Column (Keep existing actions logic here, abbreviated for brevity) -->
+            <div class="mdl-cell mdl-cell--4-col">
+              <div class="mdl-card mdl-shadow--2dp">
+                <div class="mdl-card__title"><h2 class="mdl-card__title-text">Actions</h2></div>
+                <div class="mdl-card__actions mdl-card--border"
+                     style="display: flex; flex-direction: column; gap: 8px;">
+                  <!-- Insert the exact same button logic from the previous file here -->
+                  <template x-if="currentExperiment?.state === 'draft' && permissions.canCreate">
+                    <button @click="openEditExperiment()"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-color--blue-grey-500 mdl-color-text--white full-width"
+                            style="margin-bottom:5px;">
+                      <i class="material-icons"
+                         style="font-size: 18px; vertical-align: middle; margin-right: 5px;">edit</i>
+                      Edit Configuration
+                    </button>
+                  </template>
+                  <template x-if="currentExperiment?.state === 'draft'">
+                    <button @click="sendToReview(currentExperiment.id)"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored full-width">
+                      Submit for Review
+                    </button>
+                  </template>
+                  <template x-if="currentExperiment?.state === 'in_review' && permissions.canReview">
+                    <div>
+                      <button @click="reviewExperiment(currentExperiment.id, 'approve')"
+                              class="mdl-button mdl-js-button mdl-button--raised mdl-color--green-500 mdl-color-text--white full-width"
+                              style="margin-bottom:5px;">Approve
+                      </button>
+                      <button @click="reviewExperiment(currentExperiment.id, 'reject')"
+                              class="mdl-button mdl-js-button mdl-button--raised mdl-color--red-400 mdl-color-text--white full-width">
+                        Reject
+                      </button>
+                    </div>
+                  </template>
+                  <template x-if="currentExperiment?.state === 'accepted'">
+                    <button @click="manageExperiment(currentExperiment.id, 'started')"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-color--green-600 mdl-color-text--white full-width">
+                      Start Experiment
+                    </button>
+                  </template>
+                  <template x-if="currentExperiment?.state === 'started'">
+                    <div>
+                      <button @click="manageExperiment(currentExperiment.id, 'paused')"
+                              class="mdl-button mdl-js-button mdl-button--raised full-width"
+                              style="margin-bottom:5px;">Pause
+                      </button>
+                      <button @click="manageExperiment(currentExperiment.id, 'finished')"
+                              class="mdl-button mdl-js-button mdl-button--raised mdl-color--orange-800 mdl-color-text--white full-width">
+                        Stop (Finish)
+                      </button>
+                    </div>
+                  </template>
+                  <template x-if="currentExperiment?.state === 'paused'">
+                    <button @click="manageExperiment(currentExperiment.id, 'started')"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-color--green-600 mdl-color-text--white full-width">
+                      Resume
+                    </button>
+                  </template>
+                  <template x-if="['finished', 'rejected'].includes(currentExperiment?.state)">
+                    <button @click="openModal('archiveExperiment')"
+                            class="mdl-button mdl-js-button mdl-button--raised mdl-color--grey-600 mdl-color-text--white full-width">
+                      Archive
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Review -->
+        <div x-show="activeTab === 'review'">
+          <div class="mdl-card mdl-shadow--2dp mdl-card__supporting-text">
+            <h5>Review Status</h5>
+            <template x-if="currentExperimentAudit">
+              <ul class="mdl-list">
+                <template x-for="appr in currentExperimentAudit.approvals || []">
+                  <li class="mdl-list__item">
+                    <span class="mdl-list__item-primary-content">
+                        <i class="material-icons mdl-list__item-icon" style="color:green;">check_circle</i>
+                        <div>
+                            Approved by: <strong
+                            x-text="userCache[appr.approver_id]?.email || appr.approver_id"></strong>
+                            <br>
+                            <small x-text="userCache[appr.approver_id]?.role || ''"></small>
+                        </div>
+                    </span>
+                  </li>
+                </template>
+                <li x-show="currentExperiment?.state === 'rejected'" class="mdl-list__item">
+                  <span class="mdl-list__item-primary-content" style="color:red">
+                    <i class="material-icons mdl-list__item-icon">cancel</i>
+                    Rejected
+                  </span>
+                </li>
+              </ul>
+            </template>
+            <div x-show="!currentExperimentAudit" class="mdl-color-text--grey-500">No review data
+              available.
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Reports -->
+        <div x-show="activeTab === 'reports'">
+          <div style="margin-bottom:15px;">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                    @click="openModal('createReport')">
+              <i class="material-icons">add</i> Create Report
+            </button>
+          </div>
+          <div class="mdl-grid">
+            <template x-for="rep in data.reports" :key="rep.id">
+              <div class="mdl-cell mdl-cell--12-col">
+                <div class="mdl-card mdl-shadow--2dp full-width">
+                  <div class="mdl-card__title mdl-card--border"
+                       style="display:flex; justify-content:space-between; background-color: #f5f5f5; padding: 10px 16px;">
+                    <h2 class="mdl-card__title-text" style="font-size: 16px;">
+                      <span>Report: <span x-text="formatDate(rep.start_at)"></span> - <span
+                          x-text="formatDate(rep.end_at)"></span></span>
+                    </h2>
+                    <button class="mdl-button mdl-js-button mdl-button--icon mdl-color-text--red"
+                            @click="deleteReport(rep.id)">
+                      <i class="material-icons">delete</i>
+                    </button>
+                  </div>
+                  <div class="mdl-card__supporting-text full-width" style="box-sizing: border-box; padding: 16px;">
+                    <div class="mdl-grid" style="padding: 0;">
+                      <template x-for="pt in rep.metrics" :key="pt.key">
+                        <div class="mdl-cell mdl-cell--6-col">
+                          <!-- A dedicated div for each metric's EChart -->
+                          <div :id="'report-chart-' + rep.id + '-' + pt.key.replace(/\W/g, '_')"
+                               style="width:100%; height:280px;"></div>
+                        </div>
+                      </template>
+                      <div x-show="!rep.metrics || rep.metrics.length === 0">No metrics computed for this report.</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </template>
+            <div x-show="!data.reports || data.reports.length === 0" class="mdl-cell mdl-cell--12-col"
+                 style="text-align: center; color: gray; padding: 20px;">
+              No reports found. Generate one to see data.
+            </div>
+          </div>
+        </div>
+
+        <!-- Tab: Guardrails -->
+        <div x-show="activeTab === 'guardrails'">
+          <div style="margin-bottom:15px;">
+            <button class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored"
+                    @click="openModal('createGuardrail')">
+              <i class="material-icons">add</i> Add Guardrail
+            </button>
+          </div>
+          <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width">
+            <thead>
+            <tr>
+              <th>Metric</th>
+              <th>Threshold</th>
+              <th>Action</th>
+              <th>Window (s)</th>
+            </tr>
+            </thead>
+            <tbody>
+            <template x-for="guard in data.guardrails" :key="guard.id">
+              <tr>
+                <td x-text="guard.metric_key"></td>
+                <td x-text="guard.threshold"></td>
+                <td x-text="guard.action"></td>
+                <td x-text="guard.watch_window_s"></td>
+              </tr>
+            </template>
+            <tr x-show="data.guardrails.length === 0">
+              <td colspan="4" class="mdl-data-table__cell--non-numeric">No guardrails configured.</td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tab: History -->
+        <div x-show="activeTab === 'history'">
+          <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width">
+            <thead>
+            <tr>
+              <th class="mdl-data-table__cell--non-numeric">Updated At</th>
+              <th class="mdl-data-table__cell--non-numeric">Version</th>
+              <th class="mdl-data-table__cell--non-numeric">State</th>
+              <th class="mdl-data-table__cell--non-numeric">Author</th>
+            </tr>
+            </thead>
+            <tbody>
+            <template x-for="(hist, index) in data.history" :key="index">
+              <tr>
+                <td class="mdl-data-table__cell--non-numeric" x-text="formatDate(hist.updated_at)"></td>
+                <td class="mdl-data-table__cell--non-numeric" x-text="hist.version"></td>
+                <td class="mdl-data-table__cell--non-numeric" x-text="hist.state"></td>
+                <td class="mdl-data-table__cell--non-numeric">
+                  <span x-text="userCache[hist.author_id]?.email || hist.author_id"></span>
+                </td>
+              </tr>
+            </template>
+            <tr x-show="data.history.length === 0">
+              <td colspan="4" class="mdl-data-table__cell--non-numeric" style="text-align:center">
+                <span x-show="loading">Loading...</span>
+                <span x-show="!loading">No history available.</span>
+              </td>
+            </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Tab: Insights -->
+        <div x-show="activeTab === 'insights'" id="insights-tab-content">
+          <!-- Filters Section -->
+          <div class="mdl-card mdl-shadow--2dp full-width" style="margin-bottom: 20px;">
+            <div class="mdl-card__supporting-text full-width" style="box-sizing: border-box;">
+              <h5 style="margin-top:0">Custom Filters</h5>
+              <template x-for="(filter, index) in forms.insightFilters" :key="index">
+                <div style="display:flex; gap:16px; align-items:baseline; margin-bottom: 8px;">
+                  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label"
+                       style="flex:1;">
+                    <input class="mdl-textfield__input" type="text" :id="'filterKey' + index"
+                           x-model="filter.key">
+                    <label class="mdl-textfield__label" :for="'filterKey' + index">Key (e.g.
+                      country)</label>
+                  </div>
+                  <span style="font-weight:bold;">=</span>
+                  <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label"
+                       style="flex:1;">
+                    <input class="mdl-textfield__input" type="text" :id="'filterVal' + index"
+                           x-model="filter.value">
+                    <label class="mdl-textfield__label" :for="'filterVal' + index">Value (e.g.
+                      RU)</label>
+                  </div>
+                  <button class="mdl-button mdl-js-button mdl-button--icon mdl-color-text--red"
+                          @click="removeInsightFilter(index)">
+                    <i class="material-icons">remove_circle</i>
+                  </button>
+                </div>
+              </template>
+
+              <div style="margin-top: 10px; display:flex; gap:10px;">
+                <button class="mdl-button mdl-js-button" @click="addInsightFilter()">
+                  <i class="material-icons" style="font-size:16px; margin-right:5px;">add</i> Add
+                  Filter
+                </button>
+                <button class="mdl-button mdl-js-button mdl-color-text--deep-purple-500"
+                        style="font-weight: 500;" @click="applyFilters()">
+                  Apply Filters
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Content wrapper -->
+          <template x-if="data.insights">
+            <div class="mdl-grid" style="padding: 0; margin: 0 -8px;">
+              <!-- Tables Row -->
+
+
+              <div class="mdl-cell mdl-cell--4-col">
+                <div class="mdl-card mdl-shadow--2dp full-width full-height">
+                  <div id="chart-real-dist-bar"
+                       style="width:100%; height:300px; padding:10px; box-sizing:border-box;"></div>
+                </div>
+              </div>
+
+              <div class="mdl-cell mdl-cell--8-col">
+                <div class="mdl-card mdl-shadow--2dp full-width full-height">
+                  <div class="mdl-card__title"><h2 class="mdl-card__title-text">Distribution
+                    Deviation</h2></div>
+                  <div class="mdl-card__supporting-text full-width" style="box-sizing: border-box;">
+                    <div x-show="distributionWarning"
+                         style="color:#d32f2f; background:#ffebee; padding:10px; border-radius:4px; margin-bottom:15px; font-weight:bold;">
+                      <i class="material-icons" style="vertical-align: middle;">warning</i>
+                      High deviation detected in traffic distribution (> 5%)!
+                    </div>
+                    <table class="mdl-data-table mdl-js-data-table full-width" style="border:none;">
+                      <thead>
+                      <tr>
+                        <th class="mdl-data-table__cell--non-numeric">Variant</th>
+                        <th>Expected %</th>
+                        <th>Real %</th>
+                        <th>Dev %</th>
+                      </tr>
+                      </thead>
+                      <tbody>
+                      <template x-for="row in distributionTable" :key="row.name">
+                        <tr>
+                          <td class="mdl-data-table__cell--non-numeric"
+                              x-text="row.name"></td>
+                          <td x-text="row.expectedPct"></td>
+                          <td x-text="row.realPct.toFixed(2)"></td>
+                          <td :style="Math.abs(row.deviation) > 5 ? 'color:red; font-weight:bold' : ''"
+                              x-text="(row.deviation > 0 ? '+' : '') + row.deviation.toFixed(2)"></td>
+                        </tr>
+                      </template>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Charts Row 1 -->
+              <div class="mdl-cell mdl-cell--4-col">
+                <div class="mdl-card mdl-shadow--2dp full-width full-height">
+                  <div id="chart-statuses"
+                       style="width:100%; height:300px; padding:10px; box-sizing:border-box;"></div>
+                </div>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col">
+                <div class="mdl-card mdl-shadow--2dp full-width full-height">
+                  <div id="chart-types"
+                       style="width:100%; height:300px; padding:10px; box-sizing:border-box;"></div>
+                </div>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col">
+                <div class="mdl-card mdl-shadow--2dp full-width full-height">
+                  <div id="chart-reasons"
+                       style="width:100%; height:300px; padding:10px; box-sizing:border-box;"></div>
+                </div>
+              </div>
+
+              <!-- Charts Row 2 -->
+              <div class="mdl-cell mdl-cell--4-col">
+                <div class="mdl-card mdl-shadow--2dp full-width full-height">
+                  <div id="chart-gauge"
+                       style="width:100%; height:300px; padding:10px; box-sizing:border-box;"></div>
+                </div>
+              </div>
+              <div class="mdl-cell mdl-cell--4-col">
+                <div class="mdl-card mdl-shadow--2dp full-width full-height">
+                  <div class="mdl-card__title"><h2 class="mdl-card__title-text">Delivery Latency</h2>
+                  </div>
+                  <table class="mdl-data-table mdl-js-data-table full-width" style="border:none;">
+                    <thead>
+                    <tr>
+                      <th class="mdl-data-table__cell--non-numeric">Percentile</th>
+                      <th>Latency (ms)</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                      <td class="mdl-data-table__cell--non-numeric">p50</td>
+                      <td x-text="data.insights.delivery_latency_p50_ms || 0"></td>
+                    </tr>
+                    <tr>
+                      <td class="mdl-data-table__cell--non-numeric">p75</td>
+                      <td x-text="data.insights.delivery_latency_p75_ms || 0"></td>
+                    </tr>
+                    <tr>
+                      <td class="mdl-data-table__cell--non-numeric">p95</td>
+                      <td x-text="data.insights.delivery_latency_p95_ms || 0"></td>
+                    </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+            </div>
+          </template>
+
+          <div x-show="!data.insights && !loading" style="text-align:center; padding: 40px; color: gray;">
+            Apply filters to load insights data.
+          </div>
+        </div>
+      </div>
+
+      <!-- =========================== -->
+      <!-- PAGE: FLAGS                 -->
+      <!-- =========================== -->
+      <div x-show="route === 'flags'" x-cloak>
+        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width">
+          <thead>
+          <tr>
+            <th class="mdl-data-table__cell--non-numeric">Key</th>
+            <th class="mdl-data-table__cell--non-numeric">Type</th>
+            <th class="mdl-data-table__cell--non-numeric">Default</th>
+            <th class="mdl-data-table__cell--non-numeric">Description</th>
+          </tr>
+          </thead>
+          <tbody>
+          <template x-for="flag in data.flags" :key="flag.key">
+            <tr>
+              <td class="mdl-data-table__cell--non-numeric" x-text="flag.key"></td>
+              <td class="mdl-data-table__cell--non-numeric" x-text="flag.type"></td>
+              <td class="mdl-data-table__cell--non-numeric" x-text="flag.default"></td>
+              <td class="mdl-data-table__cell--non-numeric" x-text="flag.description"></td>
+              <!-- Add this column -->
+              <td>
+                <button class="mdl-button mdl-js-button mdl-button--icon" @click="openEditFlag(flag)">
+                  <i class="material-icons">edit</i>
+                </button>
+              </td>
+            </tr>
+          </template>
+          </tbody>
+        </table>
+
+        <button x-show="permissions.canCreate"
+                @click="openModal('createFlag')"
+                class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored fab-bottom-right">
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+
+      <!-- =========================== -->
+      <!-- PAGE: METRICS (Library)     -->
+      <!-- =========================== -->
+      <div x-show="route === 'metrics'" x-cloak>
+        <div class="mdl-grid">
+          <template x-for="metric in data.metrics" :key="metric.key">
+            <div class="mdl-cell mdl-cell--12-col">
+              <div class="mdl-card mdl-shadow--2dp"
+                   style="min-height: auto; padding: 15px; display:flex; flex-direction:row; justify-content:space-between; align-items:center;">
+                <div style="flex: 1;">
+                  <strong x-text="metric.key" style="font-size:1.2em"></strong>
+                  <code style="background:#f4f4f4; padding:5px; margin-top:5px; display:block;"
+                        x-text="metric.expr"></code>
+                </div>
+                <!-- Edit Button -->
+                <button x-show="permissions.canEditConfig"
+                        @click="openEditMetric(metric)"
+                        class="mdl-button mdl-js-button mdl-button--icon">
+                  <i class="material-icons">edit</i>
+                </button>
+              </div>
+            </div>
+          </template>
+        </div>
+        <button x-show="permissions.canEditConfig"
+                @click="openModal('createMetric')"
+                class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored fab-bottom-right">
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+
+      <!-- =========================== -->
+      <!-- PAGE: NOTIFICATIONS         -->
+      <!-- =========================== -->
+      <div x-show="route === 'notifications'" x-cloak>
+        <ul class="mdl-list mdl-shadow--2dp" style="background:white; padding: 0;">
+          <template x-for="rule in data.notifications" :key="rule.id">
+            <li class="mdl-list__item mdl-list__item--two-line" style="border-bottom: 1px solid #eee;">
+                                <span class="mdl-list__item-primary-content">
+                                    <i class="material-icons mdl-list__item-avatar">notifications</i>
+                                    <span x-text="rule.connection_string"></span>
+                                    <span class="mdl-list__item-sub-title" x-text="rule.message_template"></span>
+                                </span>
+            </li>
+          </template>
+        </ul>
+        <button x-show="permissions.canEditConfig"
+                @click="openModal('createNotification')"
+                class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored fab-bottom-right">
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+
+      <!-- =========================== -->
+      <!-- PAGE: EVENT LIBRARY         -->
+      <!-- =========================== -->
+      <div x-show="route === 'events'" x-cloak>
+        <table class="mdl-data-table mdl-js-data-table mdl-shadow--2dp full-width">
+          <thead>
+          <tr>
+            <th class="mdl-data-table__cell--non-numeric">Name</th>
+            <th class="mdl-data-table__cell--non-numeric">ID</th>
+            <th class="mdl-data-table__cell--non-numeric">Archived</th>
+          </tr>
+          </thead>
+          <tbody>
+          <template x-for="evt in data.events" :key="evt.id">
+            <tr>
+              <td class="mdl-data-table__cell--non-numeric" x-text="evt.name"></td>
+              <td class="mdl-data-table__cell--non-numeric" x-text="evt.id"></td>
+              <td class="mdl-data-table__cell--non-numeric">
+                <i class="material-icons" x-show="evt.is_archived">archive</i>
+              </td>
+            </tr>
+          </template>
+          </tbody>
+        </table>
+        <button x-show="permissions.canCreate"
+                @click="openModal('createEvent')"
+                class="mdl-button mdl-js-button mdl-button--fab mdl-js-ripple-effect mdl-button--colored fab-bottom-right">
+          <i class="material-icons">add</i>
+        </button>
+      </div>
+
+      <!-- =========================== -->
+      <!-- PAGE: USERS (Admin Only)    -->
+      <!-- =========================== -->
+      <div x-show="route === 'users'" x-cloak>
+        <div class="mdl-card mdl-shadow--2dp mdl-card__supporting-text">
+          <h5>Register User</h5>
+          <form @submit.prevent="createUser">
+            <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+              <input class="mdl-textfield__input" type="email" id="newUserEmail"
+                     x-model="forms.user.email">
+              <label class="mdl-textfield__label" for="newUserEmail">Email</label>
+            </div>
+            <div class="mdl-selectfield">
+              <label style="font-size: 12px; color: rgba(0,0,0,0.5);">Role</label>
+              <select class="mdl-textfield__input" x-model="forms.user.role"
+                      style="margin-top:5px; display:block; width:100%;">
+                <option value="viewer">Viewer</option>
+                <option value="experimenter">Experimenter</option>
+                <option value="approver">Approver</option>
+                <option value="admin">Admin</option>
+              </select>
+            </div>
+            <br>
+            <button type="submit" class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">
+              Create
+            </button>
+          </form>
+        </div>
+
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+          <input class="mdl-textfield__input" type="text" id="searchUser"
+                 @keyup.enter="lookupUser($event.target.value)">
+          <label class="mdl-textfield__label" for="searchUser">Lookup User by Email (Enter)</label>
+        </div>
+      </div>
+
+    </div>
+  </main>
+</div>
+
+<!-- =========================== -->
+<!-- MODALS                      -->
+<!-- =========================== -->
+
+<!-- 1. Create Experiment -->
+<!-- 1. Unified Experiment Form (Create/Edit) -->
+<div class="modal-overlay" x-show="modal === 'experimentForm'" x-transition x-cloak>
+  <div class="modal-card" style="width: 800px;"> <!-- Wider modal for complex form -->
+    <div class="mdl-card__title">
+      <h2 class="mdl-card__title-text" x-text="forms.experiment.id ? 'Edit Experiment' : 'New Experiment'"></h2>
+    </div>
+    <div class="modal-content">
+
+      <h5 style="margin-top:0;">Basic Info</h5>
+      <div style="display:flex; gap: 15px;">
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+          <input class="mdl-textfield__input" type="text" id="expName" x-model="forms.experiment.name">
+          <label class="mdl-textfield__label" for="expName">Name</label>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+          <input class="mdl-textfield__input" type="text" id="expFlag" x-model="forms.experiment.flag_key">
+          <label class="mdl-textfield__label" for="expFlag">Flag Key</label>
+        </div>
+      </div>
+
+      <div style="display:flex; gap: 15px;">
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+          <input class="mdl-textfield__input" type="number" id="expAudience"
+                 x-model="forms.experiment.audience">
+          <label class="mdl-textfield__label" for="expAudience">Total Audience (%)</label>
+        </div>
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+          <input class="mdl-textfield__input" type="number" id="expPriority"
+                 x-model="forms.experiment.priority">
+          <label class="mdl-textfield__label" for="expPriority">Priority</label>
+        </div>
+      </div>
+
+      <h5 style="margin-top:10px;">Targeting & Conflicts</h5>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="expTargeting" x-model="forms.experiment.targeting">
+        <label class="mdl-textfield__label" for="expTargeting">Targeting DSL</label>
+      </div>
+      <div style="display:flex; gap: 15px;">
+        <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+          <input class="mdl-textfield__input" type="text" id="expConflictDom"
+                 x-model="forms.experiment.conflict_domain">
+          <label class="mdl-textfield__label" for="expConflictDom">Conflict Domain</label>
+        </div>
+        <div class="form-group full-width">
+          <label style="font-size:12px; color: rgba(0,0,0,.5)">Conflict Policy</label>
+          <select x-model="forms.experiment.conflict_policy" class="mdl-textfield__input">
+            <option value="one_or_none">One or None</option>
+            <option value="higher_priority">Higher Priority</option>
+          </select>
+        </div>
+      </div>
+
+      <h5 style="margin-top:10px;">Metrics</h5>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="expPriMetric"
+               x-model="forms.experiment.metrics.primary">
+        <label class="mdl-textfield__label" for="expPriMetric">Primary Metric Key</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="expSecMetric"
+               x-model="forms.experiment.secondary_metrics_input">
+        <label class="mdl-textfield__label" for="expSecMetric">Secondary Metric Keys (comma separated)</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="expGuardMetric"
+               x-model="forms.experiment.guarding_metrics_input">
+        <label class="mdl-textfield__label" for="expGuardMetric">Guarding Metric Keys (comma separated)</label>
+      </div>
+
+      <h5 style="margin-top:10px; display:flex; justify-content:space-between; align-items:center;">
+        Variants
+        <button class="mdl-button mdl-js-button mdl-button--icon mdl-color-text--blue"
+                @click.prevent="addVariant()">
+          <i class="material-icons">add_circle</i>
+        </button>
+      </h5>
+
+      <!-- Dynamic Variants -->
+      <div style="background: #f9f9f9; padding: 10px; border-radius: 4px;">
+        <template x-for="(variant, index) in forms.experiment.variants" :key="index">
+          <div style="display:flex; gap: 10px; align-items: center; margin-bottom: 10px;">
+            <input class="mdl-textfield__input" type="text" placeholder="Name" x-model="variant.name"
+                   style="flex: 2">
+            <input class="mdl-textfield__input" type="text" placeholder="Value" x-model="variant.value"
+                   style="flex: 2">
+            <input class="mdl-textfield__input" type="number" placeholder="Audience %"
+                   x-model="variant.audience" style="flex: 1">
+            <select x-model="variant.is_control" class="mdl-textfield__input" style="flex: 1.5">
+              <option value="true">Control</option>
+              <option value="false">Variant</option>
+            </select>
+            <button class="mdl-button mdl-js-button mdl-button--icon mdl-color-text--red"
+                    @click.prevent="removeVariant(index)">
+              <i class="material-icons">remove_circle</i>
+            </button>
+          </div>
+        </template>
+        <div x-show="forms.experiment.variants.length === 0" style="color: gray; font-size: 13px;">No variants
+          added.
+        </div>
+      </div>
+
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="saveExperiment()">Save</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 2. Create Flag -->
+<div class="modal-overlay" x-show="modal === 'createFlag'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">New Flag</h2></div>
+    <div class="modal-content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="newFlagKey" x-model="forms.flag.key">
+        <label class="mdl-textfield__label" for="newFlagKey">Key</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="newFlagDef" x-model="forms.flag.default">
+        <label class="mdl-textfield__label" for="newFlagDef">Default Value</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="newFlagDesc" x-model="forms.flag.description">
+        <label class="mdl-textfield__label" for="newFlagDesc">Description</label>
+      </div>
+      <div class="form-group">
+        <label style="font-size:12px; color: rgba(0,0,0,.5)">Type</label>
+        <select x-model="forms.flag.type" class="mdl-textfield__input">
+          <option value="boolean">Boolean</option>
+          <option value="string">String</option>
+          <option value="number">Number</option>
+        </select>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="createFlag()">Create</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 3. Archive Experiment -->
+<div class="modal-overlay" x-show="modal === 'archiveExperiment'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">Archive Experiment</h2></div>
+    <div class="modal-content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="archComment" x-model="forms.archive.comment">
+        <label class="mdl-textfield__label" for="archComment">Comment</label>
+      </div>
+      <div class="form-group">
+        <label style="font-size:12px; color: rgba(0,0,0,.5)">Outcome</label>
+        <select x-model="forms.archive.outcome" class="mdl-textfield__input">
+          <option value="rollout_winner">Rollout Winner</option>
+          <option value="rollback_default">Rollback to Default</option>
+          <option value="no_effect">No Effect</option>
+        </select>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="archiveExperiment()">Confirm Archive
+      </button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4. Create Report -->
+<div class="modal-overlay" x-show="modal === 'createReport'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">Generate Report</h2></div>
+    <div class="modal-content">
+      <!-- Added 'has-placeholder' class to fix overlap for Date inputs -->
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width has-placeholder">
+        <input class="mdl-textfield__input" type="datetime-local" id="repStart" x-model="forms.report.start_at">
+        <label class="mdl-textfield__label" for="repStart">Start Time</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width has-placeholder">
+        <input class="mdl-textfield__input" type="datetime-local" id="repEnd" x-model="forms.report.end_at">
+        <label class="mdl-textfield__label" for="repEnd">End Time</label>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="createReport()">Generate</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 5. Create Guardrail -->
+<div class="modal-overlay" x-show="modal === 'createGuardrail'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">Add Guardrail</h2></div>
+    <div class="modal-content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="guardMetric" x-model="forms.guardrail.metric_key">
+        <label class="mdl-textfield__label" for="guardMetric">Metric Key</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="number" step="0.01" id="guardThresh"
+               x-model="forms.guardrail.threshold">
+        <label class="mdl-textfield__label" for="guardThresh">Threshold</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="number" id="guardWin"
+               x-model="forms.guardrail.watch_window_s">
+        <label class="mdl-textfield__label" for="guardWin">Watch Window (seconds)</label>
+      </div>
+      <div class="form-group">
+        <label style="font-size:12px; color: rgba(0,0,0,.5)">Action</label>
+        <select x-model="forms.guardrail.action" class="mdl-textfield__input">
+          <option value="pause">Pause</option>
+          <option value="force_control">Force Control</option>
+        </select>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="createGuardrail()">Add</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6. Create Metric -->
+<div class="modal-overlay" x-show="modal === 'createMetric'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">New Metric</h2></div>
+    <div class="modal-content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="metricKey" x-model="forms.metric.key">
+        <label class="mdl-textfield__label" for="metricKey">Key</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+                <textarea class="mdl-textfield__input" type="text" rows=3 id="metricExpr"
+                          x-model="forms.metric.expr"></textarea>
+        <label class="mdl-textfield__label" for="metricExpr">SQL Expression</label>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="createMetric()">Create</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6b. Edit Metric -->
+<div class="modal-overlay" x-show="modal === 'editMetric'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">Edit Metric</h2></div>
+    <div class="modal-content">
+      <p><strong>Key:</strong> <span x-text="forms.metric.key"></span></p>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+                <textarea class="mdl-textfield__input" type="text" rows=5 id="editMetricExpr"
+                          x-model="forms.metric.expr"></textarea>
+        <label class="mdl-textfield__label" for="editMetricExpr">SQL Expression</label>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="updateMetric()">Save Changes</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 6c. Edit Flag -->
+<div class="modal-overlay" x-show="modal === 'editFlag'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">Edit Flag Default</h2></div>
+    <div class="modal-content">
+      <p><strong>Key:</strong> <span x-text="forms.flag.key"></span></p>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="editFlagDef" x-model="forms.flag.default">
+        <label class="mdl-textfield__label" for="editFlagDef">Default Value</label>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="updateFlag()">Save</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 7. Create Event Type -->
+<div class="modal-overlay" x-show="modal === 'createEvent'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">New Event Type</h2></div>
+    <div class="modal-content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="evtId" x-model="forms.event.id">
+        <label class="mdl-textfield__label" for="evtId">ID (Key)</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="evtName" x-model="forms.event.name">
+        <label class="mdl-textfield__label" for="evtName">Readable Name</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+                <textarea class="mdl-textfield__input" type="text" rows=4 id="evtSchema"
+                          x-model="forms.event.schema"></textarea>
+        <label class="mdl-textfield__label" for="evtSchema">Schema (JSON)</label>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="createEvent()">Create</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- 8. Create Notification Rule -->
+<div class="modal-overlay" x-show="modal === 'createNotification'" x-transition x-cloak>
+  <div class="modal-card">
+    <div class="mdl-card__title"><h2 class="mdl-card__title-text">New Notification Rule</h2></div>
+    <div class="modal-content">
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="notConn"
+               x-model="forms.notification.connection_string">
+        <label class="mdl-textfield__label" for="notConn">Connection String (Webhook)</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="notTrig" x-model="forms.notification.trigger">
+        <label class="mdl-textfield__label" for="notTrig">Trigger DSL</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="text" id="notTemp" x-model="forms.notification.template">
+        <label class="mdl-textfield__label" for="notTemp">Message Template</label>
+      </div>
+      <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label full-width">
+        <input class="mdl-textfield__input" type="number" id="notRate"
+               x-model="forms.notification.rate_limit_s">
+        <label class="mdl-textfield__label" for="notRate">Rate Limit (seconds)</label>
+      </div>
+    </div>
+    <div class="mdl-card__actions mdl-card--border">
+      <button class="mdl-button mdl-js-button mdl-button--colored" @click="createNotification()">Create</button>
+      <button class="mdl-button mdl-js-button" @click="closeModal()">Cancel</button>
+    </div>
+  </div>
+</div>
+<!-- MDL Snackbar Container -->
+<div id="demo-toast-example" class="mdl-js-snackbar mdl-snackbar">
+  <div class="mdl-snackbar__text"></div>
+  <button class="mdl-snackbar__action" type="button"></button>
+</div>
+
+<!-- Alpine Logic -->
+<script>
+    function app() {
+        return {
+            user: null,
+            loading: false,
+            route: 'experiments',
+            activeTab: 'overview',
+            modal: null,
+            userCache: {},
+
+            // Data Stores
+            data: {
+                experiments: [],
+                flags: [],
+                events: [],
+                metrics: [],
+                notifications: [],
+                reports: [], // For current experiment
+                guardrails: [], // For current experiment
+                history: [], // For current experiment,
+                insights: null,
+            },
+
+            currentExperiment: null,
+            currentExperimentAudit: null,
+
+            // Forms
+            forms: {
+                insightFilters: [{key: '', value: ''}],
+                experiment: {
+                    id: null, // If set, we are editing
+                    name: '',
+                    flag_key: '',
+                    audience: 100,
+                    priority: 0,
+                    targeting: '',
+                    conflict_domain: null,
+                    conflict_policy: null,
+                    metrics: {primary: ''},
+                    secondary_metrics_input: '',
+                    guarding_metrics_input: '',
+                    variants: []
+                },
+                flag: {key: '', default: '', description: '', type: 'boolean'},
+                user: {email: '', role: 'viewer'},
+                archive: {comment: '', outcome: 'no_effect'},
+                report: {start_at: '', end_at: ''},
+                guardrail: {metric_key: '', threshold: 0, action: 'pause', watch_window_s: 3600},
+                metric: {key: '', expr: ''},
+                event: {id: '', name: '', schema: '{}'},
+                notification: {connection_string: '', rate_limit_s: 300, template: '', trigger: ''}
+            },
+
+            // Computed Permissions
+            get permissions() {
+                const r = this.user ? this.user.role : 'viewer';
+                return {
+                    isAdmin: r === 'admin',
+                    isViewer: r === 'viewer',
+                    canCreate: r === 'admin' || r === 'experimenter',
+                    canManageUsers: r === 'admin',
+                    canReview: r === 'admin' || r === 'approver',
+                    canEditConfig: r === 'admin' || r === 'experimenter' || r === 'approver'
+                };
+            },
+
+            get pageTitle() {
+                const map = {
+                    'experiments': 'Experiments',
+                    'experiment-detail': 'Experiment Details',
+                    'flags': 'Flags',
+                    'events': 'Event Library',
+                    'metrics': 'Metric Library',
+                    'notifications': 'Notification Rules',
+                    'users': 'User Management'
+                };
+                return map[this.route] || 'Alphabet';
+            },
+
+            get distributionTable() {
+                if (!this.data.insights || !this.currentExperiment) return [];
+                const realDict = this.data.insights.real_distribution || {};
+                const totalReal = Object.values(realDict).reduce((a, b) => a + b, 0);
+
+                return (this.currentExperiment.variants || []).map(v => {
+                    const expectedPct = v.audience || 0;
+                    const realCount = realDict[v.name] || 0;
+                    const realPct = totalReal === 0 ? 0 : (realCount / totalReal) * 100;
+                    const deviation = realPct - expectedPct;
+                    return {name: v.name, expectedPct, realCount, realPct, deviation};
+                });
+            },
+
+            get distributionWarning() {
+                // Trigger warning if deviation is strictly greater than 5% absolute
+                return this.distributionTable.some(r => Math.abs(r.deviation) > 5);
+            },
+
+            async initApp() {
+                this.setupRouter();
+                await this.fetchMe();
+                this.handleRouteChange();
+            },
+
+            setupRouter() {
+                window.addEventListener('hashchange', () => {
+                    this.handleRouteChange();
+                });
+            },
+
+            handleRouteChange() {
+                let hash = window.location.hash.replace('#', '');
+                let queryString = '';
+
+                if (hash.includes('?')) {
+                    const parts = hash.split('?');
+                    hash = parts[0];
+                    queryString = parts[1];
+                }
+
+                if (!hash) {
+                    this.route = 'experiments';
+                } else if (hash.startsWith('experiment/')) {
+                    const id = hash.split('/')[1];
+                    this.route = 'experiment-detail';
+                    this.fetchExperiment(id, queryString);
+                } else {
+                    this.route = hash;
+                    this.loadPageData(hash);
+                }
+                if (this.route === 'users' && this.user && !this.permissions.canManageUsers) {
+                    window.location.hash = 'experiments';
+                }
+            },
+
+            navigate(page) {
+                window.location.hash = page;
+            },
+            openExperiment(id) {
+                window.location.hash = `experiment/${id}`;
+            },
+
+            async loadPageData(page) {
+                if (page === 'experiments') await this.fetchExperiments();
+                if (page === 'flags') await this.fetchFlags();
+                if (page === 'events') await this.fetchEvents();
+                if (page === 'metrics') await this.fetchMetrics();
+                if (page === 'notifications') await this.fetchNotifications();
+            },
+
+            // Enhanced API Call with Toast
+            async apiCall(url, method = 'GET', body = null) {
+                this.loading = true;
+                try {
+                    const options = {
+                        method,
+                        headers: {'Content-Type': 'application/json'}
+                    };
+                    if (body) options.body = JSON.stringify(body);
+
+                    const res = await fetch(url, options);
+
+                    if (res.status === 401) {
+                        this.showToast("Unauthorized. Please login via IAP.");
+                        return null;
+                    }
+
+                    if (!res.ok) {
+                        const err = await res.json();
+                        let msg = err.detail || 'API Request Failed';
+                        // Try to extract extra details if available (e.g. from Pydantic/FastAPI)
+                        if (err.extra && typeof err.extra === 'object') {
+                            // If extra has a 'detail' field or is itself useful
+                            const extraDetail = err.extra.detail || JSON.stringify(err.extra);
+                            msg += `: ${extraDetail}`;
+                        }
+                        throw new Error(msg);
+                    }
+
+                    // Handle 204 No Content
+                    if (res.status === 204) return true;
+
+                    return await res.json();
+                } catch (e) {
+                    console.error(e);
+                    this.showToast("Error: " + e.message);
+                    return null;
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            showToast(message) {
+                const container = document.querySelector('#demo-toast-example');
+                if (container && container.MaterialSnackbar) {
+                    container.MaterialSnackbar.showSnackbar({message: message});
+                } else {
+                    alert(message); // Fallback
+                }
+            },
+
+            // --- API Methods ---
+
+            async fetchMe() {
+                const res = await this.apiCall('/api/v1/accounts/me');
+                if (res) this.user = res;
+            },
+
+            async fetchExperiments() {
+                // calling the list endpoint directly
+                const res = await this.apiCall('/api/v1/experiments');
+                if (res && Array.isArray(res)) {
+                    this.data.experiments = res;
+                } else {
+                    this.data.experiments = [];
+                }
+            },
+
+            // Add this method to app()
+            async resolveUsers(userIds) {
+                const uniqueIds = [...new Set(userIds)];
+                const promises = uniqueIds.map(async (id) => {
+                    if (this.userCache[id]) return;
+                    // Fetch user details
+                    const res = await this.apiCall(`/api/v1/accounts/user/by-id/${id}`);
+                    if (res) {
+                        this.userCache[id] = res; // Store full user object
+                    } else {
+                        this.userCache[id] = {email: 'Unknown', role: '?'};
+                    }
+                });
+                await Promise.all(promises);
+            },
+
+// Update method signature and logic
+            async fetchExperiment(id, queryString = '') {
+                this.activeTab = 'overview';
+                const exp = await this.apiCall(`/api/v1/experiments/${id}`);
+                if (exp) {
+                    this.currentExperiment = exp;
+                    this.currentExperimentAudit = await this.apiCall(`/api/v1/experiments/${id}/review-audit`);
+
+                    if (this.currentExperimentAudit && this.currentExperimentAudit.approvals) {
+                        const ids = this.currentExperimentAudit.approvals.map(a => a.approver_id);
+                        if (exp.author_id) ids.push(exp.author_id);
+                        await this.resolveUsers(ids);
+                    }
+
+                    this.data.reports = [];
+                    this.data.guardrails = [];
+                    this.data.history = [];
+                    this.data.insights = null; // Reset insights on load
+
+                    this.loadGuardrails();
+                    this.loadReports();
+
+                    // Parse URL Parameters for Insights tab
+                    this.forms.insightFilters = [];
+                    if (queryString) {
+                        const params = new URLSearchParams(queryString);
+                        for (const [key, value] of params.entries()) {
+                            if (key === 'tab') {
+                                this.activeTab = value;
+                            } else {
+                                this.forms.insightFilters.push({key, value});
+                            }
+                        }
+                    }
+
+                    if (this.forms.insightFilters.length === 0) {
+                        this.forms.insightFilters = [{key: '', value: ''}];
+                    }
+
+                    // Auto-load if the tab was embedded in URL
+                    if (this.activeTab === 'insights') {
+                        this.loadInsights();
+                    }
+                }
+            },
+
+            async loadGuardrails() {
+                if (!this.currentExperiment) return;
+                const res = await this.apiCall(`/api/v1/guardrails/for-experiment/${this.currentExperiment.id}`);
+                if (res) this.data.guardrails = res;
+            },
+
+            async loadReports() {
+                if (!this.currentExperiment) return;
+
+                // Fetch list of minimal reports
+                const minimalReports = await this.apiCall(`/api/v1/reports/for-experiment/${this.currentExperiment.id}`);
+
+                if (minimalReports && minimalReports.length > 0) {
+                    // Fetch the full report payload (with metrics) for each report concurrently
+                    const fullReports = await Promise.all(
+                        minimalReports.map(r => this.apiCall(`/api/v1/reports/${r.id}`))
+                    );
+
+                    // Filter out any potential nulls from failed requests
+                    this.data.reports = fullReports.filter(r => r !== null);
+
+                    // Render charts after Alpine injects the canvas DOM nodes
+                    this.$nextTick(() => {
+                        this.renderReportCharts();
+                    });
+                } else {
+                    this.data.reports = [];
+                }
+            },
+
+            // NEW: Render the report bar charts
+            // NEW: Render the report bar charts and force resize
+            renderReportCharts() {
+                if (typeof echarts === 'undefined' || !this.data.reports) return;
+
+                this.data.reports.forEach(report => {
+                    if (!report.metrics) return;
+
+                    report.metrics.forEach(metric => {
+                        const domId = `report-chart-${report.id}-${metric.key.replace(/\W/g, '_')}`;
+                        const dom = document.getElementById(domId);
+                        if (!dom) return;
+
+                        const myChart = echarts.getInstanceByDom(dom) || echarts.init(dom);
+
+                        const categories = ['Overall'];
+                        const values = [{
+                            value: metric.overall || 0,
+                            itemStyle: {color: '#ffca28'}
+                        }];
+
+                        if (metric.per_variant) {
+                            for (const [vName, vVal] of Object.entries(metric.per_variant)) {
+                                categories.push(vName);
+                                values.push({
+                                    value: vVal || 0,
+                                    itemStyle: {color: '#29b6f6'}
+                                });
+                            }
+                        }
+
+                        myChart.setOption({
+                            title: {text: metric.key, left: 'center', textStyle: {fontSize: 14}},
+                            tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'}},
+                            grid: {left: '3%', right: '4%', bottom: '15%', containLabel: true},
+                            xAxis: {type: 'category', data: categories},
+                            yAxis: {type: 'value', scale: true},
+                            series: [{type: 'bar', data: values}]
+                        }, true);
+
+                        // Force recalculation of dimensions now that the tab is visible
+                        myChart.resize();
+                    });
+                });
+            },
+
+            async loadHistory() {
+                this.activeTab = 'history';
+                if (!this.currentExperiment) return;
+                const res = await this.apiCall(`/api/v1/experiments/${this.currentExperiment.id}/history`);
+                if (res) {
+                    this.data.history = res;
+                    // Resolve authors in history
+                    const authorIds = res.map(h => h.author_id).filter(id => id);
+                    if (authorIds.length > 0) {
+                        await this.resolveUsers(authorIds);
+                    }
+                }
+            },
+
+            // Actions
+            openCreateExperiment() {
+                this.forms.experiment = {
+                    id: null, name: '', flag_key: '', audience: 100, priority: 0, targeting: '',
+                    conflict_domain: '', conflict_policy: 'one_or_none',
+                    metrics: {primary: ''}, secondary_metrics_input: '', guarding_metrics_input: '',
+                    variants: [
+                        {name: 'control', value: 'false', is_control: true, audience: 50},
+                        {name: 'variant', value: 'true', is_control: false, audience: 50}
+                    ]
+                };
+                this.openModal('experimentForm');
+            },
+
+            openEditExperiment() {
+                const exp = this.currentExperiment;
+                this.forms.experiment = {
+                    id: exp.id,
+                    name: exp.name,
+                    flag_key: exp.flag_key,
+                    audience: exp.audience,
+                    priority: exp.priority || 0,
+                    targeting: exp.targeting || '',
+                    conflict_domain: exp.conflict_domain || '',
+                    conflict_policy: exp.conflict_policy || 'one_or_none',
+                    metrics: {primary: exp.metrics?.primary || ''},
+                    secondary_metrics_input: (exp.metrics?.secondary || []).join(', '),
+                    guarding_metrics_input: (exp.metrics?.guarding || []).join(', '),
+                    // Deep copy variants to avoid reactive bugs during edit
+                    variants: JSON.parse(JSON.stringify(exp.variants || []))
+                };
+                this.openModal('experimentForm');
+            },
+
+            addVariant() {
+                this.forms.experiment.variants.push({name: '', value: '', is_control: false, audience: 0});
+                this.$nextTick(() => componentHandler.upgradeDom()); // Upgrade new MDL elements
+            },
+
+            removeVariant(index) {
+                this.forms.experiment.variants.splice(index, 1);
+            },
+
+            async saveExperiment() {
+                const frm = this.forms.experiment;
+                const payload = {
+                    name: frm.name,
+                    flag_key: frm.flag_key,
+                    audience: parseInt(frm.audience),
+                    priority: parseInt(frm.priority) || null,
+                    targeting: frm.targeting || null,
+                    conflict_domain: frm.conflict_domain || null,
+                    conflict_policy: frm.conflict_policy || null,
+                    metrics: {
+                        primary: frm.metrics.primary,
+                        secondary: frm.secondary_metrics_input.split(',').map(s => s.trim()).filter(s => s),
+                        guarding: frm.guarding_metrics_input.split(',').map(s => s.trim()).filter(s => s)
+                    },
+                    variants: frm.variants.map(v => ({
+                        name: v.name,
+                        value: v.value,
+                        audience: parseInt(v.audience),
+                        is_control: String(v.is_control) === 'true'
+                    }))
+                };
+
+                if (frm.id) {
+                    const res = await this.apiCall(`/api/v1/experiments/${frm.id}`, 'PATCH', payload);
+                    if (res) {
+                        this.closeModal();
+                        this.showToast('Experiment updated');
+                        this.fetchExperiment(frm.id);
+                    }
+                } else {
+                    const res = await this.apiCall('/api/v1/experiments/create', 'POST', payload);
+                    if (res) {
+                        this.closeModal();
+                        this.showToast('Experiment created');
+                        this.fetchExperiments();
+                    }
+                }
+            },
+
+            async manageExperiment(id, newState) {
+                const res = await this.apiCall(`/api/v1/experiments/${id}/manage-running`, 'POST', {new_state: newState});
+                if (res) {
+                    this.showToast(`State changed to ${newState}`);
+                    this.fetchExperiment(id);
+                }
+            },
+
+            async archiveExperiment() {
+                if (!this.currentExperiment) return;
+                const res = await this.apiCall(`/api/v1/experiments/${this.currentExperiment.id}/archive`, 'POST', this.forms.archive);
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Experiment archived');
+                    this.fetchExperiment(this.currentExperiment.id);
+                }
+            },
+
+            async createReport() {
+                if (!this.currentExperiment) return;
+                const payload = {
+                    experiment_id: this.currentExperiment.id,
+                    start_at: new Date(this.forms.report.start_at).toISOString(),
+                    end_at: new Date(this.forms.report.end_at).toISOString()
+                };
+                const res = await this.apiCall('/api/v1/reports/create', 'POST', payload);
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Report generation started');
+                    this.loadReports();
+                }
+            },
+            async deleteReport(id) {
+                if (!confirm('Delete this report?')) return;
+                await this.apiCall(`/api/v1/reports/${id}`, 'DELETE');
+                this.loadReports();
+            },
+
+            async createGuardrail() {
+                if (!this.currentExperiment) return;
+                const payload = {
+                    experiment_id: this.currentExperiment.id,
+                    metric_key: this.forms.guardrail.metric_key,
+                    threshold: parseFloat(this.forms.guardrail.threshold),
+                    action: this.forms.guardrail.action,
+                    watch_window_s: parseInt(this.forms.guardrail.watch_window_s)
+                };
+                const res = await this.apiCall(`/api/v1/guardrails/for-experiment/${this.currentExperiment.id}/create`, 'POST', payload);
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Guardrail added');
+                    this.loadGuardrails();
+                }
+            },
+
+            // Review Logic
+            async sendToReview(id) {
+                const res = await this.apiCall(`/api/v1/experiments/${id}/send-to-review`, 'POST');
+                if (res) {
+                    this.showToast('Submitted for review');
+                    this.fetchExperiment(id);
+                }
+            },
+
+            async reviewExperiment(id, action) {
+                let res;
+                if (action === 'approve') {
+                    res = await this.apiCall(`/api/v1/experiments/${id}/approve`, 'POST');
+                } else {
+                    res = await this.apiCall(`/api/v1/experiments/${id}/reject`, 'POST', {comment: "Rejected via UI"});
+                }
+                if (res) {
+                    this.showToast(`Experiment ${action}ed`);
+                    this.fetchExperiment(id);
+                }
+            },
+            // --- INSIGHTS & CHARTS LOGIC ---
+            addInsightFilter() {
+                this.forms.insightFilters.push({key: '', value: ''});
+                // Fix MDL floats for new DOM elements
+                this.$nextTick(() => componentHandler.upgradeDom());
+            },
+
+            removeInsightFilter(index) {
+                this.forms.insightFilters.splice(index, 1);
+            },
+
+            // This handles syncing the URL and fetching data
+            applyFilters() {
+                if (!this.currentExperiment) return;
+
+                const params = new URLSearchParams();
+                params.append('tab', 'insights');
+
+                this.forms.insightFilters.forEach(f => {
+                    if (f.key.trim() && f.value.trim()) {
+                        params.append(f.key.trim(), f.value.trim());
+                    }
+                });
+
+                const newHash = `#experiment/${this.currentExperiment.id}?${params.toString()}`;
+
+                // Update URL without triggering a full fetchExperiment rerender
+                history.pushState(null, '', newHash);
+
+                // Actually load the data now
+                this.loadInsights();
+            },
+
+            async loadInsights() {
+                if (!this.currentExperiment) return;
+
+                const params = new URLSearchParams();
+                this.forms.insightFilters.forEach(f => {
+                    if (f.key.trim() && f.value.trim()) {
+                        params.append(f.key.trim(), f.value.trim());
+                    }
+                });
+
+                const qs = params.toString() ? `?${params.toString()}` : '';
+                const res = await this.apiCall(`/api/v1/insights/${this.currentExperiment.id}${qs}`);
+
+                if (res) {
+                    this.data.insights = res;
+                    this.$nextTick(() => {
+                        this.renderCharts();
+                        document.querySelectorAll('.mdl-textfield').forEach(el => {
+                            if (el.MaterialTextfield) {
+                                el.MaterialTextfield.checkDirty();
+                            }
+                        });
+                    });
+                }
+            },
+
+            renderCharts() {
+                if (!this.data.insights || typeof echarts === 'undefined') return;
+
+                const ins = this.data.insights;
+
+                this.drawPieChart('chart-statuses', 'Event Statuses', ins.event_statuses);
+
+                // FIXED: Replaced Pie Chart with Simple Bar Chart for Volumes
+                this.drawSimpleBarChart('chart-types', 'Event Volumes by Type', ins.event_types);
+
+                this.drawPieChart('chart-reasons', 'Rejection Reasons', ins.rejection_reasons);
+                this.drawGaugeChart('chart-gauge', 'Attribution Fullness', ins.attribution_fullness_percentage || 0);
+                this.drawDistributionBarChart('chart-real-dist-bar', 'Audience Distribution', this.distributionTable);
+            },
+
+            // NEW Helper for simple volume bar charts
+            drawSimpleBarChart(domId, title, dataObj) {
+                const dom = document.getElementById(domId);
+                if (!dom || !dataObj) return;
+
+                const myChart = echarts.getInstanceByDom(dom) || echarts.init(dom);
+
+                // Sort descending so the largest volume is first
+                const entries = Object.entries(dataObj).sort((a, b) => b[1] - a[1]);
+                const names = entries.map(e => e[0]);
+                const values = entries.map(e => e[1]);
+
+                myChart.setOption({
+                    title: {text: title, left: 'center', textStyle: {fontSize: 14}},
+                    tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'}},
+                    grid: {left: '3%', right: '4%', bottom: '25%', containLabel: true},
+                    xAxis: {
+                        type: 'category',
+                        data: names,
+                        axisLabel: {interval: 0, rotate: 30} // Rotate labels in case event names are long
+                    },
+                    yAxis: {type: 'value'},
+                    series: [{
+                        type: 'bar',
+                        data: values,
+                        itemStyle: {color: '#ab47bc'}
+                    }]
+                }, true);
+            },
+
+            // NEW Helper for Bar Chart
+            drawDistributionBarChart(domId, title, distData) {
+                const dom = document.getElementById(domId);
+                if (!dom || !distData || distData.length === 0) return;
+
+                const myChart = echarts.getInstanceByDom(dom) || echarts.init(dom);
+
+                const names = distData.map(d => d.name);
+                const expected = distData.map(d => d.expectedPct.toFixed(2));
+                const real = distData.map(d => d.realPct.toFixed(2));
+
+                myChart.setOption({
+                    title: {text: title, left: 'center', textStyle: {fontSize: 14}},
+                    tooltip: {trigger: 'axis', axisPointer: {type: 'shadow'}, valueFormatter: (val) => val + '%'},
+                    legend: {data: ['Expected', 'Real'], bottom: 0},
+                    grid: {left: '3%', right: '4%', bottom: '15%', containLabel: true},
+                    xAxis: {type: 'category', data: names},
+                    yAxis: {type: 'value', max: 100, axisLabel: {formatter: '{value} %'}},
+                    series: [
+                        {name: 'Expected', type: 'bar', data: expected, itemStyle: {color: '#90caf9'}},
+                        {name: 'Real', type: 'bar', data: real, itemStyle: {color: '#1e88e5'}}
+                    ]
+                }, true);
+            },
+
+            drawPieChart(domId, title, dataObj) {
+                const dom = document.getElementById(domId);
+                if (!dom || !dataObj) return;
+
+                const myChart = echarts.getInstanceByDom(dom) || echarts.init(dom);
+                const data = Object.keys(dataObj).map(k => ({name: k, value: dataObj[k]}));
+
+                myChart.setOption({
+                    title: {text: title, left: 'center', textStyle: {fontSize: 14}},
+                    tooltip: {trigger: 'item'},
+                    series: [{
+                        type: 'pie',
+                        radius: '60%',
+                        data: data,
+                        emphasis: {itemStyle: {shadowBlur: 10, shadowOffsetX: 0, shadowColor: 'rgba(0, 0, 0, 0.5)'}}
+                    }]
+                }, true);
+            },
+
+            drawGaugeChart(domId, title, value) {
+                const dom = document.getElementById(domId);
+                if (!dom) return;
+
+                const myChart = echarts.getInstanceByDom(dom) || echarts.init(dom);
+
+                myChart.setOption({
+                    title: {text: title, left: 'center', textStyle: {fontSize: 14}},
+                    series: [{
+                        type: 'gauge',
+                        progress: {show: true},
+                        detail: {valueAnimation: true, formatter: '{value}%', fontSize: 20},
+                        data: [{value: Number(value).toFixed(2), name: ''}]
+                    }]
+                }, true);
+            },
+
+            // Global Config Methods
+            async fetchFlags() {
+                this.data.flags = await this.apiCall('/api/v1/flags') || [];
+            },
+            async createFlag() {
+                const res = await this.apiCall('/api/v1/flags/create', 'POST', this.forms.flag);
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Flag created');
+                    this.fetchFlags();
+                }
+            },
+            openEditFlag(flag) {
+                this.forms.flag.key = flag.key;
+                this.forms.flag.default = flag.default;
+                this.openModal('editFlag');
+            },
+            async updateFlag() {
+                const key = this.forms.flag.key;
+                const res = await this.apiCall(`/api/v1/flags/${key}`, 'PATCH', {default: this.forms.flag.default});
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Flag updated');
+                    this.fetchFlags();
+                }
+            },
+            async fetchMetrics() {
+                this.data.metrics = await this.apiCall('/api/v1/metrics') || [];
+            },
+            async createMetric() {
+                const res = await this.apiCall('/api/v1/metrics/create', 'POST', this.forms.metric);
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Metric created');
+                    this.fetchMetrics();
+                }
+            },
+            // Open the modal and populate form
+            openEditMetric(metric) {
+                this.forms.metric.key = metric.key;
+                this.forms.metric.expr = metric.expr;
+                this.openModal('editMetric');
+            },
+
+// Call the PATCH endpoint
+            async updateMetric() {
+                const key = this.forms.metric.key;
+                const res = await this.apiCall(`/api/v1/metrics/${key}`, 'PATCH', {expr: this.forms.metric.expr});
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Metric updated');
+                    this.fetchMetrics();
+                }
+            },
+
+            async fetchEvents() {
+                this.data.events = await this.apiCall('/api/v1/events/types') || [];
+            },
+            async createEvent() {
+                let schemaObj = {};
+                try {
+                    schemaObj = JSON.parse(this.forms.event.schema);
+                } catch (e) {
+                    this.showToast('Invalid JSON Schema');
+                    return;
+                }
+                const payload = {
+                    id: this.forms.event.id,
+                    name: this.forms.event.name,
+                    schema: schemaObj,
+                    requires_attribution: null
+                };
+                const res = await this.apiCall('/api/v1/events/types/create', 'POST', payload);
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Event Type created');
+                    this.fetchEvents();
+                }
+            },
+
+            async fetchNotifications() {
+                this.data.notifications = await this.apiCall('/api/v1/notification-rules') || [];
+            },
+            async createNotification() {
+                const payload = {
+                    ...this.forms.notification,
+                    rate_limit_s: parseInt(this.forms.notification.rate_limit_s)
+                };
+                const res = await this.apiCall('/api/v1/notification-rules/create', 'POST', payload);
+                if (res) {
+                    this.closeModal();
+                    this.showToast('Notification Rule created');
+                    this.fetchNotifications();
+                }
+            },
+
+            async createUser() {
+                const res = await this.apiCall('/api/v1/accounts/create', 'POST', this.forms.user);
+                if (res) {
+                    this.forms.user.email = '';
+                    this.showToast('User created');
+                }
+            },
+
+            async lookupUser(email) {
+                const res = await this.apiCall(`/api/v1/accounts/user/by-email?email=${email}`);
+                if (res) alert(`User: ${res.id}, Role: ${res.role}`);
+            },
+
+            // Utils
+            openModal(name) {
+                this.modal = name;
+
+                // Wait for Alpine to update the DOM with the x-model values
+                this.$nextTick(() => {
+                    // Tell MDL to re-evaluate all textfields so the labels float up
+                    document.querySelectorAll('.mdl-textfield').forEach(el => {
+                        if (el.MaterialTextfield) {
+                            el.MaterialTextfield.checkDirty();
+                        }
+                    });
+                });
+            },
+            closeModal() {
+                this.modal = null;
+            },
+            formatDate(isoStr) {
+                return isoStr ? new Date(isoStr).toLocaleString() : '';
+            }
+        };
+    }
+</script>
+</body>
+</html>

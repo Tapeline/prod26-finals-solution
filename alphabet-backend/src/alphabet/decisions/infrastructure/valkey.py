@@ -88,14 +88,15 @@ class ValkeyDecisionDataStore(DecisionDataStore):
 
 
 def _load_decision(decision_str: str) -> Decision:
-    decision_id, flag_key, experiment_id, value = decision_str.split(
+    decision_id, flag_key, experiment_id, variant, value = decision_str.split(
         ";",
-        maxsplit=3,
+        maxsplit=4,
     )
     exp_id: str | None = experiment_id if experiment_id != "" else None
     return Decision(
         DecisionId(decision_id),
         flag_key,
+        variant,
         value,
         exp_id,
     )
@@ -103,4 +104,7 @@ def _load_decision(decision_str: str) -> Decision:
 
 def _dump_decision(decision: Decision) -> str:
     exp_id = decision.experiment_id or ""
-    return f"{decision.id};{decision.flag_key};{exp_id};{decision.value}"
+    return (
+        f"{decision.id};{decision.flag_key};{exp_id};"
+        f"{decision.variant_id};{decision.value}"
+    )

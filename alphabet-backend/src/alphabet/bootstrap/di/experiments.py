@@ -12,7 +12,7 @@ from alphabet.experiments.application.interactors.experiments import (
     RestoreFromRejected,
     SendToReview,
     StartExperiment,
-    UpdateExperiment,
+    UpdateExperiment, ReadAllCurrentExperiments,
 )
 from alphabet.experiments.application.interactors.flags import (
     CreateFlag,
@@ -52,6 +52,7 @@ class FlagsExperimentsDIProvider(Provider):
         ReadAllFlags,
         ReadFlag,
         UpdateFlag,
+        ReadAllCurrentExperiments,
         scope=Scope.REQUEST,
     )
 

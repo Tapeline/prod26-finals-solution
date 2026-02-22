@@ -21,7 +21,6 @@ ESCAPES: Final = MappingProxyType(
 
 @final
 class MetricDSLTokenType(Enum):
-    # Aggregations
     SUM = "sum"
     MIN = "min"
     MAX = "max"
@@ -32,31 +31,25 @@ class MetricDSLTokenType(Enum):
     P99 = "p99"
     COUNT = "count"
 
-    # Sources
     DISCARDED = "discarded"
     DUPLICATE = "duplicate"
 
-    # Attribution
     ATTRIBUTED = "attributed"
     UNATTRIBUTED = "unattributed"
 
-    # Special values
-    DELIVERY_LATENCY = "!delivery_latency"
+    DELIVERY_LATENCY = ":delivery_latency"
     WILDCARD = "*"
     NULL = "null"
 
-    # Filter keywords
     WHERE = "where"
     AND = "and"
     OR = "or"
 
-    # Operators
     EQUAL = "=="
     NOT_EQUAL = "!="
     DOT = "."
     SLASH = "/"
 
-    # Literals
     NUMBER = "number"
     STRING = "string"
     BOOLEAN = "boolean"

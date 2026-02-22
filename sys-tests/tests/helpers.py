@@ -258,3 +258,16 @@ def create_event_data(
     }
     payload.update(override_params)
     return payload
+
+
+def send_event_data(
+    event_type: str,
+    decision_id: str,
+    **override_params
+):
+    payload = create_event_data(event_type, decision_id, **override_params)
+    response = httpx.post(
+        f"{app_url}/api/v1/events/receive",
+        json={"events": [payload]}
+    ).raise_for_status()
+    return response.json()

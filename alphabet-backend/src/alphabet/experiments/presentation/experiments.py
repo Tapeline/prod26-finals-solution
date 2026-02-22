@@ -24,7 +24,7 @@ from alphabet.experiments.application.interactors.experiments import (
     SendToReview,
     StartExperiment,
     UpdateExperiment,
-    UpdateExperimentDTO,
+    UpdateExperimentDTO, ReadAllCurrentExperiments,
 )
 from alphabet.experiments.domain.experiment import (
     ConflictDomain,
@@ -44,6 +44,7 @@ from alphabet.experiments.domain.experiment import (
 )
 from alphabet.experiments.domain.flags import FlagKey
 from alphabet.experiments.domain.target_rule import TargetRuleString
+from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.commons import (
     MISSING,
     maybe_map,
@@ -547,3 +548,19 @@ class ExperimentsController(Controller):
     ) -> ExperimentAuditResponse:
         audit_dto = await interactor(ExperimentId(exp_id))
         return ExperimentAuditResponse.from_dto(audit_dto)
+
+    @get(
+        path="",
+        responses={
+            200: success_spec("Retrieved.", list[ExperimentResponse]),
+            **RESPONSE_NOT_AUTHENTICATED,
+        }
+    )
+    @inject
+    async def list_all(
+        self, interactor: FromDishka[ReadAllCurrentExperiments],
+        limit: int = 10,
+        offset: int = 0,
+    ) -> list[ExperimentResponse]:
+        experiments = await interactor(Pagination(limit, offset))
+        return list(map(ExperimentResponse.from_experiment, experiments))

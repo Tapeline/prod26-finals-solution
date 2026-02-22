@@ -15,7 +15,7 @@ from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import (
     UserNotFound,
     UserReader,
-    require_user_with_role,
+    require_user_with_role, require_any_user,
 )
 from alphabet.shared.commons import dto, interactor
 from alphabet.shared.domain.user import Role, User, UserId
@@ -186,3 +186,15 @@ class ReadUserByEmail:
             if not user:
                 raise EmailNotRegistered
             return user
+
+
+@final
+@interactor
+class ReadMe:
+    idp: UserIdProvider
+    user_reader: UserReader
+    tx: TransactionManager
+
+    async def __call__(self) -> User:
+        async with self.tx:
+            return await require_any_user(self)

@@ -19,6 +19,7 @@ clickhouse:
 
 notifications:
   smtp:
+    # for local email testing with mailpit
     host: localhost
     port: 1025
     username: ""
@@ -26,9 +27,11 @@ notifications:
     sender_email: "no-reply@alphabet.local"
     use_tls: false
   telegram:
+    # please dont use my token :)
     token: "8495606136:AAEgJIWTnQ08sLiY8rNoXXCnOoDGgwgJshQ"
 
 app:
+  # too small: only for testing!
   cooldown_experiment_threshold: 1
   cooldown_for_s: 15
 
@@ -42,5 +45,9 @@ event_buffer:
   force_flush_interval_s: 5
 
 conflict_buffer:
+  size: 2000
+  force_flush_interval_s: 5
+
+assignment_buffer:
   size: 2000
   force_flush_interval_s: 5

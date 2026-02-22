@@ -17,7 +17,6 @@ Insights UI - Почему не графана?
 вроде доделал
 
 
-
 - Guardrails
     - Audit querying
     - Infrastructure
@@ -27,8 +26,6 @@ Insights UI - Почему не графана?
     - Acceptance tests
 - Infra
     - /health and /ready
-
-TODO:
 - Notifications
     - Domain
         - Entities
@@ -41,14 +38,16 @@ TODO:
     - Presentation
     - Integrate with other contexts
     - Acceptance tests
+- Conflicts:
+    - Save conflict metrics
+    - Expose conflict metric query endpoints
+TODO:
+
 - Insights UI
     - Querying
     - Build charts
     - Connect frontend with IAP
     - Deploy frontend
-- Conflicts:
-    - Save conflict metrics
-    - Expose conflict metric query endpoints
 - Infra
     - optimise DI (it's so messy now)
     - Get rid of instant notifier so we can use faststream
@@ -71,3 +70,9 @@ TODO:
     - ADR009
     - ADR010
     - Fix mismatches in reference and actual application
+
+Если эксперимент на паузе, то уже принятые решения не выдаются -- норм или нет?
+
+Баг: если событие не прошло валидацию, повторная послыка такого
+же Id считается за дубликат. Норм или нет?
+

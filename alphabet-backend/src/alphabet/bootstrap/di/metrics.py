@@ -7,7 +7,7 @@ from alphabet.metrics.application.interactors import (
     GetReportResult,
     ListMetrics,
     ReadMetric,
-    UpdateMetric,
+    UpdateMetric, ListReportsByExperiment,
 )
 from alphabet.metrics.application.interfaces import (
     DSLCompiler,
@@ -32,6 +32,7 @@ class MetricsDIProvider(Provider):
         CreateReport,
         DeleteReport,
         GetReportResult,
+        ListReportsByExperiment,
         scope=Scope.REQUEST,
     )
 

@@ -15,7 +15,7 @@ from alphabet.access.application.interactors import (
     ReadUserById,
     SetReviewRules,
     UpdateUser,
-    UpdateUserDTO,
+    UpdateUserDTO, ReadMe,
 )
 from alphabet.access.domain import ApproverGroup
 from alphabet.shared.domain.user import Role, User, UserId
@@ -203,3 +203,15 @@ class AccessController(Controller):
     ) -> ApproverGroupResponse:
         group = await interactor(UserId(user_id))
         return ApproverGroupResponse.from_group(group)
+
+    @get(
+        path="/me",
+        responses={
+            200: success_spec("Profile retrieved.", UserResponse),
+            **RESPONSE_NOT_AUTHENTICATED,
+        },
+    )
+    @inject
+    async def get_me(self, interactor: FromDishka[ReadMe]) -> UserResponse:
+        user = await interactor()
+        return UserResponse.from_user(user)

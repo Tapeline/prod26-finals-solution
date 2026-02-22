@@ -16,6 +16,10 @@ from alphabet.decisions.domain import (
     DecisionId,
     ConflictResolution,
 )
+from alphabet.experiments.domain.experiment import (
+    ExperimentId,
+    ConflictPolicy, ConflictDomain,
+)
 from tests.unit.decisions.helper import variant
 
 
@@ -102,6 +106,19 @@ class FakeResolutionsRepo(ResolutionRepository):
     ) -> None:
         pass
 
+    async def count_conflicts_by_domain(
+        self, domain: ConflictDomain
+    ) -> dict[ExperimentId, int]:
+        return {}
+
+    async def count_conflicts_by_experiment(
+        self, experiment_id: ExperimentId
+    ) -> tuple[dict[ConflictPolicy, int], dict[ConflictPolicy, int]]:
+        return {}, {}
+
+    async def periodic_flush_routine(self) -> None:
+        pass
+
 
 def _cached_exp(
     exp_id: str,
@@ -155,6 +172,7 @@ async def test_existing_decisions_honored_when_in_cooldown():
             flag_key="f1",
             value="A",
             experiment_id="e1",
+            variant_id="control",
         ),
     )
     flags = FakeFlagStorage(defaults={"f1": "def1", "f2": "def2"})

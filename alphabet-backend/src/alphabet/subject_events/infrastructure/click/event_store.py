@@ -54,7 +54,13 @@ class ClickHouseEventStore(EventStore):
         self.logger.info("Starting event flush routine")
         while True:
             await asyncio.sleep(self._interval)
-            self.logger.info("Flushing events from routine")
+            self.logger.info(
+                "Flushing events from routine",
+                to_write=self._accumulated,
+                ok=len(self._ok_buf),
+                err=len(self._err_buf),
+                dup=len(self._dup_buf),
+            )
             async with self._write_lock:
                 await self._flush_no_lock()
 

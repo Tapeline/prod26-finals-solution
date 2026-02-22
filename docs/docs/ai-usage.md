@@ -24,6 +24,7 @@
 - `cooldown.lua` предложен Gemini как оптимизация
 - clickhouse миграция
 - clickhouse сервис в `docker-compose.yml`
-- элементы кодогенерации ClickHouse запросов в
+- отдельные элементы кодогенерации ClickHouse запросов в
   `alphabet-backend/src/alphabet/metrics/infrastructure/codegen.py` и
   `alphabet-backend/src/alphabet/metrics/infrastructure/evaluator.py`
+- `index.html` фронтенда

@@ -8,7 +8,7 @@ from msgspec import Struct
 from alphabet.decisions.application import (
     MakeDecision,
     ReadConflictsByDomain,
-    ReadConflictsByExperiment,
+    ReadConflictsByExperiment, ReadDistributionOnExperiment,
 )
 from alphabet.experiments.domain.experiment import (
     ConflictDomain,
@@ -119,3 +119,20 @@ class DecisionsController(Controller):
             total=sum(per_experiment.values()),
             per_experiment=per_experiment,
         )
+
+    @get(
+        "/distribution/{exp_id:str}",
+        responses={
+            200: success_spec("Retrieved.", dict[str, int]),
+            **RESPONSE_NOT_AUTHENTICATED,
+        },
+        security=security_defs,
+    )
+    @inject
+    async def get_distribution_by_experiment(
+        self,
+        exp_id: str,
+        interactor: FromDishka[ReadDistributionOnExperiment],
+    ) -> dict[str, int]:
+        """Get variant distribution mapping (variant id -> count)."""
+        return await interactor(ExperimentId(exp_id))

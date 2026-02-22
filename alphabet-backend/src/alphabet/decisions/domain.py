@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Final, NewType, final
 
 import mmh3
@@ -14,6 +15,7 @@ DecisionId = NewType("DecisionId", str)
 class Decision:
     id: DecisionId
     flag_key: str
+    variant_id: str
     value: str
     experiment_id: str | None
 
@@ -117,6 +119,7 @@ def make_decision(
         flag_key=flag_key,
         value=chosen_value,
         experiment_id=experiment_id,
+        variant_id=chosen_name
     )
 
 
