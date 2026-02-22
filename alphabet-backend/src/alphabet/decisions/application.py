@@ -3,7 +3,7 @@ from collections.abc import Collection
 from datetime import datetime
 from itertools import groupby
 from operator import attrgetter
-from typing import Protocol, cast, final
+from typing import Protocol, final
 
 import mmh3
 from structlog import getLogger
@@ -142,7 +142,7 @@ class AssignmentStore(Protocol):
     @abstractmethod
     async def get_variant_distribution(
         self,
-        experiment_id: str
+        experiment_id: str,
     ) -> dict[str, int]:
         raise NotImplementedError
 
@@ -227,7 +227,9 @@ class MakeDecision:
         if new_decisions:
             await self.decision_data.save_decisions(subject_id, new_decisions)
             await self.assignment_store.save_assignments(
-                new_decisions, self.time.now(), subject_id
+                new_decisions,
+                self.time.now(),
+                subject_id,
             )
         if resolutions:
             await self.resolutions_repo.save_resolutions(resolutions)
@@ -333,7 +335,7 @@ class MakeDecision:
                     experiment_applied=False,
                     policy=ConflictPolicy.ONE_OR_NONE,
                 )
-                    for exp in conflicts
+                for exp in conflicts
             )
             return None
         with_priority = [exp for exp in conflicts if exp.priority is not None]
@@ -344,8 +346,8 @@ class MakeDecision:
             with_priority,
             key=lambda exp: (
                 exp.priority,
-                -mmh3.hash(f"{domain}:{exp.id}", signed=False)  # tie-breaker
-            )
+                -mmh3.hash(f"{domain}:{exp.id}", signed=False),  # tie-breaker
+            ),
         )
         out.extend(
             ConflictResolution(
@@ -354,7 +356,7 @@ class MakeDecision:
                 experiment_applied=(exp is winner),
                 policy=ConflictPolicy.HIGHER_PRIORITY,
             )
-                for exp in conflicts
+            for exp in conflicts
         )
         return winner
 

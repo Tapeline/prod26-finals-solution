@@ -15,7 +15,8 @@ from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import (
     UserNotFound,
     UserReader,
-    require_user_with_role, require_any_user,
+    require_any_user,
+    require_user_with_role,
 )
 from alphabet.shared.commons import dto, interactor
 from alphabet.shared.domain.user import Role, User, UserId

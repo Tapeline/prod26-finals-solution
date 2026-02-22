@@ -1,17 +1,17 @@
 from collections.abc import Sequence
-from typing import final, Any
+from typing import Any, final
 
 from adaptix.conversion import get_converter
-from litestar import get, Controller, Request
-from msgspec import Struct
-from dishka.integrations.litestar import inject
 from dishka import FromDishka
+from dishka.integrations.litestar import inject
+from litestar import Controller, Request, get
+from msgspec import Struct
 
 from alphabet.experiments.domain.experiment import ExperimentId
 from alphabet.insights.application import InsightsDTO, ViewInsights
 from alphabet.shared.presentation.framework.openapi import (
-    success_spec,
     RESPONSE_NOT_AUTHENTICATED,
+    success_spec,
 )
 from alphabet.shared.presentation.openapi import security_defs
 
@@ -40,18 +40,18 @@ class InsightsController(Controller):
         "/{exp_id:str}",
         responses={
             200: success_spec("Retrieved.", InsightsResponse),
-            **RESPONSE_NOT_AUTHENTICATED
-        }
+            **RESPONSE_NOT_AUTHENTICATED,
+        },
     )
     @inject
     async def get_insights(
-        self, exp_id: str, interactor: FromDishka[ViewInsights],
-        request: Request[Any, Any, Any]
+        self,
+        exp_id: str,
+        interactor: FromDishka[ViewInsights],
+        request: Request[Any, Any, Any],
     ) -> InsightsResponse:
         insights = await interactor(
-            ExperimentId(exp_id), {
-                key: value
-                for key, value in request.query_params.items()
-            }
+            ExperimentId(exp_id),
+            dict(request.query_params.items()),
         )
         return _converter(insights)

@@ -101,7 +101,9 @@ class MetricEvaluator(Protocol):
 
     @abstractmethod
     async def query_insights(
-        self, experiment_id: str, filters: dict[str, str]
+        self,
+        experiment_id: str,
+        filters: dict[str, str],
     ) -> EventInsights:
         raise NotImplementedError
 

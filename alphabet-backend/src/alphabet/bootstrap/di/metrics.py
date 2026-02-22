@@ -6,8 +6,9 @@ from alphabet.metrics.application.interactors import (
     DeleteReport,
     GetReportResult,
     ListMetrics,
+    ListReportsByExperiment,
     ReadMetric,
-    UpdateMetric, ListReportsByExperiment,
+    UpdateMetric,
 )
 from alphabet.metrics.application.interfaces import (
     DSLCompiler,

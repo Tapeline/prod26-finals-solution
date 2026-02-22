@@ -4,14 +4,14 @@ from alphabet.decisions.application import AssignmentStore
 from alphabet.experiments.application.interfaces import ExperimentsRepository
 from alphabet.experiments.domain.experiment import ExperimentId
 from alphabet.metrics.application.interfaces import (
-    MetricEvaluator,
     DSLCompiler,
+    MetricEvaluator,
 )
 from alphabet.shared.application.idp import UserIdProvider
 from alphabet.shared.application.time import TimeProvider
 from alphabet.shared.application.transaction import TransactionManager
 from alphabet.shared.application.user import UserReader, require_any_user
-from alphabet.shared.commons import interactor, dto
+from alphabet.shared.commons import dto, interactor
 
 
 @dto
@@ -40,13 +40,16 @@ class ViewInsights:
     time: TimeProvider
 
     async def __call__(
-        self, target: ExperimentId, filters: dict[str, str]
+        self,
+        target: ExperimentId,
+        filters: dict[str, str],
     ) -> InsightsDTO:
         print(filters)
         async with self.tx:
             await require_any_user(self)
-            distribution = \
+            distribution = (
                 await self.assignment_store.get_variant_distribution(target)
+            )
             insights = await self.evaluator.query_insights(target, filters)
             return InsightsDTO(
                 real_distribution=distribution,
@@ -56,6 +59,5 @@ class ViewInsights:
                 event_statuses=insights.event_statuses,
                 event_types=insights.event_types,
                 rejection_reasons=insights.rejection_reasons,
-                attribution_fullness_percentage=
-                insights.attribution_fullness_percentage,
+                attribution_fullness_percentage=insights.attribution_fullness_percentage,
             )

@@ -1,19 +1,22 @@
 from dishka import Provider, Scope, provide, provide_all
 
 from alphabet.decisions.application import (
+    AssignmentStore,
     DecisionDataStore,
     ExperimentStorage,
     FlagStorage,
     MakeDecision,
     ReadConflictsByDomain,
     ReadConflictsByExperiment,
+    ReadDistributionOnExperiment,
     ResolutionRepository,
     SetFlagDefault,
     SetRunningExperimentOnFlag,
-    WarmUpStorages, ReadDistributionOnExperiment, AssignmentStore,
+    WarmUpStorages,
 )
-from alphabet.decisions.infrastructure.assign_store import \
-    ClickHouseAssignmentStore
+from alphabet.decisions.infrastructure.assign_store import (
+    ClickHouseAssignmentStore,
+)
 from alphabet.decisions.infrastructure.resolutions_repo import (
     ClickHouseResolutionRepository,
 )

@@ -16,6 +16,7 @@ from alphabet.experiments.application.interactors.experiments import (
     CreateExperimentDTO,
     ExperimentAuditDTO,
     ManageRunningExperiment,
+    ReadAllCurrentExperiments,
     ReadExperimentAudit,
     ReadExperimentVersion,
     ReadExperimentVersionHistory,
@@ -24,7 +25,7 @@ from alphabet.experiments.application.interactors.experiments import (
     SendToReview,
     StartExperiment,
     UpdateExperiment,
-    UpdateExperimentDTO, ReadAllCurrentExperiments,
+    UpdateExperimentDTO,
 )
 from alphabet.experiments.domain.experiment import (
     ConflictDomain,
@@ -554,11 +555,12 @@ class ExperimentsController(Controller):
         responses={
             200: success_spec("Retrieved.", list[ExperimentResponse]),
             **RESPONSE_NOT_AUTHENTICATED,
-        }
+        },
     )
     @inject
     async def list_all(
-        self, interactor: FromDishka[ReadAllCurrentExperiments],
+        self,
+        interactor: FromDishka[ReadAllCurrentExperiments],
         limit: int = 10,
         offset: int = 0,
     ) -> list[ExperimentResponse]:

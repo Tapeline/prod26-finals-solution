@@ -5,6 +5,7 @@ from alphabet.experiments.application.interactors.experiments import (
     ArchiveExperiment,
     CreateExperiment,
     ManageRunningExperiment,
+    ReadAllCurrentExperiments,
     ReadExperimentAudit,
     ReadExperimentVersion,
     ReadExperimentVersionHistory,
@@ -12,7 +13,7 @@ from alphabet.experiments.application.interactors.experiments import (
     RestoreFromRejected,
     SendToReview,
     StartExperiment,
-    UpdateExperiment, ReadAllCurrentExperiments,
+    UpdateExperiment,
 )
 from alphabet.experiments.application.interactors.flags import (
     CreateFlag,

@@ -8,7 +8,8 @@ from msgspec import Struct
 from alphabet.decisions.application import (
     MakeDecision,
     ReadConflictsByDomain,
-    ReadConflictsByExperiment, ReadDistributionOnExperiment,
+    ReadConflictsByExperiment,
+    ReadDistributionOnExperiment,
 )
 from alphabet.experiments.domain.experiment import (
     ConflictDomain,

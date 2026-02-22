@@ -6,8 +6,9 @@ from typing import final, override
 from clickhouse_connect.driver import AsyncClient
 
 from alphabet.metrics.application.interfaces import (
+    EventInsights,
     MetricEvaluationResult,
-    MetricEvaluator, EventInsights,
+    MetricEvaluator,
 )
 from alphabet.metrics.domain.metrics import Metric, MetricKey, SQLFragment
 
@@ -272,13 +273,13 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
     async def query_insights(
         self,
         experiment_id: str,
-        filters: dict[str, str]
+        filters: dict[str, str],
     ) -> EventInsights:
         query_params, where_sql = _gen_where_filter(experiment_id, filters)
         # CTE to unify the tables
         union_query = f"""
         WITH combined AS (
-            SELECT 
+            SELECT
                 status,
                 event_type,
                 '' as reason,
@@ -286,7 +287,7 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
             FROM events
             WHERE {where_sql}
             UNION ALL
-            SELECT 
+            SELECT
                 'duplicate' as status,
                 event_type,
                 '' as reason,
@@ -294,7 +295,7 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
             FROM duplicate_events
             WHERE {where_sql}
             UNION ALL
-            SELECT 
+            SELECT
                 'discarded' as status,
                 event_type_id as event_type,
                 discard_reason as reason,
@@ -306,36 +307,38 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
         # this is safe, no injection can occur
         counts_sql = f"""
         {union_query}
-        SELECT 
-            'status' as dim, 
-            status as key, 
-            count() as cnt 
+        SELECT
+            'status' as dim,
+            status as key,
+            count() as cnt
         FROM combined GROUP BY status
         UNION ALL
-        SELECT 
-            'type' as dim, 
-            event_type as key, 
-            count() as cnt 
+        SELECT
+            'type' as dim,
+            event_type as key,
+            count() as cnt
         FROM combined GROUP BY event_type
         UNION ALL
-        SELECT 
-            'reason' as dim, 
-            reason as key, 
-            count() as cnt 
-        FROM combined WHERE status = 'discarded' 
+        SELECT
+            'reason' as dim,
+            reason as key,
+            count() as cnt
+        FROM combined WHERE status = 'discarded'
         GROUP BY reason
-        """
+        """  # noqa: S608
+        # this is safe, no injection can occur
 
         latency_sql = f"""
         {union_query}
         SELECT quantiles(0.5, 0.75, 0.95)(lat) FROM combined
-        """
+        """  # noqa: S608
+        # this is safe, no injection can occur
 
         raw_counts, raw_latency = await asyncio.gather(
             *(
                 self.client.query(counts_sql, parameters=query_params),
                 self.client.query(latency_sql, parameters=query_params),
-            )
+            ),
         )
 
         status_counts: dict[str, int] = {}
@@ -343,11 +346,11 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
         reason_counts: dict[str, int] = {}
 
         for dim, key, cnt in raw_counts.result_rows:
-            if dim == 'status':
+            if dim == "status":
                 status_counts[key] = cnt
-            elif dim == 'type':
+            elif dim == "type":
                 type_counts[key] = cnt
-            elif dim == 'reason':
+            elif dim == "reason":
                 reason_counts[key] = cnt
 
         total_events = sum(status_counts.values())
@@ -355,7 +358,7 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
         attributable_count = sum(
             count
             for status, count in status_counts.items()
-            if status not in {'discarded', 'duplicate'}
+            if status not in {"discarded", "duplicate"}
         )
         attributed_count = sum(
             count
@@ -384,7 +387,8 @@ class ClickHouseMetricEvaluator(MetricEvaluator):
 
 
 def _gen_where_filter(
-    experiment_id: str, filters: dict[str, str]
+    experiment_id: str,
+    filters: dict[str, str],
 ) -> tuple[dict[str, str], str]:
     if not filters:
         return {}, "1=1"
@@ -393,12 +397,10 @@ def _gen_where_filter(
     for i, (key, value) in enumerate(filters.items()):
         param_name = f"filter_val_{i}"
         filter_clauses.append(
-            f"JSONExtractString(attributes, '{key}') = %({param_name})s"
+            f"JSONExtractString(attributes, '{key}') = %({param_name})s",
         )
         query_params[param_name] = value
-    where_sql = " AND ".join(
-        ["experiment_id = %(exp_id)s"] + filter_clauses
-    )
+    where_sql = " AND ".join(["experiment_id = %(exp_id)s", *filter_clauses])
     return query_params, where_sql
 
 

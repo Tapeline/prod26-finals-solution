@@ -1,5 +1,4 @@
 import asyncio
-import logging
 from datetime import datetime
 from typing import final, override
 
@@ -51,7 +50,7 @@ class ClickHouseAssignmentStore(AssignmentStore):
     @override
     async def get_variant_distribution(
         self,
-        experiment_id: str
+        experiment_id: str,
     ) -> dict[str, int]:
         rows = await self.click.query(
             """
@@ -62,9 +61,9 @@ class ClickHouseAssignmentStore(AssignmentStore):
             WHERE experiment_id = %(exp_id)s
             GROUP BY variant_id
             """,
-            parameters={"exp_id": experiment_id}
+            parameters={"exp_id": experiment_id},
         )
-        return {variant: count for variant, count in rows.result_rows}
+        return {variant: count for variant, count in rows.result_rows}  # noqa: C416
 
     @override
     async def periodic_flush_routine(self) -> None:
@@ -74,7 +73,7 @@ class ClickHouseAssignmentStore(AssignmentStore):
             async with self._write_lock:
                 self.logger.info(
                     "Flushing assignments from routine",
-                    to_write=len(self._buf)
+                    to_write=len(self._buf),
                 )
                 await self._flush_no_lock()
 
@@ -89,7 +88,7 @@ class ClickHouseAssignmentStore(AssignmentStore):
                     decision.experiment_id,
                     decision.variant_id,
                     subject_id,
-                    decision.flag_key
+                    decision.flag_key,
                 ]
                 for decision, decided_at, subject_id in self._buf
             ],
@@ -98,7 +97,7 @@ class ClickHouseAssignmentStore(AssignmentStore):
                 "experiment_id",
                 "variant_id",
                 "subject_id",
-                "flag_key"
-            ]
+                "flag_key",
+            ],
         )
         self._buf.clear()

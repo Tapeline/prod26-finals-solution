@@ -9,6 +9,7 @@ from dishka.integrations.litestar import LitestarProvider
 from dishka.integrations.litestar import setup_dishka as litestar_setup_dishka
 from litestar import Litestar
 from litestar.config.cors import CORSConfig
+from litestar.contrib.jinja import JinjaTemplateEngine
 from litestar.middleware import DefineMiddleware
 from litestar.openapi import OpenAPIConfig
 from litestar.openapi.plugins import (
@@ -18,10 +19,9 @@ from litestar.openapi.plugins import (
     YamlRenderPlugin,
 )
 from litestar.openapi.spec import Components
-from litestar.template import TemplateConfig
-from litestar.contrib.jinja import JinjaTemplateEngine
-from litestar.static_files.config import StaticFilesConfig
 from litestar.plugins.prometheus import PrometheusConfig, PrometheusController
+from litestar.static_files.config import StaticFilesConfig
+from litestar.template import TemplateConfig
 from structlog import getLogger
 
 from alphabet.access.presentation.controller import AccessController
@@ -51,8 +51,9 @@ from alphabet.bootstrap.html_server import serve_frontend
 from alphabet.bootstrap.live_ready import LivenessReadinessController
 from alphabet.bootstrap.logging import get_structlog_plugin_def
 from alphabet.decisions.application import (
+    AssignmentStore,
     ResolutionRepository,
-    WarmUpStorages, AssignmentStore,
+    WarmUpStorages,
 )
 from alphabet.decisions.presentation import DecisionsController
 from alphabet.experiments.presentation.errors import (
@@ -196,9 +197,13 @@ def create_app() -> Litestar:
             directory=Path("templates"),
             engine=JinjaTemplateEngine,
         ),
-        static_files_config=[StaticFilesConfig(
-            directories=["static"], path="/_static", name="static"
-        )]
+        static_files_config=[
+            StaticFilesConfig(
+                directories=["static"],
+                path="/_static",
+                name="static",
+            ),
+        ],
     )
     litestar_setup_dishka(container, litestar_app)
     logger.info("All good to go")

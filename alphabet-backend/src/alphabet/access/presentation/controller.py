@@ -10,12 +10,13 @@ from alphabet.access.application.interactors import (
     CreateUser,
     CreateUserDTO,
     NewReviewRulesDTO,
+    ReadMe,
     ReadReviewRules,
     ReadUserByEmail,
     ReadUserById,
     SetReviewRules,
     UpdateUser,
-    UpdateUserDTO, ReadMe,
+    UpdateUserDTO,
 )
 from alphabet.access.domain import ApproverGroup
 from alphabet.shared.domain.user import Role, User, UserId

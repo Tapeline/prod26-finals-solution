@@ -3,11 +3,12 @@ from dishka import AnyOf, Provider, Scope, provide, provide_all
 from alphabet.access.application.interactors import (
     ActivateUser,
     CreateUser,
+    ReadMe,
     ReadReviewRules,
     ReadUserByEmail,
     ReadUserById,
     SetReviewRules,
-    UpdateUser, ReadMe,
+    UpdateUser,
 )
 from alphabet.access.application.interfaces import UserRepository
 from alphabet.access.infrastructure.repos import SqlUserRepository

@@ -4,9 +4,6 @@ from typing import Any, overload, override
 from sqlalchemy import Row, insert, select, update
 from sqlalchemy.exc import IntegrityError
 
-from alphabet.experiments.infrastructure.tables import (
-    flags,
-)
 from alphabet.shared.application.pagination import Pagination
 from alphabet.shared.commons import maybe_map
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager

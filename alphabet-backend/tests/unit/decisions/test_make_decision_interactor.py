@@ -18,7 +18,8 @@ from alphabet.decisions.domain import (
 )
 from alphabet.experiments.domain.experiment import (
     ExperimentId,
-    ConflictPolicy, ConflictDomain,
+    ConflictPolicy,
+    ConflictDomain,
 )
 from tests.unit.decisions.helper import variant
 
