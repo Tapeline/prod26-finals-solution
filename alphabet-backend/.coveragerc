@@ -1,0 +1,13 @@
+[run]
+plugins = smart_covdefaults
+parallel = true
+source = ["src/"]
+
+[smart_covdefaults]
+allow_defensive_code = True
+
+[paths]
+source =
+    src/
+    /app/src/
+    */alphabet-backend/src/

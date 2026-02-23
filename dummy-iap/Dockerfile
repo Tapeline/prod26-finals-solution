@@ -1,11 +1,11 @@
 FROM ghcr.io/astral-sh/uv:latest AS uv
-FROM python:3.13-slim AS base
+FROM python:3.13-slim
 COPY --from=uv /uv /uvx /bin/
 
 
 # System dependencies
 
-RUN apt-get update && apt-get install -y git curl
+RUN apt-get update && apt-get install -y git
 
 
 # Build settings
@@ -27,10 +27,9 @@ RUN uv sync --frozen --no-install-project
 
 COPY . .
 RUN uv sync --frozen
-RUN chmod +x ./start_prod.sh
-RUN chmod +x ./start_test.sh
+RUN chmod +x ./start.sh
 
 
 # Run
 
-CMD ./start_prod.sh
+CMD ./start.sh

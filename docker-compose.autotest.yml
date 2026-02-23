@@ -1,7 +1,7 @@
 services:
-  db:
+  test-db:
     image: postgres:17
-    hostname: db
+    hostname: test-db
     environment:
       POSTGRES_DB: alphabet
       POSTGRES_USER: pguser
@@ -13,7 +13,7 @@ services:
     networks:
       - alphabet_main_net
     volumes:
-      - pgdata:/var/lib/postgresql/
+      - test_pgdata:/var/lib/postgresql/
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U pguser -d alphabet" ]
       interval: 10s
@@ -22,8 +22,9 @@ services:
       start_period: 10s
     restart: unless-stopped
 
-  api:
+  test-api:
     build: alphabet-backend
+    command: ["./start_test.sh"]
     hostname: api
     ports:
       - "8000:8000"
@@ -35,17 +36,20 @@ services:
       - source: app_conf
         target: /app/alphabet.yml
     environment:
-      AB_POSTGRES__HOST: db
-      AB_VALKEY__HOST: valkey
-      AB_CLICKHOUSE__HOST: clickhouse
-      AB_LOGGING__USE_JSON: true
-      AB_NOTIFICATIONS__SMTP__HOST: mailpit
+      AB_POSTGRES__HOST: test-db
+      AB_VALKEY__HOST: test-valkey
+      AB_CLICKHOUSE__HOST: test-clickhouse
+      AB_LOGGING__USE_JSON: false  # for easier visual debugging
+      AB_NOTIFICATIONS__SMTP__HOST: test-mailpit
+      COVERAGE_FILE: /app/.coverage_data/.coverage
+    volumes:
+      - ./.coverage_data:/app/.coverage_data
     depends_on:
-      valkey:
+      test-valkey:
         condition: service_healthy
-      db:
+      test-db:
         condition: service_healthy
-      clickhouse:
+      test-clickhouse:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
@@ -54,16 +58,16 @@ services:
       start_period: 5s
       retries: 3
 
-  valkey:
+  test-valkey:
     image: valkey/valkey:8.0
-    hostname: valkey
+    hostname: test-valkey
     restart: always
     ports:
       - "6379:6379"
     expose:
       - 6379
     volumes:
-      - valkey_data:/data
+      - test_valkey_data:/data
     environment:
       VALKEY_PASSWORD: valkey_pass
     networks:
@@ -74,9 +78,9 @@ services:
       timeout: 3s
       retries: 5
 
-  clickhouse:
+  test-clickhouse:
     image: clickhouse/clickhouse-server:latest
-    hostname: clickhouse
+    hostname: test-clickhouse
     restart: always
     ports:
       - "8123:8123"
@@ -85,7 +89,7 @@ services:
       - 8123
       - 9000
     volumes:
-      - clickhouse_data:/var/lib/clickhouse
+      - test_clickhouse_data:/var/lib/clickhouse
       - ./alphabet-backend/src/clickhouse_init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       CLICKHOUSE_DB: default
@@ -100,9 +104,9 @@ services:
       retries: 5
       start_period: 10s
 
-  mailpit:
+  test-mailpit:
     image: axllent/mailpit:latest
-    hostname: mailpit
+    hostname: test-mailpit
     restart: always
     environment:
       MP_MAX_MESSAGES: 5000
@@ -110,31 +114,13 @@ services:
       - "1025"
     ports:
       - "8025:8025"
-      - "1025:1025"
     networks:
       - alphabet_main_net
-
-  iap:
-    build: dummy-iap
-    ports:
-      - "8001:8001"
-    expose:
-      - "8001"
-    networks:
-      - alphabet_main_net
-    configs:
-      - source: iap_conf
-        target: /app/config.toml
-    environment:
-      IAP_UPSTREAM: http://api:8000
-    depends_on:
-      api:
-        condition: service_healthy
 
 volumes:
-  pgdata:
-  valkey_data:
-  clickhouse_data:
+  test_pgdata:
+  test_valkey_data:
+  test_clickhouse_data:
 
 
 networks:
@@ -144,6 +130,4 @@ networks:
 
 configs:
   app_conf:
-    file: alphabet-backend/alphabet.yml
-  iap_conf:
-    file: dummy-iap/config.toml
+    file: sys-tests/alphabet.test.yml

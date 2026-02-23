@@ -52,13 +52,14 @@ Insights UI - Почему не графана?
     - Create internal endpoint instead of cli tool
     - Add business-metrics to prometheus
     - Why does request id vanish from logs...
+    - Package dummy iap
+    - Split into integration deployment and real deployment
+    - Collect coverage from docker
 
 TODO:
 
 - Infra
     - Get rid of instant notifier so we can use faststream
-    - Split into integration deployment and real deployment
-    - Package dummy iap
 - Tests
     - Unit tests (idk how many and thorough)
     - Overall integration tests (idk how many and thorough)
