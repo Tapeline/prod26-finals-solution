@@ -86,7 +86,7 @@ class CreateExperiment:
         async with self.tx:
             user = await require_user_with_role(
                 self,
-                {Role.ADMIN, Role.EXPERIMENTER},
+                {Role.EXPERIMENTER},
             )
             exp_flag = await self.flags.get_by_key(dto.flag_key)
             if not exp_flag:
@@ -146,7 +146,7 @@ class UpdateExperiment:
         async with self.tx:
             await require_user_with_role(
                 self,
-                {Role.ADMIN, Role.EXPERIMENTER},
+                {Role.EXPERIMENTER},
             )
             experiment = await self.experiments.get_latest_by_id(exp_id)
             if not experiment:
@@ -212,7 +212,7 @@ class SendToReview:
         async with self.tx:
             await require_user_with_role(
                 self,
-                {Role.ADMIN, Role.EXPERIMENTER},
+                {Role.EXPERIMENTER},
             )
             experiment = await self.experiments.get_latest_by_id(exp_id)
             if not experiment:
@@ -238,7 +238,7 @@ class RestoreFromRejected:
         async with self.tx:
             await require_user_with_role(
                 self,
-                {Role.ADMIN, Role.EXPERIMENTER},
+                {Role.EXPERIMENTER},
             )
             experiment = await self.experiments.get_latest_by_id(exp_id)
             if not experiment:
