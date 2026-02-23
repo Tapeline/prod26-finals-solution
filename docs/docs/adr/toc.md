@@ -11,6 +11,6 @@
 - [ADR007](007-conflict-resolution.md) — Разрешение конфликтов в экспериментах на основе политик
 - [ADR008](008-insights.md) — Insights UI как легковесный фронтенд
 - [ADR009](009-event-schema.md) — JSON Schema в качестве формата схемы событий
-- [ADR010](010-arch.md) — To be fixed
-- [ADR011](011-stack.md) — To be fixed
+- [ADR010](010-arch.md) — Модульный монолит с чистой архитектурой
+- [ADR011](011-stack.md) — Выбор стека
 - [ADR012](012-metric-dsl.md) — Собственный DSL для расчёта метрик

@@ -18,6 +18,7 @@ nav:
       - Уведомления: usecases/07-notifications.md
       - Insights UI: usecases/08-insights-ui.md
       - Разрешение конфликтов: usecases/11-conflicts-resolution.md
+      - C4 диаграммы: diagram/c4.md
   - ADR:
       - Оглавление: adr/toc.md
       - 001 — Аутентификация: adr/001-auth.md
@@ -38,10 +39,14 @@ nav:
       - DSL оповещений: spec/notification-dsl.md
       - DSL таргетирования: spec/target-dsl.md
       - DSL метрик: spec/metric-dsl.md
-  - Диаграммы:
-      - Диаграмма БД: diagram/db.md
-      - C4 диаграммы: diagram/c4.md
-  - Использование ИИ: ai-usage.md
+  - Приступая к проверке:
+      - Запуск проекта: getting_started/01-start.md
+  - Инф. о проекте:
+      - Карта репозитория: repo-map.md
+      - Автоматизация: automation.md
+      - Экспл. готовность: ops-examples.md
+      - Матрица соответствия: compliance-matrix.md
+      - Использование ИИ: ai-usage.md
 
 theme:
   name: material2014

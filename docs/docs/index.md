@@ -6,7 +6,7 @@ hide-toc: true
 
 <p style="font-size: 1.5rem">Dev docs</p>
 
-Production-ready корпоративная платформа для A/B-тестов.
+Корпоративная платформа для A/B-тестов.
 
 <div class="row">
     <div class="col s12 l6">

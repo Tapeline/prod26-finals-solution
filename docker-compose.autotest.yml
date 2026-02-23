@@ -84,10 +84,8 @@ services:
     restart: always
     ports:
       - "8123:8123"
-      - "9000:9000"
     expose:
       - 8123
-      - 9000
     volumes:
       - test_clickhouse_data:/var/lib/clickhouse
       - ./alphabet-backend/src/clickhouse_init.sql:/docker-entrypoint-initdb.d/init.sql

@@ -409,6 +409,7 @@ class ManageRunningExperiment:
     experiments: ExperimentsRepository
     time_provider: TimeProvider
     notifier: ExperimentChangeNotifier
+    flags: FlagRepository
 
     async def __call__(
         self,
@@ -420,6 +421,17 @@ class ManageRunningExperiment:
             experiment = await self.experiments.get_latest_by_id(exp_id)
             if not experiment:
                 raise NoSuchExperiment
+            if experiment.state not in {
+                ExperimentState.STARTED,
+                ExperimentState.PAUSED,
+            }:
+                raise CannotTransition(experiment.state, new_state)
+            if new_state == ExperimentState.STARTED:
+                await self.flags.lock_on(experiment.flag_key)
+                if await self.experiments.get_active_by_flag(
+                    experiment.flag_key,
+                ):
+                    raise FlagAlreadyTaken
             experiment.state = new_state
             experiment.updated_at = self.time_provider.now()
             await self.experiments.save(experiment)

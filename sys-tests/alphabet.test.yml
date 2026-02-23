@@ -27,8 +27,9 @@ notifications:
     sender_email: "no-reply@alphabet.local"
     use_tls: false
   telegram:
-    # please dont use my token :)
-    token: "8495606136:AAEgJIWTnQ08sLiY8rNoXXCnOoDGgwgJshQ"
+    # please dont use my token for anything apart testing :)
+    # bot handle: @tlalphabetabnotificatorbot
+    token: "8688257466:AAGi0vRpY51hUlqHM_RaQS_89FznyZxeEbE"
 
 app:
   # too small: only for testing!

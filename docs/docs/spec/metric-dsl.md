@@ -63,44 +63,24 @@
         "null"
 
     string ::=
-        
-    
+        string literal in double quotes with \n, \t, \r, \v, \" and \\ escape sequences support
+
     value ::=
-        "!delivery_latency" |
+        ":delivery_latency" |
         path
     
     ```
 
 === "Примеры"
 
-    Запрос средней задержки доставки хороших событий показа:
-
-    ```
-    sum(events.all.exposition.!delivery_latency) / count(events.all.exposition)
-
-    sum exposition !delivery_latency / count exposition
-    ```
-
     Конверсия из показов в клики:
 
     ```
-    count(events.attributed.click) / count(events.all.exposition)
-
     count attributed click / count exposition
     ```
     
     p95 задержки доставки всех событий с iOS устройств
 
     ```
-    p95(events.all.*[device.platform == "iOS"].!delivery_latency)
-
-    p95 !delivery_latency where device.platfrom == "iOS"
-    ```
-
-    Доля ошибок с браузеров
-    
-    ```
-    count(discarded.all.*[client == "web"]) / count(events.all.*[client == "web"])
-    
-    count discarded * where client == "web" / count * where client == "web"
+    p95 * :delivery_latency where device.platform == "iOS"
     ```

@@ -6,6 +6,7 @@ from alphabet.metrics.application.exceptions import (
 )
 from alphabet.metrics.domain.dsl.exceptions import InvalidMetricDSLExpression
 from alphabet.metrics.domain.exceptions import (
+    InvalidMetricKey,
     InvalidReportWindow,
     MetricAlreadyExists,
     NoSuchMetric,
@@ -21,5 +22,6 @@ metrics_err_handlers: Final = MappingProxyType(
         NoSuchReport: (404, infer_code),
         InvalidReportWindow: (400, infer_code),
         ExperimentForReportNotFound: (404, infer_code),
+        InvalidMetricKey: (400, infer_code),
     },
 )

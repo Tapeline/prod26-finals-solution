@@ -23,5 +23,6 @@ class InvalidMetricKey(AppException):
     text = "Metric key should be [A-Za-z0-9_-]+"
 
 
+@final
 class InvalidReportWindow(AppException):
     text = "Invalid report window"

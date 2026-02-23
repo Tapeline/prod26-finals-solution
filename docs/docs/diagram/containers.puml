@@ -1,0 +1,57 @@
+@startuml
+!include <C4/C4_Container>
+
+
+System_Boundary(_88480653,"Платформа"){
+    Container(API_backend, "API backend", "Управляет экспериментами, каталогами флагов, событий, метрик и т.д.,\nпринимает решения, обрабатывает события, выдаёт статистику.",$tags="",$techn="Python, Litestar")
+    ContainerDb(Main_DB, "Main DB", "Хранит информацию о экспериментах, флагах, типах метрик и событий,\nисторию экспериментов, конфигурации, журналы аудита.",$tags="db",$techn="Postgres")
+    ContainerDb(__1eddddd6, "Хранилище событий", "Хранит информацию о полученных событиях и предоставляет\nинтерфейс для запроса аналитики",$tags="db",$techn="ClickHouse")
+    ContainerDb(____49a1eb92, "Кэш и вспомогательное хранилище", "Хранит дополнительные данные, необходимые для распределения вариантов",$tags="db",$techn="Redis")
+}
+
+System_Boundary(IAP,"IAP"){
+    Container(IAP_API_backend, "IAP API backend", "Проксирует аутентифицированные запросы",$tags="",$techn="None")
+}
+
+System_Boundary(Telegram,"Telegram"){
+    Container_Ext(Telegram_Messenger, "Telegram Messenger", "",$tags="",$techn="None")
+}
+
+System_Boundary(__229c7f2d,"Почтовый сервер"){
+    Container_Ext(SMTP_Server, "SMTP Server", "",$tags="",$techn="None")
+}
+
+Person(__06fa0f0b, "Клиентское приложение", "Отправляют пачки событий и запрашивают конфигурации флагов для пользователей.",$tags="")
+
+Person(_2b93bb91, "Администратор", "Управляет пользователями, ролями, правилами ревью.",$tags="")
+
+Person(_671628d4, "Экспериментатор", "Настраивает эксперименты, анализирует результаты.",$tags="")
+
+Person(_db4cc232, "Утверждающий", "Ревьюит эксперименты, одобряет/отклоняет их.",$tags="")
+
+Person(_3b36e8f4, "Наблюдатель", "Читает результаты.",$tags="")
+
+Rel(API_backend, Main_DB, "","")
+
+Rel(API_backend, __1eddddd6, "","")
+
+Rel(API_backend, ____49a1eb92, "","")
+
+Rel(__06fa0f0b, API_backend, "","")
+
+Rel(API_backend, Telegram_Messenger, "","")
+
+Rel(API_backend, SMTP_Server, "","")
+
+Rel(IAP_API_backend, API_backend, "","")
+
+Rel(_2b93bb91, IAP_API_backend, "","")
+
+Rel(_671628d4, IAP_API_backend, "","")
+
+Rel(_db4cc232, IAP_API_backend, "","")
+
+Rel(_3b36e8f4, IAP_API_backend, "","")
+
+SHOW_LEGEND()
+@enduml

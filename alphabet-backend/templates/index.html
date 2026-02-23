@@ -128,13 +128,39 @@
       [x-cloak] {
           display: none !important;
       }
+
   </style>
 </head>
 
 <body x-data="app()" x-init="initApp()">
-
+<!-- Activation Screen -->
+<div x-show="needsActivation" x-cloak
+     style="display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f5f5f5; position: fixed; width: 100%; top: 0; left: 0; z-index: 100;">
+  <div style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; ">
+    <div class="mdl-card mdl-shadow--4dp" style="width: 400px; max-width: 90%;">
+      <div class="mdl-card__title mdl-color--deep-purple-500 mdl-color-text--white">
+        <h2 class="mdl-card__title-text">Welcome to Alphabet</h2>
+      </div>
+      <div class="mdl-card__supporting-text full-width" style="box-sizing: border-box;">
+        <p style="font-size: 16px;">Your account is not activated yet. Please activate your account to access the A/B
+          testing platform.</p>
+        <!-- Error Display -->
+        <div x-show="activationError" x-text="activationError"
+             style="color: #d32f2f; margin-top: 15px; font-weight: 500; background: #ffebee; padding: 10px; border-radius: 4px;"></div>
+      </div>
+      <div class="mdl-card__actions mdl-card--border" style="display: flex; justify-content: flex-end;">
+        <button class="mdl-button mdl-js-button mdl-button--raised mdl-color--deep-purple-500 mdl-color-text--white"
+                @click="activateAccount()" :disabled="loading">
+          <span x-show="!loading">Activate Account</span>
+          <span x-show="loading">Activating...</span>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 <!-- Main Layout -->
-<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header">
+<div class="mdl-layout mdl-js-layout mdl-layout--fixed-drawer mdl-layout--fixed-header" x-show="!needsActivation"
+     x-cloak>
 
   <!-- Header -->
   <header class="mdl-layout__header">
@@ -1243,6 +1269,8 @@
     function app() {
         return {
             user: null,
+            needsActivation: false,
+            activationError: null,
             loading: false,
             route: 'experiments',
             activeTab: 'overview',
@@ -1410,9 +1438,9 @@
                         const err = await res.json();
                         let msg = err.detail || 'API Request Failed';
                         // Try to extract extra details if available (e.g. from Pydantic/FastAPI)
-                        if (err.extra && typeof err.extra === 'object') {
+                        if (err.extras && typeof err.extras === 'object') {
                             // If extra has a 'detail' field or is itself useful
-                            const extraDetail = err.extra.detail || JSON.stringify(err.extra);
+                            const extraDetail = err.extras.detail || JSON.stringify(err.extras);
                             msg += `: ${extraDetail}`;
                         }
                         throw new Error(msg);
@@ -1442,9 +1470,51 @@
 
             // --- API Methods ---
 
+            // --- AUTH & ACTIVATION LOGIC ---
+
             async fetchMe() {
-                const res = await this.apiCall('/api/v1/accounts/me');
-                if (res) this.user = res;
+                this.loading = true;
+                try {
+                    const res = await fetch('/api/v1/accounts/me', {headers: {'Content-Type': 'application/json'}});
+                    if (res.ok) {
+                        this.user = await res.json();
+                        this.needsActivation = false;
+                    } else {
+                        // Non-200 implies user is unauthenticated or unactivated
+                        this.needsActivation = true;
+                    }
+                } catch (e) {
+                    this.needsActivation = true;
+                    console.error("Failed to fetch profile:", e);
+                } finally {
+                    this.loading = false;
+                }
+            },
+
+            async activateAccount() {
+                this.loading = true;
+                this.activationError = null;
+                try {
+                    // The spec says GET /api/v1/accounts/activate
+                    const res = await fetch('/api/v1/accounts/activate', {headers: {'Content-Type': 'application/json'}});
+                    if (res.ok) {
+                        this.user = await res.json();
+                        this.needsActivation = false;
+
+                        // Redirect to root page and load data
+                        window.location.hash = 'experiments';
+                        this.handleRouteChange();
+                    } else {
+                        const err = await res.json();
+                        let msg = err.detail || 'Failed to activate account.';
+                        if (err.extras && err.extras.detail) msg += `: ${err.extras.detail}`;
+                        this.activationError = msg;
+                    }
+                } catch (e) {
+                    this.activationError = e.message || 'Network error during activation.';
+                } finally {
+                    this.loading = false;
+                }
             },
 
             async fetchExperiments() {

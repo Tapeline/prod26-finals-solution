@@ -1,0 +1,82 @@
+@startuml
+!include <C4/C4_Component>
+
+LAYOUT_WITH_LEGEND()
+
+title Диаграмма компонентов: A/B Platform API (Актуальная архитектура)
+
+Container_Ext(client_app, "Client Application", "iOS/Android/Web", "Запрашивает флаги, отправляет события")
+Container_Ext(admin_ui, "Internal UI", "React/JS", "Настройка тестов, просмотр отчетов")
+System_Ext(notification_sys, "Notification System", "Email / Slack / Telegram", "Уведомления об изменении статуса экспериментов и срабатывании Guardrails")
+
+ContainerDb_Ext(postgres, "PostgreSQL", "Relational DB", "Метаданные: Пользователи, Отчеты, Метрики, Эксперименты, Guard-правила")
+ContainerDb_Ext(redis, "Redis", "Key-Value Store", "Дедупликация событий (EventDeduplicator)")
+ContainerDb_Ext(clickhouse, "ClickHouse", "OLAP DB", "Аналитика: События (status: accepted/waiting_attribution), Назначения флагов (Assignments)")
+
+System_Boundary(ab_api, "A/B Platform Backend") {
+
+    ' Блок Принятия решений (Decisions)
+    Boundary(decisions_domain, "Decisions Domain") {
+        Component(decisions_controller, "DecisionsController", "REST API", "POST /api/v1/decisions/get-flags")
+        Component(make_decision, "MakeDecision (Interactor)", "Business Logic", "Оценка флагов, бакетинг, применение правил и политик")
+        Component(assignment_store, "AssignmentStore", "Repository", "Асинхронная буферизация и запись решений (флашей)")
+        Component(storages, "Storages & Caches", "Repositories", "DecisionDataStore, FlagStorage, ExperimentStorage")
+    }
+
+    ' Блок Сбора событий (Events)
+    Boundary(events_domain, "Events Domain") {
+        Component(events_controller, "EventsController", "REST API", "POST /api/v1/events/receive")
+        Component(receive_events, "ReceiveEvents (Interactor)", "Business Logic", "Обогащение, валидация и маршрутизация событий")
+        Component(event_deduplicator, "EventDeduplicator", "Logic", "Проверка уникальности событий")
+        Component(event_store, "EventStore", "Repository", "Пакетная запись входящих событий")
+    }
+
+    ' Блок Аналитики (Reports)
+    Boundary(reports_domain, "Reports Domain") {
+        Component(reports_controller, "ReportsController", "REST API", "GET /api/v1/reports/{id}")
+        Component(get_report_result, "GetReportResult (Interactor)", "Business Logic", "Сборка отчетов на основе метрик и экспериментов")
+        Component(metric_evaluator, "MetricEvaluator", "Query Builder / Executor", "Генерация SQL и расчет метрик")
+    }
+
+    ' Фоновые процессы (Workers)
+    Boundary(workers, "Background Workers (Processes)") {
+        Component(guardrail_worker, "GuardrailWorker", "Async Task", "Периодический процесс (guardrail_interval_s)")
+        Component(regular_check, "RegularCheck (Interactor)", "Business Logic", "Сравнение метрик с GuardRuleRepository, остановка экспериментов")
+
+        Component(attribution_worker, "AttributionWorker", "Async Task", "Периодический процесс (attribution_interval_s)")
+    }
+}
+
+' Связи Decisions
+Rel(client_app, decisions_controller, "Получение флагов", "JSON")
+Rel(decisions_controller, make_decision, "Вызов")
+Rel(make_decision, storages, "Чтение конфигураций")
+Rel(storages, postgres, "Загрузка метаданных")
+Rel(make_decision, assignment_store, "Регистрация выдачи")
+Rel(assignment_store, clickhouse, "Flush в таблицу assignments")
+
+' Связи Events
+Rel(client_app, events_controller, "Отправка событий", "JSON")
+Rel(events_controller, receive_events, "Вызов")
+Rel(receive_events, event_deduplicator, "Проверка ID")
+Rel(event_deduplicator, redis, "Check/Set")
+Rel(receive_events, event_store, "Сохранение")
+Rel(event_store, clickhouse, "Insert (status: accepted/waiting)")
+
+' Связи Reports
+Rel(admin_ui, reports_controller, "Просмотр аналитики", "JSON")
+Rel(reports_controller, get_report_result, "Вызов")
+Rel(get_report_result, postgres, "Чтение метаданных метрик")
+Rel(get_report_result, metric_evaluator, "Оценка метрик")
+Rel(metric_evaluator, clickhouse, "OLAP запросы к events")
+
+' Связи Guardrail
+Rel(guardrail_worker, regular_check, "Цикличный вызов")
+Rel(regular_check, postgres, "Получение активных Guard-правил")
+Rel(regular_check, metric_evaluator, "Расчет метрик для проверки")
+Rel(regular_check, notification_sys, "ExperimentChangeNotifier / GuardrailNotifier", "Async")
+
+' Связи Attribution
+Rel_D(attribution_worker, clickhouse, "Исполнение raw SQL: INSERT INTO events ... SELECT ... FROM events FINAL", "click (AsyncClient)")
+
+@enduml
