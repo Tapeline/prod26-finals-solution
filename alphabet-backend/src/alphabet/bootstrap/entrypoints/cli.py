@@ -23,7 +23,7 @@ def cli() -> None: ...
         [
             "server",
             "attribution_worker",
-            "notification_worker",
+            "notifications_worker",
             "guardrails_worker",
         ],
         case_sensitive=False,
@@ -36,7 +36,7 @@ def run(what: str) -> None:
             web_main()
         case "attribution_worker":
             attribution_main()
-        case "notification_worker":
+        case "notifications_worker":
             notifications_main()
         case "guardrails_worker":
             guardrails_main()
