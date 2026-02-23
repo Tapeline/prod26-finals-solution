@@ -17,5 +17,11 @@ PID_NOTIF=$!
 
 # Here goes some linux magic I don't understand
 
-trap "kill -SIGTERM $PID_UVICORN $PID_ATTR $PID_GUARD $PID_NOTIF" SIGTERM SIGINT
+shutdown() {
+    echo "Received SIGTERM => Shutting down gracefully..."
+    kill -SIGTERM $PID_UVICORN $PID_ATTR $PID_GUARD $PID_NOTIF
+    wait $PID_UVICORN $PID_ATTR $PID_GUARD $PID_NOTIF
+    echo "All processes exited. Coverage written."
+}
+trap shutdown SIGTERM SIGINT
 wait $PID_UVICORN $PID_ATTR $PID_GUARD $PID_NOTIF

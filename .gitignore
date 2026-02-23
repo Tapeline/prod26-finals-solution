@@ -1,2 +1,8 @@
 .idea
 *.egg-info
+.coverage_data
+.grimp_cache
+.import_linter_cache
+.venv
+.env
+.coverage

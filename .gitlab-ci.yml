@@ -99,6 +99,8 @@ run-acceptance-tests:
     - curl -SL https://github.com/docker/compose/releases/download/v2.29.2/docker-compose-linux-x86_64 -o /usr/local/lib/docker/cli-plugins/docker-compose
     - chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
   script:
+    - mkdir -p .coverage_data
+    - chmod 777 .coverage_data
     - docker compose -f docker-compose.autotest.yml up -d
     - cd sys-tests
     - uv sync

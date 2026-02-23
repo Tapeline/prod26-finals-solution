@@ -1,13 +1,15 @@
 [run]
 plugins = smart_covdefaults
 parallel = true
-source = ["src/"]
+sigterm = true
+source = src/alphabet
 
 [smart_covdefaults]
 allow_defensive_code = True
 
 [paths]
 source =
-    src/
-    /app/src/
-    */alphabet-backend/src/
+	  src/alphabet
+	  */site-packages/alphabet
+	  /app/src/alphabet
+	  */alphabet-backend/src/alphabet
