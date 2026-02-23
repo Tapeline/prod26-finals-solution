@@ -9,7 +9,8 @@ from alphabet.decisions.application import DecisionTelemetry
 class PrometheusDecisionTelemetry(DecisionTelemetry):
     def __init__(self) -> None:
         self.counter = Counter(
-            "newly_made_decision_count", "Newly made decision count",
+            "newly_made_decision_count",
+            "Newly made decision count",
         )
 
     @override

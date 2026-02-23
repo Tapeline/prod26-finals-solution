@@ -11,6 +11,7 @@ from alphabet.decisions.application import (
     FlagStorage,
     ResolutionRepository,
     AssignmentStore,
+    DecisionTelemetry,
 )
 from alphabet.decisions.domain import (
     CachedExperiment,
@@ -139,6 +140,11 @@ class FakeAssignmentStore(AssignmentStore):
         pass
 
 
+class FakeTelemetry(DecisionTelemetry):
+    def inc_made_decisions(self, delta: int) -> None:
+        pass
+
+
 def _cached_exp(
     exp_id: str,
     flag_key: str,
@@ -178,6 +184,7 @@ async def test_in_cooldown_returns_defaults_for_unassigned():
         FakeResolutionsRepo(),
         FakeAssignmentStore(),
         DefaultTimeProvider(),
+        FakeTelemetry(),
     )
 
     result = await make("user1", {}, ["f1", "f2"])
@@ -215,6 +222,7 @@ async def test_existing_decisions_honored_when_in_cooldown():
         FakeResolutionsRepo(),
         FakeAssignmentStore(),
         DefaultTimeProvider(),
+        FakeTelemetry(),
     )
 
     result = await make("user1", {}, ["f1", "f2"])
@@ -242,6 +250,7 @@ async def test_security_halted_returns_control():
         FakeResolutionsRepo(),
         FakeAssignmentStore(),
         DefaultTimeProvider(),
+        FakeTelemetry(),
     )
 
     result = await make("user1", {}, ["f1"])
