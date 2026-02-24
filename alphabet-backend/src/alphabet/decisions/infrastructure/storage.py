@@ -25,6 +25,10 @@ class InMemoryFlagStorage(FlagStorage):
     def mark_ready(self) -> None:
         self._ready = True
 
+    @override
+    def clear(self) -> None:
+        self._defaults.clear()
+
 
 class InMemoryExperimentStorage(ExperimentStorage):
     def __init__(self) -> None:
@@ -56,3 +60,7 @@ class InMemoryExperimentStorage(ExperimentStorage):
     @override
     def mark_ready(self) -> None:
         self._ready = True
+
+    @override
+    def clear(self) -> None:
+        self._exp.clear()

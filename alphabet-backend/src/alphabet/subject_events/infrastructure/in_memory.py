@@ -26,3 +26,7 @@ class InMemoryEventTypeCache(EventTypeCache):
     @override
     def mark_ready(self) -> None:
         self._ready = True
+
+    @override
+    def clear(self) -> None:
+        self._types.clear()

@@ -54,7 +54,7 @@ from alphabet.bootstrap.logging import get_structlog_plugin_def
 from alphabet.bootstrap.service_endpoints import (
     CustomPrometheusController,
     LivenessReadinessController,
-    serve_frontend,
+    TestDataManagerController, serve_frontend,
 )
 from alphabet.decisions.application import (
     AssignmentStore,
@@ -152,6 +152,7 @@ def create_app(config: Config) -> Litestar:
             CustomPrometheusController,
             internal_create_new_user,
             serve_frontend,
+            TestDataManagerController,
         ],
         middleware=[
             prometheus_config.middleware,

@@ -1,12 +1,24 @@
 from collections.abc import Sequence
+from pathlib import Path
 
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
-from litestar import Controller, MediaType, Response, get
+from litestar import Controller, MediaType, Response, get, post
 from litestar.plugins.prometheus import PrometheusController
 from litestar.response import Template
 
-from alphabet.decisions.application import ExperimentStorage, FlagStorage
+from clickhouse_connect.driver import AsyncClient
+from redis.asyncio import Redis
+from sqlalchemy import text
+
+from alphabet.shared.infrastructure.transaction import SqlTransactionManager
+
+from alphabet.decisions.application import (
+    ExperimentStorage,
+    FlagStorage,
+    WarmUpStorages,
+)
+from alphabet.subject_events.application.interactors import WarmUpEventTypes
 from alphabet.subject_events.application.interfaces import EventTypeCache
 
 
@@ -51,3 +63,73 @@ class LivenessReadinessController(Controller):
     @get("/health", media_type=MediaType.TEXT)
     async def health(self) -> Response[str]:
         return Response(status_code=200, content="healthy")
+
+
+class TestDataManagerController(Controller):
+    path = "/_internal/data"
+
+    @post(
+        "/clear"
+    )
+    @inject
+    async def clear_data(
+        self, click: FromDishka[AsyncClient],
+        redis: FromDishka[Redis],
+        tx: FromDishka[SqlTransactionManager],
+        event_cache: FromDishka[EventTypeCache],
+        flag_cache: FromDishka[FlagStorage],
+        experiment_cache: FromDishka[ExperimentStorage],
+    ) -> str:
+        await click.command("TRUNCATE TABLE events")
+        await click.command("TRUNCATE TABLE discarded_events")
+        await click.command("TRUNCATE TABLE duplicate_events")
+        await click.command("TRUNCATE TABLE conflict_resolutions")
+        await click.command("TRUNCATE TABLE variant_assignments")
+        await redis.flushdb()
+        async with tx:
+            await tx.session.execute(
+                text("DELETE FROM prepared_notifications")
+            )
+            await tx.session.execute(text("DELETE FROM notification_rules"))
+            await tx.session.execute(text("DELETE FROM audit_log"))
+            await tx.session.execute(text("DELETE FROM guard_rules"))
+            await tx.session.execute(text("DELETE FROM reports"))
+            await tx.session.execute(text("DELETE FROM metrics"))
+            await tx.session.execute(text("DELETE FROM event_types"))
+            await tx.session.execute(text("DELETE FROM review_decisions"))
+            await tx.session.execute(text("DELETE FROM approvals"))
+            await tx.session.execute(text("DELETE FROM experiments_latest"))
+            await tx.session.execute(text("DELETE FROM experiments_history"))
+            await tx.session.execute(text("DELETE FROM flags"))
+            await tx.session.execute(text("DELETE FROM assigned_approvers"))
+            await tx.session.execute(text("DELETE FROM users"))
+            await tx.session.commit()
+        event_cache.clear()
+        experiment_cache.clear()
+        flag_cache.clear()
+        return "cleared"
+
+    @post(
+        "/seed"
+    )
+    @inject
+    async def seed_test_data(
+        self,
+        tx: FromDishka[SqlTransactionManager],
+        event_cache: FromDishka[EventTypeCache],
+        warmup_events: FromDishka[WarmUpEventTypes],
+        warmup_storages: FromDishka[WarmUpStorages],
+        flag_cache: FromDishka[FlagStorage],
+        experiment_cache: FromDishka[ExperimentStorage],
+    ) -> str:
+        async with tx:
+            await tx.session.execute(
+                text(Path("src/test_data.sql").read_text())
+            )
+            await tx.session.commit()
+        event_cache.clear()
+        flag_cache.clear()
+        experiment_cache.clear()
+        await warmup_events()
+        await warmup_storages()
+        return "seeded"

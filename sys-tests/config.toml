@@ -1,7 +1,8 @@
 [tests]
 db_url = "postgresql://pguser:pgpass@localhost:5432/alphabet"
-app_url = "http://localhost:8000"
-mailpit_url = "http://localhost:8025"
+app_url = "http://localhost"
+mailpit_url = "http://localhost/mailpit"
+use_clear_endpoints = true
 
 [redis]
 host = "localhost"

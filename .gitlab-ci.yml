@@ -105,7 +105,7 @@ run-acceptance-tests:
     - cd sys-tests
     - uv sync
     - sleep 15
-    - APP_URL=http://docker:8000 uv run pytest tests -vvv --junit-xml=junit-report.xml
+    - APP_URL=http://docker:8000 MAILPIT_URL=http://localhost:8025 uv run pytest tests -vvv --junit-xml=junit-report.xml
   after_script:
     - docker compose -f docker-compose.autotest.yml down
   artifacts:

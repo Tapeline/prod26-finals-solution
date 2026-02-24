@@ -257,6 +257,7 @@ class PublishNotification:
             "fired_at": record.fired_at.isoformat(),
             "metric_key": record.metric_key.value,
             "metric_value": str(record.metric_value),
+            "experiment_id": record.experiment_id,
             "iat": now.isoformat(),
         }
         await self.notification_queue.push_all(

@@ -53,6 +53,10 @@ class FlagStorage(Protocol):
     def mark_ready(self) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def clear(self) -> None:
+        raise NotImplementedError
+
 
 class DecisionDataStore(Protocol):
     @abstractmethod
@@ -107,6 +111,10 @@ class ExperimentStorage(Protocol):
 
     @abstractmethod
     def mark_ready(self) -> None:
+        raise NotImplementedError
+
+    @abstractmethod
+    def clear(self) -> None:
         raise NotImplementedError
 
 
@@ -197,7 +205,9 @@ class MakeDecision:
         in_cooldown = await self.decision_data.is_in_cooldown(subject_id)
         if in_cooldown:
             for flag in unassigned:
-                assigned[flag] = self._default_for(flag, subject_id)
+                assigned[flag] = self._default_for(
+                    flag, subject_id, reason="cooldown"
+                )
             return assigned
 
         resolved, resolutions = self._resolve_conflicts(experiments)
@@ -207,11 +217,15 @@ class MakeDecision:
         for flag in list(unassigned):
             exp = resolved_by_flag.get(flag)
             if not exp:
-                assigned[flag] = self._default_for(flag, subject_id)
+                assigned[flag] = self._default_for(
+                    flag, subject_id, reason="not-set"
+                )
                 unassigned.discard(flag)
                 continue
             if exp.targeting and not exp.targeting(subject_attrs).run():
-                assigned[flag] = self._default_for(flag, subject_id)
+                assigned[flag] = self._default_for(
+                    flag, subject_id, reason=f"{exp.id}-target"
+                )
                 unassigned.discard(flag)
                 continue
             decision = self._assign_variant(
@@ -225,7 +239,9 @@ class MakeDecision:
                 new_decision_count += 1
 
         for flag in unassigned:
-            assigned[flag] = self._default_for(flag, subject_id)
+            assigned[flag] = self._default_for(
+                flag, subject_id, reason="not-set"
+            )
 
         new_decisions = [
             d for d in assigned.values() if d and d.experiment_id is not None
@@ -379,12 +395,15 @@ class MakeDecision:
         self,
         flag_key: str,
         subject_id: str,
+        reason: str | None = None
     ) -> Decision | None:
         value = self.flags.get_default(flag_key)
         if value is None:
             return None
+        if not reason:
+            reason = generate_uuid()
         return Decision(
-            DecisionId(f":{flag_key}:{subject_id}:!default-{generate_uuid()}"),
+            DecisionId(f":{flag_key}:{subject_id}:!default-{reason}"),
             flag_key=flag_key,
             value=value,
             experiment_id=None,

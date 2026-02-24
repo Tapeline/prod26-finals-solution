@@ -8,7 +8,13 @@ from redis import Redis
 from clickhouse_connect import get_client
 from tenacity import retry, stop_after_delay, wait_fixed
 
-from tests.config import app_url, redis_args, click_args, mailpit_url
+from tests.config import (
+    app_url,
+    redis_args,
+    click_args,
+    mailpit_url,
+    use_clear_endpoints,
+)
 
 
 @pytest.fixture(scope="session")
@@ -34,28 +40,33 @@ def clickhouse_client():
 
 @pytest.fixture(autouse=True)
 def clean_db(db_engine, redis_client, clickhouse_client):
-    with db_engine.connect() as conn:
-        conn.execute(text("DELETE FROM prepared_notifications"))
-        conn.execute(text("DELETE FROM notification_rules"))
-        conn.execute(text("DELETE FROM audit_log"))
-        conn.execute(text("DELETE FROM guard_rules"))
-        conn.execute(text("DELETE FROM reports"))
-        conn.execute(text("DELETE FROM metrics"))
-        conn.execute(text("DELETE FROM event_types"))
-        conn.execute(text("DELETE FROM review_decisions"))
-        conn.execute(text("DELETE FROM approvals"))
-        conn.execute(text("DELETE FROM experiments_latest"))
-        conn.execute(text("DELETE FROM experiments_history"))
-        conn.execute(text("DELETE FROM flags"))
-        conn.execute(text("DELETE FROM assigned_approvers"))
-        conn.execute(text("DELETE FROM users"))
-        conn.commit()
-    redis_client.flushdb()
-    clickhouse_client.command("TRUNCATE TABLE events")
-    clickhouse_client.command("TRUNCATE TABLE discarded_events")
-    clickhouse_client.command("TRUNCATE TABLE duplicate_events")
-    clickhouse_client.command("TRUNCATE TABLE conflict_resolutions")
-    clickhouse_client.command("TRUNCATE TABLE variant_assignments")
+    if use_clear_endpoints:
+        httpx.post(
+            f"{app_url}/_internal/data/clear",
+        ).raise_for_status()
+    else:
+        with db_engine.connect() as conn:
+            conn.execute(text("DELETE FROM prepared_notifications"))
+            conn.execute(text("DELETE FROM notification_rules"))
+            conn.execute(text("DELETE FROM audit_log"))
+            conn.execute(text("DELETE FROM guard_rules"))
+            conn.execute(text("DELETE FROM reports"))
+            conn.execute(text("DELETE FROM metrics"))
+            conn.execute(text("DELETE FROM event_types"))
+            conn.execute(text("DELETE FROM review_decisions"))
+            conn.execute(text("DELETE FROM approvals"))
+            conn.execute(text("DELETE FROM experiments_latest"))
+            conn.execute(text("DELETE FROM experiments_history"))
+            conn.execute(text("DELETE FROM flags"))
+            conn.execute(text("DELETE FROM assigned_approvers"))
+            conn.execute(text("DELETE FROM users"))
+            conn.commit()
+        redis_client.flushdb()
+        clickhouse_client.command("TRUNCATE TABLE events")
+        clickhouse_client.command("TRUNCATE TABLE discarded_events")
+        clickhouse_client.command("TRUNCATE TABLE duplicate_events")
+        clickhouse_client.command("TRUNCATE TABLE conflict_resolutions")
+        clickhouse_client.command("TRUNCATE TABLE variant_assignments")
 
 
 @pytest.fixture

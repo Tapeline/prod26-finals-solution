@@ -105,6 +105,7 @@ services:
     restart: always
     environment:
       MP_MAX_MESSAGES: 5000
+      MP_WEBROOT: /mailpit/
     expose:
       - "1025"
     ports:
@@ -115,6 +116,7 @@ services:
 
   iap:
     build: dummy-iap
+    hostname: iap
     ports:
       - "8001:8001"
     expose:
@@ -129,6 +131,21 @@ services:
     depends_on:
       api:
         condition: service_healthy
+
+  nginx:
+    image: nginx:alpine
+    container_name: gateway
+    restart: always
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - mailpit
+      - api
+      - iap
+    networks:
+      - alphabet_main_net
 
 volumes:
   pgdata:

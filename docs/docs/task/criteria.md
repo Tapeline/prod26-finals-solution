@@ -2,6 +2,10 @@
 toc-depth: 3
 ---
 
+<style>
+table { white-space: wrap !important; word-wrap: break-word!important; }
+</style>
+
 # LOTTY A/B Platform — критерии для участников
 
 ## 1. Процесс оценивания

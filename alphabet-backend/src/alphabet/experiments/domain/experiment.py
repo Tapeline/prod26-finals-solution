@@ -101,7 +101,7 @@ _VALID_TRANSITIONS: Final = MappingProxyType(
 )
 
 
-_VARIANT_NAME_RE: Final = re.compile(r"^[a-zA-Z]+$")
+_VARIANT_NAME_RE: Final = re.compile(r"^[a-zA-Z_-]+$")
 
 
 @final

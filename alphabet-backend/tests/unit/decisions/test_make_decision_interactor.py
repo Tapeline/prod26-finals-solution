@@ -45,6 +45,9 @@ class FakeFlagStorage(FlagStorage):
     def mark_ready(self) -> None:
         self._is_ready = True
 
+    def clear(self) -> None:
+        self._defaults.clear()
+
 
 class FakeExperimentStorage(ExperimentStorage):
     def __init__(self, experiments: dict[str, CachedExperiment] | None = None):
@@ -69,6 +72,9 @@ class FakeExperimentStorage(ExperimentStorage):
 
     def mark_ready(self) -> None:
         self._is_ready = True
+
+    def clear(self) -> None:
+        self._experiments.clear()
 
 
 class FakeDecisionDataStore(DecisionDataStore):

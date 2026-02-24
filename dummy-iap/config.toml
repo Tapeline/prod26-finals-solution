@@ -1,5 +1,5 @@
 [app]
-exclude = "^/unauthorized$"
+exclude = "^/api/v1/decisions/get-flags|/api/v1/events/receive$"
 
 [users.admin]
 email = "admin@t.ru"
@@ -16,3 +16,7 @@ password = "approver"
 [users.viewer]
 email = "viewer@t.ru"
 password = "viewer"
+
+[users.approver2]
+email = "approver2@t.ru"
+password = "approver2"

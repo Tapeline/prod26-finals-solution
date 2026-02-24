@@ -52,6 +52,10 @@ class EventTypeCache(Protocol):
     def mark_ready(self) -> None:
         raise NotImplementedError
 
+    @abstractmethod
+    def clear(self) -> None:
+        raise NotImplementedError
+
 
 class EventDeduplicator(Protocol):
     @abstractmethod

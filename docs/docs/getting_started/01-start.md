@@ -16,23 +16,44 @@
 ## Старт контейнеров
 
 ```sh 
-docker compose up -d
+docker compose up -d --build
 ```
 
 Затем проверка готовности:
 
 ```sh
 curl -X 'GET' \
-  'http://localhost:8000/ready' \
+  'http://localhost:80/ready' \
   -H 'accept: text/plain'
 ```
 
 Готовый сервис должен ответить `ready`.
 
-На `localhost:8000` будет развёрнуто API.
-На `localhost:8001` — Identity-Aware Proxy (IAP)
-На `localhost:8025` — веб-интерфейс тестового SMTP сервера
+- На `localhost:80/api` будет развёрнуто API.
+- На `localhost:80` — Identity-Aware Proxy (IAP)
+- На `localhost:80/mailpit` — веб-интерфейс тестового SMTP сервера
 
+## Размещение тестовых данных
+
+Для того чтобы поместить тестовые данные, выполните пост-запросы.
+
+Очистка:
+
+```sh
+curl -X 'POST' \
+  'http://localhost:80/_internal/data/clear' \
+  -H 'accept: text/plain'
+```
+
+Размещение:
+
+```
+curl -X 'POST' \
+  'http://localhost:80/_internal/data/seed' \
+  -H 'accept: text/plain'
+```
+
+<!--
 
 ## Регистрация первого пользователя
 
@@ -45,7 +66,7 @@ curl -X 'GET' \
 
     ```sh
     curl -X 'POST' \
-      'http://localhost:8000/_internal/new-user' \
+      'http://localhost:80/_internal/new-user' \
       -H 'accept: application/json' \
       -H 'Content-Type: application/json' \
       -d '{"email": "admin@t.ru", "role": "admin"}'
@@ -53,7 +74,7 @@ curl -X 'GET' \
 
 === "Swagger"
 
-    В `http://localhost:8000/docs` сделаем запрос на эндпоинт:
+    В `http://localhost:80/docs` сделаем запрос на эндпоинт:
 
     ```json
     {"email": "admin@t.ru", "role": "admin"}
@@ -70,7 +91,7 @@ curl -X 'GET' \
 
     ```sh
     curl -X 'GET' \
-      'http://localhost:8000/api/v1/accounts/activate' \
+      'http://localhost:80/api/v1/accounts/activate' \
       -H 'accept: application/json' \
       -H 'X-User-Id: admin' \
       -H 'X-User-Email: admin@t.ru'
@@ -78,7 +99,7 @@ curl -X 'GET' \
 
 === "Swagger"
 
-    В `http://localhost:8000/docs` сначала авторизуемся с данными:
+    В `http://localhost:80/docs` сначала авторизуемся с данными:
 
     - `iap_user_id` = `admin`
     - `iap_user_email` = `admin@t.ru`
@@ -104,3 +125,4 @@ curl -X 'GET' \
 со своим IAP ID и Email. Если сервис отвечает "не найден", то пользователь
 ещё действительно не активирован.
 
+-->

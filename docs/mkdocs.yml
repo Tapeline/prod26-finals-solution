@@ -41,6 +41,12 @@ nav:
       - DSL метрик: spec/metric-dsl.md
   - Приступая к проверке:
       - Запуск проекта: getting_started/01-start.md
+      - B2. Flags: getting_started/02-criteria.md
+      - B3. Experiments: getting_started/03-criteria.md
+      - B4. Events: getting_started/04-criteria.md
+      - B5. Ограничения: getting_started/05-criteria.md
+      - B6. Отчётность: getting_started/06-criteria.md
+      - F7, F8, F11: getting_started/additional-criteria.md
   - Инф. о проекте:
       - Карта репозитория: repo-map.md
       - Автоматизация: automation.md

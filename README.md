@@ -18,6 +18,9 @@
 - Runbook запуска и проверки: "Приступая к проверке / Запуск проекта":
     - [На развёрнутой документации](https://yt-redstone-mail-e7ec37.pages.prodcontest.com/getting_started/01-start/)
     - .md файл `docs/docs/getting_started/01-start.md`
+- Тестовые сценарии и данные:
+    - [На развёрнутой документации](https://yt-redstone-mail-e7ec37.pages.prodcontest.com/getting_started/01-start/)
+    - .md файл `docs/docs/getting_started/01-start.md`
 - Архитектурный пакет диаграмм:
     - [На развёрнутой документации](https://yt-redstone-mail-e7ec37.pages.prodcontest.com/diagram/c4/)
     - .md файл `docs/docs/diagram/c4.md`
@@ -34,3 +37,6 @@
     - Примеры метрик и структурированных логов
         - [На развёрнутой документации](https://yt-redstone-mail-e7ec37.pages.prodcontest.com/ops-examples)
         - .md файл `docs/docs/ops-examples.md`
+- Матрица соответствия:
+    - [На развёрнутой документации](https://yt-redstone-mail-e7ec37.pages.prodcontest.com/compliance-matrix/)
+    - .md файл `docs/docs/compliance-matrix.md`
