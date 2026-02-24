@@ -1,23 +1,21 @@
 from collections.abc import Sequence
 from pathlib import Path
 
+from clickhouse_connect.driver import AsyncClient
 from dishka import FromDishka
 from dishka.integrations.litestar import inject
 from litestar import Controller, MediaType, Response, get, post
 from litestar.plugins.prometheus import PrometheusController
 from litestar.response import Template
-
-from clickhouse_connect.driver import AsyncClient
 from redis.asyncio import Redis
 from sqlalchemy import text
-
-from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 
 from alphabet.decisions.application import (
     ExperimentStorage,
     FlagStorage,
     WarmUpStorages,
 )
+from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 from alphabet.subject_events.application.interactors import WarmUpEventTypes
 from alphabet.subject_events.application.interfaces import EventTypeCache
 
@@ -68,12 +66,11 @@ class LivenessReadinessController(Controller):
 class TestDataManagerController(Controller):
     path = "/_internal/data"
 
-    @post(
-        "/clear"
-    )
+    @post("/clear")
     @inject
     async def clear_data(
-        self, click: FromDishka[AsyncClient],
+        self,
+        click: FromDishka[AsyncClient],
         redis: FromDishka[Redis],
         tx: FromDishka[SqlTransactionManager],
         event_cache: FromDishka[EventTypeCache],
@@ -88,7 +85,7 @@ class TestDataManagerController(Controller):
         await redis.flushdb()
         async with tx:
             await tx.session.execute(
-                text("DELETE FROM prepared_notifications")
+                text("DELETE FROM prepared_notifications"),
             )
             await tx.session.execute(text("DELETE FROM notification_rules"))
             await tx.session.execute(text("DELETE FROM audit_log"))
@@ -109,9 +106,7 @@ class TestDataManagerController(Controller):
         flag_cache.clear()
         return "cleared"
 
-    @post(
-        "/seed"
-    )
+    @post("/seed")
     @inject
     async def seed_test_data(
         self,
@@ -124,7 +119,7 @@ class TestDataManagerController(Controller):
     ) -> str:
         async with tx:
             await tx.session.execute(
-                text(Path("src/test_data.sql").read_text())
+                text(Path("src/test_data.sql").read_text()),
             )
             await tx.session.commit()
         event_cache.clear()

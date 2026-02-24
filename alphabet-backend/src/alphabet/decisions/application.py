@@ -206,7 +206,7 @@ class MakeDecision:
         if in_cooldown:
             for flag in unassigned:
                 assigned[flag] = self._default_for(
-                    flag, subject_id, reason="cooldown"
+                    flag, subject_id, reason="cooldown",
                 )
             return assigned
 
@@ -218,13 +218,13 @@ class MakeDecision:
             exp = resolved_by_flag.get(flag)
             if not exp:
                 assigned[flag] = self._default_for(
-                    flag, subject_id, reason="not-set"
+                    flag, subject_id, reason="not-set",
                 )
                 unassigned.discard(flag)
                 continue
             if exp.targeting and not exp.targeting(subject_attrs).run():
                 assigned[flag] = self._default_for(
-                    flag, subject_id, reason=f"{exp.id}-target"
+                    flag, subject_id, reason=f"{exp.id}-target",
                 )
                 unassigned.discard(flag)
                 continue
@@ -240,7 +240,7 @@ class MakeDecision:
 
         for flag in unassigned:
             assigned[flag] = self._default_for(
-                flag, subject_id, reason="not-set"
+                flag, subject_id, reason="not-set",
             )
 
         new_decisions = [
@@ -392,10 +392,7 @@ class MakeDecision:
         ]
 
     def _default_for(
-        self,
-        flag_key: str,
-        subject_id: str,
-        reason: str | None = None
+        self, flag_key: str, subject_id: str, reason: str | None = None,
     ) -> Decision | None:
         value = self.flags.get_default(flag_key)
         if value is None:

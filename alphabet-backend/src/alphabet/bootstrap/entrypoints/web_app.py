@@ -54,7 +54,8 @@ from alphabet.bootstrap.logging import get_structlog_plugin_def
 from alphabet.bootstrap.service_endpoints import (
     CustomPrometheusController,
     LivenessReadinessController,
-    TestDataManagerController, serve_frontend,
+    TestDataManagerController,
+    serve_frontend,
 )
 from alphabet.decisions.application import (
     AssignmentStore,
