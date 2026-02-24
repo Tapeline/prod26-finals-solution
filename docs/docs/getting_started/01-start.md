@@ -41,16 +41,18 @@ curl -X 'GET' \
 
 ```sh
 curl -X 'POST' \
-  'http://localhost:80/_internal/data/clear' \
-  -H 'accept: text/plain'
+  'http://localhost/_internal/data/clear' \
+  -H 'accept: text/plain' \
+  -d ''
 ```
 
 Размещение:
 
 ```
 curl -X 'POST' \
-  'http://localhost:80/_internal/data/seed' \
-  -H 'accept: text/plain'
+  'http://localhost/_internal/data/seed' \
+  -H 'accept: text/plain' \
+  -d ''
 ```
 
 <!--

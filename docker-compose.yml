@@ -6,8 +6,8 @@ services:
       POSTGRES_DB: alphabet
       POSTGRES_USER: pguser
       POSTGRES_PASSWORD: pgpass
-    ports:
-      - "5432:5432"
+    # ports:
+    #   - "5432:5432"
     expose:
       - "5432"
     networks:
@@ -25,8 +25,8 @@ services:
   api:
     build: alphabet-backend
     hostname: api
-    ports:
-      - "8000:8000"
+    # ports:
+    #   - "8000:8000"
     expose:
       - "8000"
     networks:
@@ -49,17 +49,17 @@ services:
         condition: service_healthy
     healthcheck:
       test: [ "CMD", "curl", "-f", "http://localhost:8000/health" ]
-      interval: 5s
+      interval: 10s
       timeout: 10s
-      start_period: 5s
-      retries: 3
+      start_period: 10s
+      retries: 5
 
   valkey:
     image: valkey/valkey:8.0
     hostname: valkey
     restart: always
-    ports:
-      - "6379:6379"
+    # ports:
+    #   - "6379:6379"
     expose:
       - 6379
     volumes:
@@ -78,8 +78,8 @@ services:
     image: clickhouse/clickhouse-server:latest
     hostname: clickhouse
     restart: always
-    ports:
-      - "8123:8123"
+    # ports:
+    #   - "8123:8123"
     expose:
       - 8123
       - 9000
@@ -108,17 +108,17 @@ services:
       MP_WEBROOT: /mailpit/
     expose:
       - "1025"
-    ports:
-      - "8025:8025"
-      - "1025:1025"
+    # ports:
+    #   - "8025:8025"
+    #   - "1025:1025"
     networks:
       - alphabet_main_net
 
   iap:
     build: dummy-iap
     hostname: iap
-    ports:
-      - "8001:8001"
+    # ports:
+    #   - "8001:8001"
     expose:
       - "8001"
     networks:

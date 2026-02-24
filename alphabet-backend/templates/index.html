@@ -1475,7 +1475,7 @@
             async fetchMe() {
                 this.loading = true;
                 try {
-                    const res = await fetch('/api/v1/accounts/me', {headers: {'Content-Type': 'application/json'}});
+                    const res = await fetch('/_iap/api/v1/accounts/me', {headers: {'Content-Type': 'application/json'}});
                     if (res.ok) {
                         this.user = await res.json();
                         this.needsActivation = false;
@@ -1495,8 +1495,8 @@
                 this.loading = true;
                 this.activationError = null;
                 try {
-                    // The spec says GET /api/v1/accounts/activate
-                    const res = await fetch('/api/v1/accounts/activate', {headers: {'Content-Type': 'application/json'}});
+                    // The spec says GET /_iap/api/v1/accounts/activate
+                    const res = await fetch('/_iap/api/v1/accounts/activate', {headers: {'Content-Type': 'application/json'}});
                     if (res.ok) {
                         this.user = await res.json();
                         this.needsActivation = false;
@@ -1519,7 +1519,7 @@
 
             async fetchExperiments() {
                 // calling the list endpoint directly
-                const res = await this.apiCall('/api/v1/experiments');
+                const res = await this.apiCall('/_iap/api/v1/experiments');
                 if (res && Array.isArray(res)) {
                     this.data.experiments = res;
                 } else {
@@ -1533,7 +1533,7 @@
                 const promises = uniqueIds.map(async (id) => {
                     if (this.userCache[id]) return;
                     // Fetch user details
-                    const res = await this.apiCall(`/api/v1/accounts/user/by-id/${id}`);
+                    const res = await this.apiCall(`/_iap/api/v1/accounts/user/by-id/${id}`);
                     if (res) {
                         this.userCache[id] = res; // Store full user object
                     } else {
@@ -1546,10 +1546,10 @@
 // Update method signature and logic
             async fetchExperiment(id, queryString = '') {
                 this.activeTab = 'overview';
-                const exp = await this.apiCall(`/api/v1/experiments/${id}`);
+                const exp = await this.apiCall(`/_iap/api/v1/experiments/${id}`);
                 if (exp) {
                     this.currentExperiment = exp;
-                    this.currentExperimentAudit = await this.apiCall(`/api/v1/experiments/${id}/review-audit`);
+                    this.currentExperimentAudit = await this.apiCall(`/_iap/api/v1/experiments/${id}/review-audit`);
 
                     if (this.currentExperimentAudit && this.currentExperimentAudit.approvals) {
                         const ids = this.currentExperimentAudit.approvals.map(a => a.approver_id);
@@ -1591,7 +1591,7 @@
 
             async loadGuardrails() {
                 if (!this.currentExperiment) return;
-                const res = await this.apiCall(`/api/v1/guardrails/for-experiment/${this.currentExperiment.id}`);
+                const res = await this.apiCall(`/_iap/api/v1/guardrails/for-experiment/${this.currentExperiment.id}`);
                 if (res) this.data.guardrails = res;
             },
 
@@ -1599,12 +1599,12 @@
                 if (!this.currentExperiment) return;
 
                 // Fetch list of minimal reports
-                const minimalReports = await this.apiCall(`/api/v1/reports/for-experiment/${this.currentExperiment.id}`);
+                const minimalReports = await this.apiCall(`/_iap/api/v1/reports/for-experiment/${this.currentExperiment.id}`);
 
                 if (minimalReports && minimalReports.length > 0) {
                     // Fetch the full report payload (with metrics) for each report concurrently
                     const fullReports = await Promise.all(
-                        minimalReports.map(r => this.apiCall(`/api/v1/reports/${r.id}`))
+                        minimalReports.map(r => this.apiCall(`/_iap/api/v1/reports/${r.id}`))
                     );
 
                     // Filter out any potential nulls from failed requests
@@ -1668,7 +1668,7 @@
             async loadHistory() {
                 this.activeTab = 'history';
                 if (!this.currentExperiment) return;
-                const res = await this.apiCall(`/api/v1/experiments/${this.currentExperiment.id}/history`);
+                const res = await this.apiCall(`/_iap/api/v1/experiments/${this.currentExperiment.id}/history`);
                 if (res) {
                     this.data.history = res;
                     // Resolve authors in history
@@ -1746,14 +1746,14 @@
                 };
 
                 if (frm.id) {
-                    const res = await this.apiCall(`/api/v1/experiments/${frm.id}`, 'PATCH', payload);
+                    const res = await this.apiCall(`/_iap/api/v1/experiments/${frm.id}`, 'PATCH', payload);
                     if (res) {
                         this.closeModal();
                         this.showToast('Experiment updated');
                         this.fetchExperiment(frm.id);
                     }
                 } else {
-                    const res = await this.apiCall('/api/v1/experiments/create', 'POST', payload);
+                    const res = await this.apiCall('/_iap/api/v1/experiments/create', 'POST', payload);
                     if (res) {
                         this.closeModal();
                         this.showToast('Experiment created');
@@ -1763,7 +1763,7 @@
             },
 
             async manageExperiment(id, newState) {
-                const res = await this.apiCall(`/api/v1/experiments/${id}/manage-running`, 'POST', {new_state: newState});
+                const res = await this.apiCall(`/_iap/api/v1/experiments/${id}/manage-running`, 'POST', {new_state: newState});
                 if (res) {
                     this.showToast(`State changed to ${newState}`);
                     this.fetchExperiment(id);
@@ -1772,7 +1772,7 @@
 
             async archiveExperiment() {
                 if (!this.currentExperiment) return;
-                const res = await this.apiCall(`/api/v1/experiments/${this.currentExperiment.id}/archive`, 'POST', this.forms.archive);
+                const res = await this.apiCall(`/_iap/api/v1/experiments/${this.currentExperiment.id}/archive`, 'POST', this.forms.archive);
                 if (res) {
                     this.closeModal();
                     this.showToast('Experiment archived');
@@ -1787,7 +1787,7 @@
                     start_at: new Date(this.forms.report.start_at).toISOString(),
                     end_at: new Date(this.forms.report.end_at).toISOString()
                 };
-                const res = await this.apiCall('/api/v1/reports/create', 'POST', payload);
+                const res = await this.apiCall('/_iap/api/v1/reports/create', 'POST', payload);
                 if (res) {
                     this.closeModal();
                     this.showToast('Report generation started');
@@ -1796,7 +1796,7 @@
             },
             async deleteReport(id) {
                 if (!confirm('Delete this report?')) return;
-                await this.apiCall(`/api/v1/reports/${id}`, 'DELETE');
+                await this.apiCall(`/_iap/api/v1/reports/${id}`, 'DELETE');
                 this.loadReports();
             },
 
@@ -1809,7 +1809,7 @@
                     action: this.forms.guardrail.action,
                     watch_window_s: parseInt(this.forms.guardrail.watch_window_s)
                 };
-                const res = await this.apiCall(`/api/v1/guardrails/for-experiment/${this.currentExperiment.id}/create`, 'POST', payload);
+                const res = await this.apiCall(`/_iap/api/v1/guardrails/for-experiment/${this.currentExperiment.id}/create`, 'POST', payload);
                 if (res) {
                     this.closeModal();
                     this.showToast('Guardrail added');
@@ -1819,7 +1819,7 @@
 
             // Review Logic
             async sendToReview(id) {
-                const res = await this.apiCall(`/api/v1/experiments/${id}/send-to-review`, 'POST');
+                const res = await this.apiCall(`/_iap/api/v1/experiments/${id}/send-to-review`, 'POST');
                 if (res) {
                     this.showToast('Submitted for review');
                     this.fetchExperiment(id);
@@ -1829,9 +1829,9 @@
             async reviewExperiment(id, action) {
                 let res;
                 if (action === 'approve') {
-                    res = await this.apiCall(`/api/v1/experiments/${id}/approve`, 'POST');
+                    res = await this.apiCall(`/_iap/api/v1/experiments/${id}/approve`, 'POST');
                 } else {
-                    res = await this.apiCall(`/api/v1/experiments/${id}/reject`, 'POST', {comment: "Rejected via UI"});
+                    res = await this.apiCall(`/_iap/api/v1/experiments/${id}/reject`, 'POST', {comment: "Rejected via UI"});
                 }
                 if (res) {
                     this.showToast(`Experiment ${action}ed`);
@@ -1882,7 +1882,7 @@
                 });
 
                 const qs = params.toString() ? `?${params.toString()}` : '';
-                const res = await this.apiCall(`/api/v1/insights/${this.currentExperiment.id}${qs}`);
+                const res = await this.apiCall(`/_iap/api/v1/insights/${this.currentExperiment.id}${qs}`);
 
                 if (res) {
                     this.data.insights = res;
@@ -2005,10 +2005,10 @@
 
             // Global Config Methods
             async fetchFlags() {
-                this.data.flags = await this.apiCall('/api/v1/flags') || [];
+                this.data.flags = await this.apiCall('/_iap/api/v1/flags') || [];
             },
             async createFlag() {
-                const res = await this.apiCall('/api/v1/flags/create', 'POST', this.forms.flag);
+                const res = await this.apiCall('/_iap/api/v1/flags/create', 'POST', this.forms.flag);
                 if (res) {
                     this.closeModal();
                     this.showToast('Flag created');
@@ -2022,7 +2022,7 @@
             },
             async updateFlag() {
                 const key = this.forms.flag.key;
-                const res = await this.apiCall(`/api/v1/flags/${key}`, 'PATCH', {default: this.forms.flag.default});
+                const res = await this.apiCall(`/_iap/api/v1/flags/${key}`, 'PATCH', {default: this.forms.flag.default});
                 if (res) {
                     this.closeModal();
                     this.showToast('Flag updated');
@@ -2030,10 +2030,10 @@
                 }
             },
             async fetchMetrics() {
-                this.data.metrics = await this.apiCall('/api/v1/metrics') || [];
+                this.data.metrics = await this.apiCall('/_iap/api/v1/metrics') || [];
             },
             async createMetric() {
-                const res = await this.apiCall('/api/v1/metrics/create', 'POST', this.forms.metric);
+                const res = await this.apiCall('/_iap/api/v1/metrics/create', 'POST', this.forms.metric);
                 if (res) {
                     this.closeModal();
                     this.showToast('Metric created');
@@ -2050,7 +2050,7 @@
 // Call the PATCH endpoint
             async updateMetric() {
                 const key = this.forms.metric.key;
-                const res = await this.apiCall(`/api/v1/metrics/${key}`, 'PATCH', {expr: this.forms.metric.expr});
+                const res = await this.apiCall(`/_iap/api/v1/metrics/${key}`, 'PATCH', {expr: this.forms.metric.expr});
                 if (res) {
                     this.closeModal();
                     this.showToast('Metric updated');
@@ -2059,7 +2059,7 @@
             },
 
             async fetchEvents() {
-                this.data.events = await this.apiCall('/api/v1/events/types') || [];
+                this.data.events = await this.apiCall('/_iap/api/v1/events/types') || [];
             },
             async createEvent() {
                 let schemaObj = {};
@@ -2075,7 +2075,7 @@
                     schema: schemaObj,
                     requires_attribution: null
                 };
-                const res = await this.apiCall('/api/v1/events/types/create', 'POST', payload);
+                const res = await this.apiCall('/_iap/api/v1/events/types/create', 'POST', payload);
                 if (res) {
                     this.closeModal();
                     this.showToast('Event Type created');
@@ -2084,14 +2084,14 @@
             },
 
             async fetchNotifications() {
-                this.data.notifications = await this.apiCall('/api/v1/notification-rules') || [];
+                this.data.notifications = await this.apiCall('/_iap/api/v1/notification-rules') || [];
             },
             async createNotification() {
                 const payload = {
                     ...this.forms.notification,
                     rate_limit_s: parseInt(this.forms.notification.rate_limit_s)
                 };
-                const res = await this.apiCall('/api/v1/notification-rules/create', 'POST', payload);
+                const res = await this.apiCall('/_iap/api/v1/notification-rules/create', 'POST', payload);
                 if (res) {
                     this.closeModal();
                     this.showToast('Notification Rule created');
@@ -2100,7 +2100,7 @@
             },
 
             async createUser() {
-                const res = await this.apiCall('/api/v1/accounts/create', 'POST', this.forms.user);
+                const res = await this.apiCall('/_iap/api/v1/accounts/create', 'POST', this.forms.user);
                 if (res) {
                     this.forms.user.email = '';
                     this.showToast('User created');
@@ -2108,7 +2108,7 @@
             },
 
             async lookupUser(email) {
-                const res = await this.apiCall(`/api/v1/accounts/user/by-email?email=${email}`);
+                const res = await this.apiCall(`/_iap/api/v1/accounts/user/by-email?email=${email}`);
                 if (res) alert(`User: ${res.id}, Role: ${res.role}`);
             },
 

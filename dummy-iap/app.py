@@ -132,6 +132,9 @@ async def proxy(request: Request, path: str | None = None) -> Response:
         if not user_id or not user_email:
             return Redirect(f"/_iap/login?next={request.url}")
 
+    if path.startswith("/_iap/api"):
+        path = path.removeprefix("/_iap")
+
     url = f"{config.upstream}/{path.removeprefix('/')}"
     if request.url.query:
         url += f"?{request.url.query}"
