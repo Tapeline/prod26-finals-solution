@@ -63,7 +63,7 @@ def test_b5_6_after_cooldown_ttl_user_can_participate(
     assert d2_blocked["experiment_id"] is None
 
     # Wait for cooldown TTL to expire (config: 15s)
-    time.sleep(16)
+    time.sleep(20)
 
     # Now user can participate in exp2
     d2_after = get_flag_decision(subject_id, flag_key_2)

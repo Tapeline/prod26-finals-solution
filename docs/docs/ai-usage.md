@@ -19,12 +19,13 @@
 - Компонентная диаграмма C4
 - ADR009 — JSON Schema в качестве формата схемы событий
 - Шаблоны HTML в dummy-iap
-- БольшАя часть приёмочных тестов по критериям изначально сгенерированы, после
-  чего отрефакторены
+- Большая часть приёмочных тестов по критериям изначально сгенерированы, после
+  чего отрефакторены (ну все почти, если честно :) )
 - `cooldown.lua` предложен Gemini как оптимизация
 - clickhouse миграция
-- clickhouse сервис в `docker-compose.yml`
+- clickhouse и nginx сервис в `docker-compose.yml`
 - отдельные элементы кодогенерации ClickHouse запросов в
   `alphabet-backend/src/alphabet/metrics/infrastructure/codegen.py` и
   `alphabet-backend/src/alphabet/metrics/infrastructure/evaluator.py`
 - `index.html` фронтенда
+- Структура матрицы соответствия

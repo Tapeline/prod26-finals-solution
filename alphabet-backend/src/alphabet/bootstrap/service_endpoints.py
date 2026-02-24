@@ -7,12 +7,11 @@ from dishka.integrations.litestar import inject
 from litestar import Controller, MediaType, Response, get, post
 from litestar.plugins.prometheus import PrometheusController
 from litestar.response import Template
+from msgspec import Struct
 from redis.asyncio import Redis
 from sqlalchemy import text
-from msgspec import Struct
 
 from alphabet.access.application.interfaces import UserRepository
-from alphabet.access.infrastructure.repos import SqlUserRepository
 from alphabet.access.presentation.controller import UserResponse
 from alphabet.decisions.application import (
     ExperimentStorage,
@@ -76,6 +75,7 @@ class TestNewUserRequest(Struct):
 
 
 # This is wrong in so many ways, but is so convenient for testing :)
+
 
 class TestDataManagerController(Controller):
     path = "/_internal/data"
@@ -149,7 +149,7 @@ class TestDataManagerController(Controller):
         self,
         tx: FromDishka[SqlTransactionManager],
         repo: FromDishka[UserRepository],
-        data: TestNewUserRequest
+        data: TestNewUserRequest,
     ) -> UserResponse:
         user = User(
             id=UserId(data.id),
