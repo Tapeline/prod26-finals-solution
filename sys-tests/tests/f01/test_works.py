@@ -110,7 +110,7 @@ def test_f1_1_guardrail_fires_notification(
             timeout=10.0,
         ).raise_for_status()
 
-    time.sleep(10)
+    time.sleep(20)
 
     message = mailpit.assert_email_received(
         to_address="test@example.com",

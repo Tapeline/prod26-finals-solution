@@ -51,6 +51,7 @@ nav:
       - Карта репозитория: repo-map.md
       - Автоматизация: automation.md
       - Экспл. готовность: ops-examples.md
+      - Highload: highload.md
       - Матрица соответствия: compliance-matrix.md
       - Использование ИИ: ai-usage.md
 

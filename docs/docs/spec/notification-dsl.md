@@ -61,12 +61,12 @@ experiment-id ::=
 
 Доступные параметры контекста:
 
-== "experiment_lifecycle"
+=== "experiment_lifecycle"
     
     - `state` — новое состояние эксперимента
     - `id` — ID эксперимента
 
-== "guardrail"
+=== "guardrail"
 
     - `audit_id` — ID записи аудита
     - `rule_id` — ID сработавшего правила
@@ -76,6 +76,6 @@ experiment-id ::=
     - `metric_value` — ID записи аудита
     - `taken_action` — действие guardrail на эксперимент (`pause`, `force_control`)
 
-== "Для всех"
+=== "Для всех"
 
     - `iat` — время выпуска уведомления в формате ISO
