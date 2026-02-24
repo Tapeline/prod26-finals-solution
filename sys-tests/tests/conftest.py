@@ -19,23 +19,32 @@ from tests.config import (
 
 @pytest.fixture(scope="session")
 def db_engine():
-    engine = create_engine(config.db_url)
-    yield engine
-    engine.dispose()
+    if use_clear_endpoints:
+        yield None
+    else:
+        engine = create_engine(config.db_url)
+        yield engine
+        engine.dispose()
 
 
 @pytest.fixture(scope="session")
 def redis_client():
-    client = Redis(**redis_args)
-    yield client
-    client.close()
+    if use_clear_endpoints:
+        yield None
+    else:
+        client = Redis(**redis_args)
+        yield client
+        client.close()
 
 
 @pytest.fixture(scope="session")
 def clickhouse_client():
-    client = get_client(**click_args)
-    yield client
-    client.close()
+    if use_clear_endpoints:
+        yield None
+    else:
+        client = get_client(**click_args)
+        yield client
+        client.close()
 
 
 @pytest.fixture(autouse=True)
@@ -73,23 +82,25 @@ def clean_db(db_engine, redis_client, clickhouse_client):
 def create_user_in_db(db_engine):
     def _create(email: str, role: str, iap_id: str = None):
         user_id = str(uuid.uuid4())
-        query = text(
-            """
-            INSERT INTO users (id, email, role, iap_id)
-            VALUES (:id, :email, :role, :iap_id)
-            """
-        )
-        with db_engine.connect() as conn:
-            conn.execute(
-                query, {
-                    "id": user_id,
-                    "email": email,
-                    "role": role,
-                    "iap_id": iap_id
-                }
+        data = {"id": user_id, "email": email, "role": role, "iap_id": iap_id}
+        if not use_clear_endpoints:
+            query = text(
+                """
+                INSERT INTO users (id, email, role, iap_id)
+                VALUES (:id, :email, :role, :iap_id)
+                """
             )
-            conn.commit()
-        return {"id": user_id, "email": email, "role": role, "iap_id": iap_id}
+            with db_engine.connect() as conn:
+                conn.execute(
+                    query, data
+                )
+                conn.commit()
+        else:
+            httpx.post(
+                f"{app_url}/_internal/data/new-user",
+                json={**data, "role": data["role"].lower()}
+            ).raise_for_status()
+        return data
 
     return _create
 
@@ -141,19 +152,6 @@ def create_viewer_in_db(create_user_in_db):
     return lambda email, iap_id=None: create_user_in_db(
         email=email, role="VIEWER", iap_id=iap_id
     )
-
-
-@pytest.fixture
-def get_user_from_db(db_engine):
-    def _get(email: str):
-        query = text("SELECT * FROM users WHERE email = :email")
-        with db_engine.connect() as conn:
-            result = conn.execute(query, {"email": email}).fetchone()
-            if result:
-                return result._mapping
-            return None
-
-    return _get
 
 
 @pytest.fixture

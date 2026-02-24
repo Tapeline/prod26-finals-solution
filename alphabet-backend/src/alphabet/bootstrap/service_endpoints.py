@@ -9,12 +9,17 @@ from litestar.plugins.prometheus import PrometheusController
 from litestar.response import Template
 from redis.asyncio import Redis
 from sqlalchemy import text
+from msgspec import Struct
 
+from alphabet.access.application.interfaces import UserRepository
+from alphabet.access.infrastructure.repos import SqlUserRepository
+from alphabet.access.presentation.controller import UserResponse
 from alphabet.decisions.application import (
     ExperimentStorage,
     FlagStorage,
     WarmUpStorages,
 )
+from alphabet.shared.domain.user import IapId, Role, User, UserId
 from alphabet.shared.infrastructure.transaction import SqlTransactionManager
 from alphabet.subject_events.application.interactors import WarmUpEventTypes
 from alphabet.subject_events.application.interfaces import EventTypeCache
@@ -62,6 +67,15 @@ class LivenessReadinessController(Controller):
     async def health(self) -> Response[str]:
         return Response(status_code=200, content="healthy")
 
+
+class TestNewUserRequest(Struct):
+    id: str
+    email: str
+    role: Role
+    iap_id: str | None
+
+
+# This is wrong in so many ways, but is so convenient for testing :)
 
 class TestDataManagerController(Controller):
     path = "/_internal/data"
@@ -128,3 +142,21 @@ class TestDataManagerController(Controller):
         await warmup_events()
         await warmup_storages()
         return "seeded"
+
+    @post("new-user")
+    @inject
+    async def new_user(
+        self,
+        tx: FromDishka[SqlTransactionManager],
+        repo: FromDishka[UserRepository],
+        data: TestNewUserRequest
+    ) -> UserResponse:
+        user = User(
+            id=UserId(data.id),
+            email=data.email,
+            role=data.role,
+            iap_id=IapId(data.iap_id) if data.iap_id else None,
+        )
+        async with tx:
+            await repo.create(user)
+        return UserResponse.from_user(user)

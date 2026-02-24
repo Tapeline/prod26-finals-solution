@@ -6,7 +6,6 @@ from tests.config import app_url
 
 def test_admin_can_create_user(
     create_user_in_db,
-    get_user_from_db,
     get_user_by_email
 ):
     admin_iap = "iap-admin-01"

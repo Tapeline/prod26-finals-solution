@@ -6,15 +6,14 @@ from tests.config import app_url
 
 def test_admin_can_set_approver_group(
     create_user_in_db,
-    get_user_from_db,
     get_user_by_email
 ):
     admin_iap = "001"
     admin_email = "admin@t.ru"
     create_user_in_db(admin_email, "ADMIN", admin_iap)
-    experimenter = create_user_in_db("exp@t.ru", "EXPERIMENTER", None)
-    approver1 = create_user_in_db("a1@t.ru", "APPROVER", None)
-    approver2 = create_user_in_db("a2@t.ru", "APPROVER", None)
+    experimenter = create_user_in_db("exp@t.ru", "EXPERIMENTER", "exp")
+    approver1 = create_user_in_db("a1@t.ru", "APPROVER", "app1")
+    approver2 = create_user_in_db("a2@t.ru", "APPROVER", "app2")
 
     response = httpx.put(
         f"{app_url}/api/v1/accounts/experimenter/"
