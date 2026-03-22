@@ -3,8 +3,8 @@
 ## Предусловия
 
 - Должен быть установлен Docker + Docker Compose
-- Должны быть свободны порты: `5432`, `8123`, `1025`, `8025`, `6379`, `8000`, `8001`
-  (для autotest) или `80` (для обычного деплоя).
+  - Должны быть свободны порты: `5432`, `8123`, `1025`, `8025`, `6379`, `8000`, `8001`
+    (для autotest) или `80` (для обычного деплоя).
 
 ## Конфигурация
 
@@ -31,8 +31,8 @@ curl -X 'GET' \
 Готовый сервис должен ответить `ready`.
 
 - На `localhost:80/api` будет развёрнуто API.
-- На `localhost:80` — Identity-Aware Proxy (IAP)
-- На `localhost:80/mailpit` — веб-интерфейс тестового SMTP сервера
+  - На `localhost:80` — Identity-Aware Proxy (IAP)
+  - На `localhost:80/mailpit` — веб-интерфейс тестового SMTP сервера
 
 ## Размещение тестовых данных
 
@@ -43,7 +43,7 @@ curl -X 'GET' \
 ```sh
 curl -X 'POST' \
   'http://localhost/_internal/data/clear' \
-  -H 'accept: text/plain' \
+  -H 'accept: text/plain' \ 
   -d ''
 ```
 

@@ -1,6 +1,6 @@
 site_name: Alphabet dev docs
-site_url: https://yt-redstone-mail-e7ec37.pages.prodcontest.com/
-repo_url: https://gitlab.prodcontest.com/2026-final-users/backend/yt.redstone.mail
+site_url: https://tapeline.github.io/prod26-finals-solution
+repo_url: https://github.com/Tapeline/prod26-finals-solution
 copyright: "&copy; Copyright Tapeline 2026"
 nav:
   - Домашняя: index.md
